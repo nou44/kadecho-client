@@ -1,0 +1,38 @@
+:root {
+  /* Brand */
+
+  --color-primary: #dc2626;
+  --color-primary-dark: #991b1b;
+
+  /* Background */
+
+  --color-bg: #09090b;
+  --color-surface: #18181b;
+
+  /* Text */
+
+  --color-white: #ffffff;
+  --color-light: #f4f4f5;
+  --color-gray: #71717a;
+
+  /* Border */
+
+  --color-border: rgba(255,255,255,.08);
+
+  /* Fonts */
+
+  --font-title: "Poppins", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  /* Radius */
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  /* Shadow */
+
+  --shadow-primary:
+    0 0 40px rgba(220,38,38,.25);
+}

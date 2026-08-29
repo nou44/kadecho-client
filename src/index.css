@@ -1,0 +1,294 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "./styles/variables.css";
+@import "./styles/globals.css";
+
+/* Hide scrollbar */
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-gradient {
+  animation: gradientMove 4s linear infinite;
+}
+
+.font-bebas {
+  font-family: "Bebas Neue", sans-serif;
+}
+.font-satoshi {
+  font-family: "Satoshi", sans-serif;
+}
+
+@keyframes gradient-x {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 6s linear infinite;
+}
+/* Hide Scrollbar */
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+@keyframes rotateBorder {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.border-animation {
+  position: absolute;
+  inset: -50%;
+
+  background: conic-gradient(
+    transparent 0deg,
+    transparent 300deg,
+    #ef4444 330deg,
+    white 340deg,
+    #ef4444 360deg
+  );
+
+  animation: rotateBorder 4s linear infinite;
+}
+
+
+/* =========================================================
+   KADECHO — PREMIUM ANIMATED SCROLLBAR
+========================================================= */
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #dc2626 #050505;
+}
+
+body {
+  margin: 0;
+  background: #050505;
+  scrollbar-width: thin;
+  scrollbar-color: #dc2626 #050505;
+}
+
+
+/* =========================================================
+   CHROME / EDGE / SAFARI
+========================================================= */
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+
+/* TRACK */
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+
+/* THUMB */
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  min-height: 45px;
+
+  border-radius: 999px;
+
+  border: 2px solid #050505;
+
+  background: linear-gradient(
+    180deg,
+    #7f1d1d 0%,
+    #dc2626 30%,
+    #ef4444 50%,
+    #dc2626 70%,
+    #7f1d1d 100%
+  );
+
+  background-size: 100% 220%;
+
+  animation: kadechoScrollbarFlow 3.5s ease-in-out infinite;
+
+  box-shadow:
+    0 0 8px rgba(239, 68, 68, 0.25),
+    inset 0 0 4px rgba(255, 255, 255, 0.08);
+
+  transition:
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+
+/* HOVER */
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    #991b1b 0%,
+    #ef4444 35%,
+    #f87171 50%,
+    #ef4444 65%,
+    #991b1b 100%
+  );
+
+  box-shadow:
+    0 0 12px rgba(239, 68, 68, 0.45),
+    inset 0 0 5px rgba(255, 255, 255, 0.12);
+}
+
+
+/* CORNER */
+
+html::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner {
+  background: #050505;
+}
+
+
+/* =========================================================
+   ANIMATION
+========================================================= */
+
+@keyframes kadechoScrollbarFlow {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  50% {
+    background-position: 0% 100%;
+  }
+
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+
+/* =========================================================
+   DASHBOARD / INTERNAL SCROLL CONTAINERS
+========================================================= */
+
+.dashboard-scroll,
+.overflow-auto,
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #dc2626 #050505;
+}
+
+
+.dashboard-scroll::-webkit-scrollbar,
+.overflow-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+
+.dashboard-scroll::-webkit-scrollbar-track,
+.overflow-auto::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+
+.dashboard-scroll::-webkit-scrollbar-thumb,
+.overflow-auto::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  min-height: 45px;
+
+  border-radius: 999px;
+
+  border: 2px solid #050505;
+
+  background: linear-gradient(
+    180deg,
+    #7f1d1d 0%,
+    #dc2626 30%,
+    #ef4444 50%,
+    #dc2626 70%,
+    #7f1d1d 100%
+  );
+
+  background-size: 100% 220%;
+
+  animation: kadechoScrollbarFlow 3.5s ease-in-out infinite;
+
+  box-shadow:
+    0 0 8px rgba(239, 68, 68, 0.22),
+    inset 0 0 4px rgba(255, 255, 255, 0.08);
+}
+
+
+.dashboard-scroll::-webkit-scrollbar-thumb:hover,
+.overflow-auto::-webkit-scrollbar-thumb:hover,
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    #991b1b 0%,
+    #ef4444 35%,
+    #f87171 50%,
+    #ef4444 65%,
+    #991b1b 100%
+  );
+
+  box-shadow:
+    0 0 12px rgba(239, 68, 68, 0.45),
+    inset 0 0 5px rgba(255, 255, 255, 0.12);
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb,
+  .dashboard-scroll::-webkit-scrollbar-thumb,
+  .overflow-auto::-webkit-scrollbar-thumb,
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    animation: none;
+  }
+}
+
