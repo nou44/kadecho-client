@@ -45,9 +45,9 @@ export default function DashboardHome() {
   useEffect(() => {
     const fetchProductsCount = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5000/api/products"
-        );
+       const response = await fetch(
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/products`
+);
 
         const result = await response.json();
 
@@ -83,10 +83,9 @@ export default function DashboardHome() {
   useEffect(() => {
     const fetchOrdersCount = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5000/api/orders"
-        );
-
+       const response = await fetch(
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/orders`
+);
         const result = await response.json();
 
         if (!response.ok) {
@@ -121,9 +120,9 @@ export default function DashboardHome() {
   useEffect(() => {
     const fetchMessagesCount = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5000/api/contact"
-        );
+      const response = await fetch(
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/contact`
+);
 
         const result = await response.json();
 
@@ -160,8 +159,8 @@ export default function DashboardHome() {
     const fetchProjectsCount = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/projects"
-        );
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/projects`
+);
 
         const result = await response.json();
 
@@ -200,8 +199,8 @@ export default function DashboardHome() {
     const fetchInvoicesCount = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/invoices"
-        );
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/invoices`
+);
 
         const result = await response.json();
 

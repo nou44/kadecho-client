@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
-const API_URL = "http://localhost:5000/api/projects";
+const API_URL =
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/projects`;
 
 export default function ProjectsList() {
   const [projects, setProjects] = useState([]);
