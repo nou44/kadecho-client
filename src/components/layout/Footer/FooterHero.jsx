@@ -311,21 +311,21 @@ export default function FooterHero() {
               "
             />
 
-            <img
-              src="/logo1.png"
-              alt="KADECHO"
-              className="
-                relative
-                z-10
+          <img 
+  src="/logo1.webp" 
+  alt="KADECHO" 
+  className=" 
+    relative 
+    z-10 
 
-                h-20
-                w-20
+    h-20 
+    w-20 
 
-                object-contain
+    object-contain 
 
-                drop-shadow-[0_0_30px_rgba(220,38,38,.22)]
-              "
-            />
+    drop-shadow-[0_0_30px_rgba(220,38,38,.22)] 
+  " 
+/>
 
           </motion.div>
 

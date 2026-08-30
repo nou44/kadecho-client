@@ -262,18 +262,18 @@ export default function LoadingScreen() {
               sm:w-36
             "
           >
-            <img
-              src="/logo1.png"
-              alt="KADECHO"
-              className="
-                relative
-                z-10
-                w-28
-                object-contain
-                drop-shadow-[0_0_35px_rgba(239,68,68,.38)]
-                sm:w-32
-              "
-            />
+           <img
+  src="/logo1.webp"
+  alt="KADECHO"
+  className="
+    relative
+    z-10
+    h-30
+    w-30
+    object-contain
+    drop-shadow-[0_0_30px_rgba(220,38,38,.22)]
+  "
+/>
           </div>
         </motion.div>
 
