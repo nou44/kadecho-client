@@ -13,7 +13,8 @@ import FeaturedCard from "./FeaturedCard";
 
 import "swiper/css";
 
-const API_URL = "http://localhost:5000/api/projects";
+const API_URL =
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/projects`;
 
 export default function FeaturedSlider() {
   const [projects, setProjects] = useState([]);

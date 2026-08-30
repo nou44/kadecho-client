@@ -3,7 +3,8 @@ import { AnimatePresence } from "framer-motion";
 
 import FloatingCard from "./FloatingCard";
 
-const API_URL = "http://localhost:5000/api/products";
+const API_URL =
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/products`;
 
 export default function FloatingProduct() {
   const [visible, setVisible] = useState(false);

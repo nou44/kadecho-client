@@ -8,7 +8,8 @@ import SearchBar from "./SearchBar";
 import FilterSidebar from "./FilterSidebar";
 import ProductCard from "./ProductCard";
 
-const API_URL = "http://localhost:5000/api/products";
+const API_URL =
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/products`;
 
 export default function ProductGrid() {
   const [searchParams] = useSearchParams();

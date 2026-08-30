@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
-const API_URL = "http://localhost:5000/api/contact";
+const API_URL =
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/contact`;
 
 export default function ContactMessages() {
   const [messages, setMessages] = useState([]);

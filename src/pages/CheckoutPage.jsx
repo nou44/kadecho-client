@@ -120,18 +120,18 @@ export default function CheckoutPage() {
       // SEND TO BACKEND
       // =================================================
 
-      const response = await fetch(
-        "http://localhost:5000/api/orders",
-        {
-          method: "POST",
+    const response = await fetch(
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/orders`,
+  {
+    method: "POST",
 
-          headers: {
-            "Content-Type": "application/json",
-          },
+    headers: {
+      "Content-Type": "application/json",
+    },
 
-          body: JSON.stringify(orderData),
-        }
-      );
+    body: JSON.stringify(orderData),
+  }
+);
 
       const data = await response.json();
 

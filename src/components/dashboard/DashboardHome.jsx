@@ -240,9 +240,8 @@ export default function DashboardHome() {
     const fetchTopProductsCount = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/top-products"
-        );
-
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/top-products`
+);
         const result = await response.json();
 
         if (!response.ok) {

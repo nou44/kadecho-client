@@ -90,18 +90,18 @@ export default function ContactForm() {
     try {
       setLoading(true);
 
-      const response = await fetch(
-        "http://localhost:5000/api/contact",
-        {
-          method: "POST",
+   const response = await fetch(
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/contact`,
+  {
+    method: "POST",
 
-          headers: {
-            "Content-Type": "application/json",
-          },
+    headers: {
+      "Content-Type": "application/json",
+    },
 
-          body: JSON.stringify(form),
-        }
-      );
+    body: JSON.stringify(form),
+  }
+);
 
       const result = await response.json();
 

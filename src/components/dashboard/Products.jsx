@@ -13,7 +13,8 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import EditProduct from "./EditProduct";
 
-const API_URL = "http://localhost:5000/api/products";
+const API_URL =
+  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/products`;
 
 export default function Products() {
   const [products, setProducts] = useState([]);
