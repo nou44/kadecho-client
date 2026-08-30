@@ -14,6 +14,27 @@ import { useFlyToCart } from "../../context/FlyToCartContext";
 import HoverDescription from "./HoverDescription";
 import useIsMobile from "./useIsMobile";
 
+/* =========================================================
+   CLOUDINARY IMAGE OPTIMIZATION
+========================================================= */
+
+const getOptimizedImage = (url, width = 500) => {
+  if (!url) return "";
+
+  if (!url.includes("res.cloudinary.com")) {
+    return url;
+  }
+
+  if (!url.includes("/image/upload/")) {
+    return url;
+  }
+
+  return url.replace(
+    "/image/upload/",
+    `/image/upload/f_auto,q_auto,w_${width}/`
+  );
+};
+
 export default function ProductCard({ product }) {
   const productImageRef = useRef(null);
 
@@ -85,6 +106,15 @@ export default function ProductCard({ product }) {
 
     addToCart(product, 1);
   };
+
+  /* =========================================================
+     OPTIMIZED IMAGE
+  ========================================================= */
+
+  const optimizedImage = getOptimizedImage(
+    product?.image,
+    500
+  );
 
   return (
     <div className="relative min-w-0">
@@ -179,21 +209,12 @@ export default function ProductCard({ product }) {
               xl:h-[210px]
             "
           >
-            <motion.img
+            <img
               ref={productImageRef}
-              src={product.image}
+              src={optimizedImage}
               alt={product.name}
-              whileHover={
-                !isMobile
-                  ? {
-                      scale: 1.035,
-                    }
-                  : {}
-              }
-              transition={{
-                duration: 0.6,
-                ease: [0.22, 1, 0.36, 1],
-              }}
+              loading="lazy"
+              decoding="async"
               className="
                 h-full
                 w-full
@@ -202,6 +223,8 @@ export default function ProductCard({ product }) {
 
                 transition-transform
                 duration-700
+
+                group-hover:scale-[1.035]
               "
             />
 
@@ -355,72 +378,71 @@ export default function ProductCard({ product }) {
                 SAVE AMOUNT
             ================================================= */}
 
-           
             {hasSale && (
-  <motion.div
-    initial={{
-      opacity: 0,
-      x: -6,
-    }}
-    animate={{
-      opacity: 1,
-      x: 0,
-    }}
-    transition={{
-      duration: 0.3,
-      delay: 0.1,
-    }}
-    className="
-      absolute
-      bottom-2
-      left-2
+              <motion.div
+                initial={{
+                  opacity: 0,
+                  x: -6,
+                }}
+                animate={{
+                  opacity: 1,
+                  x: 0,
+                }}
+                transition={{
+                  duration: 0.3,
+                  delay: 0.1,
+                }}
+                className="
+                  absolute
+                  bottom-2
+                  left-2
 
-      z-20
+                  z-20
 
-      inline-flex
-      items-center
-      gap-0.5
-      sm:gap-1
+                  inline-flex
+                  items-center
+                  gap-0.5
+                  sm:gap-1
 
-      rounded-[5px]
-      sm:rounded-md
+                  rounded-[5px]
+                  sm:rounded-md
 
-      border
-      border-emerald-500/25
+                  border
+                  border-emerald-500/25
 
-      bg-black/65
+                  bg-black/65
 
-      px-1.5
-      py-0.5
-      sm:px-2
-      sm:py-1
+                  px-1.5
+                  py-0.5
+                  sm:px-2
+                  sm:py-1
 
-      backdrop-blur-xl
-    "
-  >
-    <Zap
-      size={8}
-      className="text-emerald-400 sm:h-[9px] sm:w-[9px]"
-      fill="currentColor"
-    />
+                  backdrop-blur-xl
+                "
+              >
+                <Zap
+                  size={8}
+                  className="text-emerald-400 sm:h-[9px] sm:w-[9px]"
+                  fill="currentColor"
+                />
 
-    <span
-      className="
-        text-[6px]
-        sm:text-[8px]
+                <span
+                  className="
+                    text-[6px]
+                    sm:text-[8px]
 
-        font-semibold
-        uppercase
-        tracking-[0.05em]
-        sm:tracking-[0.08em]
+                    font-semibold
+                    uppercase
+                    tracking-[0.05em]
+                    sm:tracking-[0.08em]
 
-        text-emerald-400
-      "
-    >
-      Save {saveAmount} DH
-    </span>
-  </motion.div>
-)}
+                    text-emerald-400
+                  "
+                >
+                  Save {saveAmount} DH
+                </span>
+              </motion.div>
+            )}
           </div>
         </Link>
 
@@ -444,8 +466,6 @@ export default function ProductCard({ product }) {
         >
           {/* =================================================
               CATEGORY
-              PC = ORIGINAL
-              MOBILE = HIDDEN
           ================================================= */}
 
           <div
@@ -521,9 +541,6 @@ export default function ProductCard({ product }) {
 
           {/* =================================================
               TITLE
-
-              PC = ORIGINAL POSITION
-              MOBILE = SMALL EXTRA TOP SPACE
           ================================================= */}
 
           <Link
@@ -574,9 +591,6 @@ export default function ProductCard({ product }) {
 
           {/* =================================================
               MOBILE DESCRIPTION
-
-              ONLY MOBILE
-              This takes the place where category was.
           ================================================= */}
 
           <div className="sm:hidden">
@@ -642,8 +656,6 @@ export default function ProductCard({ product }) {
 
           {/* =================================================
               PRICE + CART
-
-              ORIGINAL DESKTOP STRUCTURE
           ================================================= */}
 
           <div
@@ -670,15 +682,11 @@ export default function ProductCard({ product }) {
                   sm:gap-2
                 "
               >
-                <motion.span
-                  animate={{
-                    opacity: [1, 0.95, 1],
-                  }}
-                  transition={{
-                    duration: 3.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
+                {/* PERFORMANCE:
+                    Removed infinite Framer Motion animation
+                */}
+
+                <span
                   className="
                     whitespace-nowrap
 
@@ -696,7 +704,7 @@ export default function ProductCard({ product }) {
                   "
                 >
                   {currentPrice} DH
-                </motion.span>
+                </span>
 
                 {hasSale && (
                   <span
@@ -854,8 +862,6 @@ export default function ProductCard({ product }) {
 
       {/* =======================================================
           DESKTOP DESCRIPTION
-
-          100% ORIGINAL BEHAVIOR
       ======================================================= */}
 
       {!isMobile ? (
