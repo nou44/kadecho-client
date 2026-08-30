@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
-import logo from "../../../assets/images/logo.png";
+import logo from "../../../assets/images/kadecho-logo-256.webp";
 
 export default function Logo() {
   return (
