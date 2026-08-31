@@ -16,6 +16,7 @@ import topProductRoutes from "./routes/topProductRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import subscriberRoutes from "./routes/subscriberRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
+import heroVideoRoutes from "./routes/heroVideoRoutes.js";
 
 
 
@@ -44,6 +45,7 @@ app.use("/api/top-products", topProductRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/subscribers", subscriberRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/hero-videos", heroVideoRoutes);
 
 const startServer = async () => {
   try {
