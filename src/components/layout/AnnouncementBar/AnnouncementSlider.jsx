@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 
 import { announcements } from "../../../constants/announcementData";
 import AnnouncementItem from "./AnnouncementItem";
@@ -8,6 +8,8 @@ export default function AnnouncementSlider() {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
+    if (announcements.length <= 1) return;
+
     const interval = setInterval(() => {
       setCurrent((prev) => (prev + 1) % announcements.length);
     }, 3500);
@@ -15,59 +17,55 @@ export default function AnnouncementSlider() {
     return () => clearInterval(interval);
   }, []);
 
+  if (!announcements.length) return null;
+
   const announcement = announcements[current];
 
   return (
     <div
       className="
         relative
-
         flex
         h-10
         w-full
-
         items-center
         justify-center
-
         overflow-hidden
       "
     >
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={announcement.id}
-          initial={{
-            opacity: 0,
-            y: 12,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          exit={{
-            opacity: 0,
-            y: -12,
-          }}
-          transition={{
-            duration: 0.35,
-            ease: "easeOut",
-          }}
-          className="
-            absolute
-            inset-0
+      {/* ANNOUNCEMENT */}
 
-            flex
-            items-center
-            justify-center
-          "
-        >
-          <AnnouncementItem
-            icon={announcement.icon}
-            text={announcement.text}
-          />
-        </motion.div>
-      </AnimatePresence>
+      <motion.div
+        key={announcement.id}
+        initial={{
+          opacity: 0,
+          y: 8,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        transition={{
+          duration: 0.28,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+        className="
+          absolute
+          inset-0
 
-      {/* Progress dots */}
+          flex
+          items-center
+          justify-center
+        "
+      >
+        <AnnouncementItem
+          icon={announcement.icon}
+          text={announcement.text}
+        />
+      </motion.div>
+
+      {/* PROGRESS */}
+
       <div
         className="
           pointer-events-none
@@ -89,8 +87,9 @@ export default function AnnouncementSlider() {
               h-[2px]
               rounded-full
 
-              transition-all
-              duration-500
+              transition-[width,background-color]
+              duration-300
+              ease-out
 
               ${
                 index === current

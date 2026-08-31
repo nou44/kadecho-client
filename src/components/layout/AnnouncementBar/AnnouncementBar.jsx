@@ -8,7 +8,6 @@ export default function AnnouncementBar() {
       className="
         relative
         w-full
-
         overflow-hidden
 
         border-b
@@ -17,11 +16,15 @@ export default function AnnouncementBar() {
         bg-[#070707]
       "
     >
-      {/* Top red glow */}
+      {/* =====================================================
+          TOP RED LINE
+      ===================================================== */}
+
       <div
         className="
           pointer-events-none
           absolute
+
           left-1/2
           top-0
 
@@ -32,36 +35,15 @@ export default function AnnouncementBar() {
 
           bg-gradient-to-r
           from-transparent
-          via-red-500/70
+          via-red-500/60
           to-transparent
-
-          blur-[0.5px]
         "
       />
 
-      {/* Ambient glow */}
-      <div
-        className="
-          pointer-events-none
-          absolute
-          left-1/2
-          top-1/2
+      {/* =====================================================
+          DESKTOP
+      ===================================================== */}
 
-          h-20
-          w-[45%]
-
-          -translate-x-1/2
-          -translate-y-1/2
-
-          rounded-full
-
-          bg-red-600/[0.04]
-
-          blur-3xl
-        "
-      />
-
-      {/* Desktop */}
       <div
         className="
           relative
@@ -90,19 +72,15 @@ export default function AnnouncementBar() {
             className="
               flex
               items-center
-
-              animate-[fadeIn_.5s_ease-out]
             "
-            style={{
-              animationDelay: `${index * 100}ms`,
-            }}
           >
             <AnnouncementItem
               icon={item.icon}
               text={item.text}
             />
 
-            {/* Divider */}
+            {/* DIVIDER */}
+
             {index < announcements.length - 1 && (
               <span
                 className="
@@ -124,7 +102,10 @@ export default function AnnouncementBar() {
         ))}
       </div>
 
-      {/* Mobile */}
+      {/* =====================================================
+          MOBILE
+      ===================================================== */}
+
       <div
         className="
           relative

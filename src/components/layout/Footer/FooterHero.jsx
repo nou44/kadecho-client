@@ -312,7 +312,7 @@ export default function FooterHero() {
             />
 
           <img 
-  src="/logo1.webp" 
+  src="/kadecho-logo-320.webp" 
   alt="KADECHO" 
   className=" 
     relative 

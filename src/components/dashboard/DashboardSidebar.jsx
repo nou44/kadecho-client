@@ -255,7 +255,7 @@ export default function DashboardSidebar({
       {/* Logo image */}
 
       <img
-        src="/logo1.webp"
+        src="/kadecho-logo-320.webp"
         alt="Kadecho"
         className="
           relative

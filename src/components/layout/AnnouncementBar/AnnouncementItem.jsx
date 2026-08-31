@@ -18,13 +18,14 @@ export default function AnnouncementItem({ icon: Icon, text }) {
 
         text-zinc-400
 
-        transition-all
+        transition-colors
         duration-300
 
         hover:text-white
       "
     >
-      {/* Icon */}
+      {/* ICON */}
+
       <span
         className="
           flex
@@ -34,7 +35,7 @@ export default function AnnouncementItem({ icon: Icon, text }) {
           transition-transform
           duration-300
 
-          group-hover:scale-110
+          group-hover:scale-105
         "
       >
         <Icon
@@ -45,16 +46,16 @@ export default function AnnouncementItem({ icon: Icon, text }) {
 
             text-red-500
 
-            transition-all
+            transition-colors
             duration-300
 
             group-hover:text-red-400
-            group-hover:drop-shadow-[0_0_8px_rgba(239,68,68,.5)]
           "
         />
       </span>
 
-      {/* Text */}
+      {/* TEXT */}
+
       <span
         className="
           leading-none

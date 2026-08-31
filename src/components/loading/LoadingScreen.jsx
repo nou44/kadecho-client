@@ -263,7 +263,7 @@ export default function LoadingScreen() {
             "
           >
            <img
-  src="/logo1.webp"
+  src="/kadecho-logo-320.webp"
   alt="KADECHO"
   className="
     relative
