@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 
 const topItems = [
@@ -24,6 +23,9 @@ function Ribbon({
   reverse = false,
   variant = "red",
 }) {
+  /*
+   * Duplicate items so the marquee can loop smoothly.
+   */
   const list = [...items, ...items];
 
   const isRed = variant === "red";
@@ -33,145 +35,141 @@ function Ribbon({
       className={`
         group
         relative
+
         h-10
         sm:h-11
+
         overflow-hidden
+
         rounded-full
 
         border
-
-        backdrop-blur-xl
-
-        transition-all
-        duration-500
 
         ${
           isRed
             ? `
               border-red-400/25
+
               bg-gradient-to-r
               from-[#9f1111]
               via-[#dc2626]
               to-[#9f1111]
 
-              shadow-[0_8px_30px_rgba(220,38,38,.16)]
+              shadow-[0_8px_30px_rgba(220,38,38,.14)]
             `
             : `
               border-white/[0.08]
+
               bg-gradient-to-r
               from-[#0a0a0a]
               via-[#111111]
               to-[#0a0a0a]
 
-              shadow-[0_8px_30px_rgba(0,0,0,.42)]
+              shadow-[0_8px_30px_rgba(0,0,0,.38)]
             `
         }
+
+        transition-colors
+        duration-300
 
         ${
           isRed
             ? "hover:border-red-300/35"
-            : "hover:border-white/12"
+            : "hover:border-white/[0.12]"
         }
       `}
     >
-      {/* INNER BORDER */}
+      {/* =====================================================
+          INNER BORDER
+      ===================================================== */}
 
       <div
         className="
           pointer-events-none
+
           absolute
           inset-[1px]
+
           z-20
+
           rounded-full
+
           border
           border-white/[0.045]
         "
       />
 
-      {/* TOP REFLECTION */}
+      {/* =====================================================
+          TOP REFLECTION
+      ===================================================== */}
 
       <div
         className="
           pointer-events-none
+
           absolute
           inset-x-0
           top-0
+
           z-30
+
           h-px
 
           bg-gradient-to-r
           from-transparent
-          via-white/25
+          via-white/20
           to-transparent
-
-          opacity-70
         "
       />
 
-      {/* RED LIGHT */}
+      {/* =====================================================
+          SUBTLE RED LIGHT
+          Static = no continuous animation
+      ===================================================== */}
 
       {isRed && (
-        <>
-          <div
-            className="
-              pointer-events-none
-              absolute
-              inset-0
-
-              bg-gradient-to-r
-              from-transparent
-              via-white/[0.055]
-              to-transparent
-            "
-          />
-
-          <motion.div
-            animate={{
-              x: ["-120%", "120%"],
-            }}
-            transition={{
-              duration: 5,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            className="
-              pointer-events-none
-              absolute
-              inset-y-0
-              left-0
-
-              w-1/5
-
-              rotate-[8deg]
-
-              bg-white/[0.06]
-
-              blur-xl
-            "
-          />
-        </>
-      )}
-
-      {/* DARK RIBBON LIGHT */}
-
-      {!isRed && (
         <div
           className="
             pointer-events-none
+
             absolute
-            inset-x-0
-            top-0
-            h-px
+            inset-0
 
             bg-gradient-to-r
             from-transparent
-            via-red-500/25
+            via-white/[0.045]
             to-transparent
           "
         />
       )}
 
-      {/* MARQUEE */}
+      {/* =====================================================
+          DARK RIBBON ACCENT
+      ===================================================== */}
+
+      {!isRed && (
+        <div
+          className="
+            pointer-events-none
+
+            absolute
+            inset-x-0
+            top-0
+
+            h-px
+
+            bg-gradient-to-r
+            from-transparent
+            via-red-500/20
+            to-transparent
+          "
+        />
+      )}
+
+      {/* =====================================================
+          MARQUEE
+          Main animation — KEEP
+      ===================================================== */}
 
       <motion.div
         animate={{
@@ -191,6 +189,7 @@ function Ribbon({
           flex
           h-full
           w-max
+
           items-center
 
           will-change-transform
@@ -198,15 +197,19 @@ function Ribbon({
       >
         {list.map((item, index) => (
           <div
-            key={index}
+            key={`${item}-${index}`}
             className="
               flex
               shrink-0
+
               items-center
+
               gap-5
 
               px-6
+
               sm:px-7
+
               lg:px-8
             "
           >
@@ -217,12 +220,15 @@ function Ribbon({
                 font-bebas
 
                 text-[14px]
+
                 sm:text-[15px]
+
                 lg:text-[16px]
 
                 leading-none
 
                 tracking-[0.22em]
+
                 sm:tracking-[0.24em]
 
                 whitespace-nowrap
@@ -239,21 +245,15 @@ function Ribbon({
 
             {/* STAR */}
 
-            <motion.span
-              animate={{
-                rotate: [0, 90, 180, 270, 360],
-              }}
-              transition={{
-                duration: 10,
-                repeat: Infinity,
-                ease: "linear",
-              }}
+            <span
               className={`
                 flex
+
                 items-center
                 justify-center
 
                 text-[13px]
+
                 sm:text-[14px]
 
                 ${
@@ -264,22 +264,27 @@ function Ribbon({
               `}
             >
               ✦
-            </motion.span>
+            </span>
           </div>
         ))}
       </motion.div>
 
-      {/* LEFT FADE */}
+      {/* =====================================================
+          LEFT FADE
+      ===================================================== */}
 
       <div
         className={`
           pointer-events-none
+
           absolute
           inset-y-0
           left-0
+
           z-20
 
           w-10
+
           sm:w-14
 
           bg-gradient-to-r
@@ -294,17 +299,22 @@ function Ribbon({
         `}
       />
 
-      {/* RIGHT FADE */}
+      {/* =====================================================
+          RIGHT FADE
+      ===================================================== */}
 
       <div
         className={`
           pointer-events-none
+
           absolute
           inset-y-0
           right-0
+
           z-20
 
           w-10
+
           sm:w-14
 
           bg-gradient-to-l
@@ -327,16 +337,22 @@ export default function PromoSlider() {
     <section
       className="
         relative
+
         overflow-hidden
 
         bg-[#050505]
 
         py-8
+
         sm:py-9
+
         lg:py-11
       "
     >
-      {/* CENTER GLOW */}
+      {/* =====================================================
+          VERY SUBTLE CENTER LIGHT
+          Static — no animation
+      ===================================================== */}
 
       <div
         className="
@@ -345,17 +361,20 @@ export default function PromoSlider() {
           absolute
           inset-0
 
-          bg-[radial-gradient(circle_at_center,rgba(220,38,38,.065),transparent_68%)]
+          bg-[radial-gradient(circle_at_center,rgba(220,38,38,.045),transparent_68%)]
         "
       />
 
-      {/* TOP LIGHT */}
+      {/* =====================================================
+          TOP LIGHT
+      ===================================================== */}
 
       <div
         className="
           pointer-events-none
 
           absolute
+
           left-1/2
           top-0
 
@@ -366,44 +385,33 @@ export default function PromoSlider() {
 
           bg-gradient-to-r
           from-transparent
-          via-red-500/20
+          via-red-500/18
           to-transparent
         "
       />
 
-      {/* RIBBONS */}
+      {/* =====================================================
+          RIBBONS
+      ===================================================== */}
 
-      <motion.div
-        initial={{
-          opacity: 0,
-          y: -60,
-        }}
-        whileInView={{
-          opacity: 1,
-          y: 0,
-        }}
-        viewport={{
-          once: false,
-          amount: 0.15,
-          margin: "0px 0px -100px 0px",
-        }}
-        transition={{
-          duration: 0.8,
-          ease: [0.22, 1, 0.36, 1],
-        }}
+      <div
         className="
           relative
 
           mx-auto
 
           flex
+
           max-w-[1700px]
+
           flex-col
 
           gap-2.5
         "
       >
-        {/* TOP RIBBON */}
+        {/* ===================================================
+            TOP RIBBON
+        =================================================== */}
 
         <div className="rotate-[-2deg]">
           <Ribbon
@@ -412,7 +420,9 @@ export default function PromoSlider() {
           />
         </div>
 
-        {/* BOTTOM RIBBON */}
+        {/* ===================================================
+            BOTTOM RIBBON
+        =================================================== */}
 
         <div className="rotate-[2deg]">
           <Ribbon
@@ -421,15 +431,18 @@ export default function PromoSlider() {
             variant="dark"
           />
         </div>
-      </motion.div>
+      </div>
 
-      {/* BOTTOM LIGHT */}
+      {/* =====================================================
+          BOTTOM LIGHT
+      ===================================================== */}
 
       <div
         className="
           pointer-events-none
 
           absolute
+
           bottom-0
           left-1/2
 
@@ -447,4 +460,3 @@ export default function PromoSlider() {
     </section>
   );
 }
-

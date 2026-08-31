@@ -20,7 +20,7 @@ const contactItems = [
   {
     icon: Phone,
     label: "Phone",
-    value: "+212 6 XX XX XX XX",
+    value: "+212 6 58 55 13 65",
   },
   {
     icon: Mail,
@@ -30,7 +30,7 @@ const contactItems = [
   {
     icon: MapPin,
     label: "Location",
-    value: "Tangier, Morocco",
+    value: "Agourai,Meknas,Morocco",
   },
 ];
 

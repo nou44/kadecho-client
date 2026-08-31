@@ -31,8 +31,8 @@ const containerVariants = {
   hidden: {},
   visible: {
     transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.05,
+      staggerChildren: 0.07,
+      delayChildren: 0.03,
     },
   },
 };
@@ -40,14 +40,14 @@ const containerVariants = {
 const itemVariants = {
   hidden: {
     opacity: 0,
-    y: 18,
+    y: 14,
   },
 
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.55,
+      duration: 0.45,
       ease: [0.22, 1, 0.36, 1],
     },
   },
@@ -56,8 +56,8 @@ const itemVariants = {
 const sliderVariants = {
   hidden: {
     opacity: 0,
-    x: 28,
-    scale: 0.975,
+    x: 22,
+    scale: 0.985,
   },
 
   visible: {
@@ -65,7 +65,7 @@ const sliderVariants = {
     x: 0,
     scale: 1,
     transition: {
-      duration: 0.75,
+      duration: 0.6,
       ease: [0.22, 1, 0.36, 1],
     },
   },
@@ -81,22 +81,9 @@ export default function Hero() {
 
       <div className="pointer-events-none absolute inset-0">
 
-        {/* Top glow */}
+        {/* STATIC TOP GLOW */}
 
-        <motion.div
-          initial={{
-            opacity: 0,
-          }}
-          whileInView={{
-            opacity: 1,
-          }}
-          viewport={{
-            once: false,
-            amount: 0.1,
-          }}
-          transition={{
-            duration: 1,
-          }}
+        <div
           className="
             absolute
             inset-x-0
@@ -105,22 +92,13 @@ export default function Hero() {
             h-[260px]
             sm:h-[300px]
 
-            bg-[radial-gradient(circle_at_30%_0%,rgba(220,38,38,.09),transparent_65%)]
+            bg-[radial-gradient(circle_at_30%_0%,rgba(220,38,38,.075),transparent_65%)]
           "
         />
 
-        {/* Center glow */}
+        {/* STATIC CENTER GLOW */}
 
-        <motion.div
-          animate={{
-            opacity: [0.65, 0.9, 0.65],
-            scale: [0.98, 1.03, 0.98],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+        <div
           className="
             absolute
 
@@ -135,16 +113,16 @@ export default function Hero() {
 
             rounded-full
 
-            bg-red-600/[0.045]
+            bg-red-600/[0.035]
 
-            blur-[120px]
+            blur-[110px]
 
-            sm:h-[520px]
-            sm:w-[520px]
+            sm:h-[500px]
+            sm:w-[500px]
           "
         />
 
-        {/* Right glow */}
+        {/* STATIC RIGHT GLOW */}
 
         <div
           className="
@@ -158,23 +136,23 @@ export default function Hero() {
 
             rounded-full
 
-            bg-red-900/[0.055]
+            bg-red-900/[0.045]
 
-            blur-[100px]
+            blur-[90px]
 
             sm:h-[320px]
             sm:w-[320px]
           "
         />
 
-        {/* Grid */}
+        {/* VERY LIGHT GRID */}
 
         <div
           className="
             absolute
             inset-0
 
-            opacity-[0.014]
+            opacity-[0.012]
 
             [background-image:linear-gradient(rgba(255,255,255,.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.8)_1px,transparent_1px)]
 
@@ -226,27 +204,18 @@ export default function Hero() {
 
         <motion.div
           variants={containerVariants}
-
           initial="hidden"
-
           whileInView="visible"
-
           viewport={{
-            once: false,
-            amount: 0.18,
+            once: true,
+            amount: 0.15,
           }}
-
           className="
             relative
-
+            mt-4
             w-full
 
-            /* MOBILE BREATHING SPACE */
-
-            mt-4
-
             lg:mt-0
-
             lg:w-[39%]
           "
         >
@@ -257,12 +226,10 @@ export default function Hero() {
 
           <motion.div
             variants={itemVariants}
-
             whileHover={{
               y: -1,
-              scale: 1.015,
+              scale: 1.01,
             }}
-
             className="
               group
 
@@ -289,9 +256,7 @@ export default function Hero() {
 
               font-bebas
 
-              backdrop-blur-xl
-
-              shadow-[0_7px_20px_rgba(0,0,0,.30)]
+              shadow-[0_7px_20px_rgba(0,0,0,.25)]
 
               transition-all
               duration-300
@@ -304,12 +269,11 @@ export default function Hero() {
             "
           >
 
-            {/* Glow */}
+            {/* HOVER LIGHT */}
 
             <span
               className="
                 pointer-events-none
-
                 absolute
                 inset-0
 
@@ -327,61 +291,27 @@ export default function Hero() {
               "
             />
 
-            {/* Indicator */}
+            {/* INDICATOR */}
 
             <span
               className="
                 relative
-
-                flex
 
                 h-1.5
                 w-1.5
 
                 shrink-0
 
-                items-center
-                justify-center
+                rounded-full
+
+                bg-red-500
+
+                shadow-[0_0_8px_rgba(239,68,68,.7)]
 
                 sm:h-2
                 sm:w-2
               "
-            >
-              <span
-                className="
-                  absolute
-
-                  h-full
-                  w-full
-
-                  animate-ping
-
-                  rounded-full
-
-                  bg-red-500/30
-                "
-              />
-
-              <span
-                className="
-                  relative
-
-                  h-1
-                  w-1
-
-                  rounded-full
-
-                  bg-red-500
-
-                  shadow-[0_0_8px_rgba(239,68,68,.8)]
-
-                  sm:h-1.5
-                  sm:w-1.5
-                "
-              />
-            </span>
-
-            {/* Text */}
+            />
 
             <span
               className="
@@ -390,11 +320,9 @@ export default function Hero() {
                 whitespace-nowrap
 
                 text-[6.5px]
-
                 font-bold
 
                 uppercase
-
                 tracking-[0.24em]
 
                 text-red-300
@@ -406,7 +334,7 @@ export default function Hero() {
               Premium Metal Decoration
             </span>
 
-            {/* Shine */}
+            {/* HOVER SHINE */}
 
             <span
               className="
@@ -439,12 +367,10 @@ export default function Hero() {
 
           <motion.h1
             variants={itemVariants}
-
             className="
               font-bebas
 
               text-[36px]
-
               font-black
 
               leading-[0.88]
@@ -454,13 +380,9 @@ export default function Hero() {
               text-white
 
               sm:text-[44px]
-
               md:text-[52px]
-
               lg:text-[54px]
-
               xl:text-[62px]
-
               2xl:text-[68px]
             "
           >
@@ -471,20 +393,18 @@ export default function Hero() {
             <span
               className="
                 relative
-
                 inline-block
 
-                bg-[linear-gradient(90deg,#ffffff_0%,#f8fafc_15%,#fecaca_28%,#ef4444_45%,#991b1b_58%,#ef4444_72%,#ffffff_88%,#f8fafc_100%)]
-
-                bg-[length:300%_100%]
+                bg-gradient-to-r
+                from-white
+                via-red-200
+                to-red-500
 
                 bg-clip-text
 
                 text-transparent
 
-                animate-gradient-x
-
-                drop-shadow-[0_0_15px_rgba(220,38,38,.22)]
+                drop-shadow-[0_0_12px_rgba(220,38,38,.18)]
               "
             >
               Luxury
@@ -502,14 +422,10 @@ export default function Hero() {
 
           <motion.div
             variants={itemVariants}
-
-            initial={false}
-
             className="
               mt-3
 
               h-[2px]
-
               w-[60px]
 
               rounded-full
@@ -531,14 +447,12 @@ export default function Hero() {
 
           <motion.p
             variants={itemVariants}
-
             className="
               mt-3
 
               max-w-[430px]
 
               text-[10px]
-
               leading-[1.7]
 
               text-zinc-400
@@ -563,13 +477,11 @@ export default function Hero() {
 
           <motion.div
             variants={itemVariants}
-
             className="
               mt-5
 
               flex
               flex-wrap
-
               gap-2
 
               sm:mt-6
@@ -580,34 +492,27 @@ export default function Hero() {
             {/* PRIMARY */}
 
             <Link to="/shop">
-
               <motion.button
                 type="button"
-
                 whileHover={{
                   y: -2,
                   scale: 1.01,
                 }}
-
                 whileTap={{
                   scale: 0.97,
                 }}
-
                 transition={{
-                  duration: 0.22,
+                  duration: 0.2,
                 }}
-
                 className="
                   group
 
                   relative
 
                   inline-flex
-
                   h-10
 
                   items-center
-
                   gap-2
 
                   overflow-hidden
@@ -619,19 +524,17 @@ export default function Hero() {
                   px-4
 
                   text-[10px]
-
                   font-semibold
 
                   text-white
 
-                  shadow-[0_8px_24px_rgba(239,68,68,.15)]
+                  shadow-[0_8px_24px_rgba(239,68,68,.14)]
 
                   transition-all
                   duration-300
 
                   hover:bg-red-500
-
-                  hover:shadow-[0_12px_30px_rgba(239,68,68,.25)]
+                  hover:shadow-[0_12px_30px_rgba(239,68,68,.22)]
 
                   sm:h-10.5
                   sm:px-5
@@ -644,7 +547,6 @@ export default function Hero() {
                     absolute
 
                     inset-y-0
-
                     -left-12
 
                     w-7
@@ -675,41 +577,32 @@ export default function Hero() {
                     group-hover:translate-x-1
                   "
                 />
-
               </motion.button>
-
             </Link>
 
 
             {/* SECONDARY */}
 
             <Link to="/projects">
-
               <motion.button
                 type="button"
-
                 whileHover={{
                   y: -2,
                   scale: 1.01,
                 }}
-
                 whileTap={{
                   scale: 0.97,
                 }}
-
                 transition={{
-                  duration: 0.22,
+                  duration: 0.2,
                 }}
-
                 className="
                   group
 
                   inline-flex
-
                   h-10
 
                   items-center
-
                   gap-2
 
                   rounded-lg
@@ -722,21 +615,17 @@ export default function Hero() {
                   px-4
 
                   text-[10px]
-
                   font-semibold
 
                   text-white
 
-                  backdrop-blur-xl
+                  backdrop-blur-lg
 
                   transition-all
                   duration-300
 
                   hover:border-red-500/30
-
                   hover:bg-red-500/[0.06]
-
-                  hover:shadow-[0_10px_28px_rgba(239,68,68,.09)]
 
                   sm:h-10.5
                   sm:px-5
@@ -757,9 +646,7 @@ export default function Hero() {
                 />
 
                 View Projects
-
               </motion.button>
-
             </Link>
 
           </motion.div>
@@ -771,12 +658,10 @@ export default function Hero() {
 
           <motion.div
             variants={itemVariants}
-
             className="
               mt-5
 
               grid
-
               max-w-[430px]
 
               grid-cols-3
@@ -789,18 +674,14 @@ export default function Hero() {
           >
 
             {stats.map((item) => (
-
               <motion.div
                 key={item.title}
-
                 whileHover={{
                   y: -3,
                 }}
-
                 transition={{
-                  duration: 0.22,
+                  duration: 0.2,
                 }}
-
                 className="
                   group
 
@@ -817,20 +698,17 @@ export default function Hero() {
 
                   p-2.5
 
-                  backdrop-blur-xl
-
                   transition-all
                   duration-300
 
                   hover:border-red-500/25
-
                   hover:bg-red-500/[0.025]
 
                   sm:p-3
                 "
               >
 
-                {/* Top line */}
+                {/* TOP LINE */}
 
                 <div
                   className="
@@ -840,7 +718,6 @@ export default function Hero() {
                     top-0
 
                     h-px
-
                     w-0
 
                     -translate-x-1/2
@@ -851,7 +728,7 @@ export default function Hero() {
                     to-transparent
 
                     transition-all
-                    duration-400
+                    duration-300
 
                     group-hover:w-full
                   "
@@ -862,11 +739,9 @@ export default function Hero() {
                     font-bebas
 
                     text-[21px]
-
                     font-black
 
                     leading-none
-
                     tracking-wide
 
                     text-white
@@ -876,7 +751,7 @@ export default function Hero() {
                 >
                   <Counter
                     end={item.value}
-                    duration={2200}
+                    duration={1800}
                     suffix={item.suffix}
                   />
                 </h3>
@@ -888,7 +763,6 @@ export default function Hero() {
                     text-[7px]
 
                     uppercase
-
                     tracking-[0.2em]
 
                     text-zinc-500
@@ -900,7 +774,6 @@ export default function Hero() {
                 </p>
 
               </motion.div>
-
             ))}
 
           </motion.div>
@@ -914,39 +787,25 @@ export default function Hero() {
 
         <motion.div
           variants={sliderVariants}
-
           initial="hidden"
-
           whileInView="visible"
-
           viewport={{
-            once: false,
-            amount: 0.15,
+            once: true,
+            amount: 0.1,
           }}
-
           className="
             relative
-
             w-full
 
             lg:w-[61%]
           "
         >
 
-          {/* Ambient glow */}
+          {/* =====================================================
+              STATIC SLIDER GLOW
+          ===================================================== */}
 
-          <motion.div
-            animate={{
-              opacity: [0.5, 0.85, 0.5],
-              scale: [0.98, 1.04, 0.98],
-            }}
-
-            transition={{
-              duration: 7,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-
+          <div
             className="
               pointer-events-none
 
@@ -955,7 +814,7 @@ export default function Hero() {
               left-1/2
               top-1/2
 
-              h-[200px]
+              h-[210px]
               w-[70%]
 
               -translate-x-1/2
@@ -963,50 +822,28 @@ export default function Hero() {
 
               rounded-full
 
-              bg-red-600/[0.055]
+              bg-red-600/[0.04]
 
-              blur-[75px]
+              blur-[70px]
 
               sm:h-[240px]
               sm:w-[65%]
-              sm:blur-[85px]
             "
           />
 
 
-          {/* Slider */}
+          {/* =====================================================
+              SLIDER
+          ===================================================== */}
 
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: 12,
-              scale: 0.985,
-            }}
-
-            whileInView={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-            }}
-
-            viewport={{
-              once: false,
-              amount: 0.15,
-            }}
-
-            transition={{
-              duration: 0.65,
-              delay: 0.08,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-
+          <div
             className="
               relative
               w-full
             "
           >
             <HeroSlider />
-          </motion.div>
+          </div>
 
         </motion.div>
 
@@ -1039,4 +876,3 @@ export default function Hero() {
     </section>
   );
 }
-
