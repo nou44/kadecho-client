@@ -4,7 +4,8 @@ import HeroOverlay from "./HeroOverlay";
 import HeroControls from "./HeroControls";
 
 const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000";
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000/api";
 
 export default function HeroSlider() {
   const [heroSlides, setHeroSlides] = useState([]);
@@ -19,8 +20,8 @@ export default function HeroSlider() {
     const fetchHeroVideos = async () => {
       try {
         const response = await fetch(
-          `${API_URL}/api/hero-videos`
-        );
+  `${API_URL}/hero-videos`
+);
 
         const data = await response.json();
 
