@@ -10,6 +10,7 @@ export default function FloatingCard({ product, onClose }) {
 
     navigate(`/product/${product._id || product.id}`);
   };
+
   return (
     <motion.div
       initial={{
@@ -44,7 +45,9 @@ export default function FloatingCard({ product, onClose }) {
         max-w-[calc(100vw-24px)]
       "
     >
-      {/* PRODUCT IMAGE */}
+      {/* =====================================================
+          PRODUCT IMAGE
+      ===================================================== */}
 
       <div
         className="
@@ -60,43 +63,34 @@ export default function FloatingCard({ product, onClose }) {
           justify-center
         "
       >
-        {/* RED LIGHT */}
+        {/* SOFT RED LIGHT */}
 
         <div
           className="
+            pointer-events-none
             absolute
             left-1/2
             top-20
             z-0
 
-            h-28
-            w-28
+            h-24
+            w-24
 
             -translate-x-1/2
 
             rounded-full
 
-            bg-red-500/20
+            bg-red-500/15
 
-            blur-[55px]
+            blur-[40px]
           "
         />
 
         {/* IMAGE */}
 
-        <motion.img
+        <img
           src={product.image}
           alt={product.name}
-          animate={{
-            y: [0, -6, 0],
-            rotate: [-1.5, 1.5, -1.5],
-            scale: [1, 1.02, 1],
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
           className="
             relative
             z-20
@@ -110,12 +104,14 @@ export default function FloatingCard({ product, onClose }) {
 
             object-contain
 
-            drop-shadow-[0_25px_40px_rgba(0,0,0,.5)]
+            drop-shadow-[0_20px_32px_rgba(0,0,0,.45)]
           "
         />
       </div>
 
-      {/* CARD */}
+      {/* =====================================================
+          CARD
+      ===================================================== */}
 
       <div
         className="
@@ -140,52 +136,35 @@ export default function FloatingCard({ product, onClose }) {
           pb-3.5
           pt-8
 
-          backdrop-blur-2xl
-
           shadow-[0_18px_50px_rgba(0,0,0,.55)]
 
           transition-all
-          duration-500
+          duration-300
 
           hover:border-red-500/20
-          hover:shadow-[0_22px_60px_rgba(239,68,68,.14)]
+          hover:shadow-[0_22px_55px_rgba(239,68,68,.12)]
         "
       >
-        {/* TOP GLOW */}
+        {/* =================================================
+            TOP GLOW
+        ================================================= */}
 
         <div
           className="
             pointer-events-none
             absolute
-            inset-0
+            inset-x-0
+            top-0
 
-            bg-[radial-gradient(circle_at_top,rgba(239,68,68,.14),transparent_60%)]
+            h-20
+
+            bg-[radial-gradient(circle_at_top,rgba(239,68,68,.12),transparent_70%)]
           "
         />
 
-        {/* BOTTOM GLOW */}
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            bottom-0
-            left-1/2
-
-            h-16
-            w-28
-
-            -translate-x-1/2
-
-            rounded-full
-
-            bg-red-500/[0.04]
-
-            blur-[35px]
-          "
-        />
-
-        {/* CLOSE */}
+        {/* =================================================
+            CLOSE
+        ================================================= */}
 
         <motion.button
           type="button"
@@ -231,39 +210,35 @@ export default function FloatingCard({ product, onClose }) {
           <X size={12} />
         </motion.button>
 
-        {/* CONTENT */}
+        {/* =================================================
+            CONTENT
+        ================================================= */}
 
         <div className="relative z-20">
 
           {/* CONNECTOR */}
 
           <div className="mb-2.5 flex justify-center">
-            <motion.div
-              animate={{
-                backgroundPosition: ["0% 50%", "100% 50%"],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "linear",
-              }}
+            <div
               className="
                 h-px
                 w-16
 
                 rounded-full
 
-                bg-[linear-gradient(90deg,transparent,#ef4444,transparent)]
-
-                bg-[length:200%_100%]
+                bg-gradient-to-r
+                from-transparent
+                via-red-500
+                to-transparent
               "
             />
           </div>
 
-          {/* PRODUCT INFO */}
+          {/* =================================================
+              PRODUCT INFO
+          ================================================= */}
 
           <div className="text-center">
-
             <h2
               className="
                 truncate
@@ -301,10 +276,11 @@ export default function FloatingCard({ product, onClose }) {
             >
               {product.category}
             </p>
-
           </div>
 
-          {/* DETAILS */}
+          {/* =================================================
+              DETAILS
+          ================================================= */}
 
           <div
             className="
@@ -347,7 +323,9 @@ export default function FloatingCard({ product, onClose }) {
             </span>
           </div>
 
-          {/* DIVIDER */}
+          {/* =================================================
+              DIVIDER
+          ================================================= */}
 
           <div
             className="
@@ -362,7 +340,9 @@ export default function FloatingCard({ product, onClose }) {
             "
           />
 
-          {/* PRICE + SHOP */}
+          {/* =================================================
+              PRICE + SHOP
+          ================================================= */}
 
           <div
             className="
@@ -372,11 +352,9 @@ export default function FloatingCard({ product, onClose }) {
               gap-2
             "
           >
-
             {/* PRICE */}
 
             <div className="min-w-0">
-
               <p
                 className="
                   text-[6px]
@@ -391,18 +369,7 @@ export default function FloatingCard({ product, onClose }) {
                 Starting from
               </p>
 
-              <motion.h3
-                animate={{
-                  textShadow: [
-                    "0 0 0px #ef4444",
-                    "0 0 10px rgba(239,68,68,.35)",
-                    "0 0 0px #ef4444",
-                  ],
-                }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                }}
+              <h3
                 className="
                   mt-0.5
 
@@ -418,61 +385,61 @@ export default function FloatingCard({ product, onClose }) {
                 "
               >
                 {product.price} DH
-              </motion.h3>
-
+              </h3>
             </div>
 
             {/* SHOP */}
 
-       <motion.button
-  type="button"
-  onClick={handleShop}
-  whileHover={{
-    scale: 1.04,
-    y: -1,
-  }}
-  whileTap={{
-    scale: 0.95,
-  }}
-  className="
-    flex
-    items-center
-    gap-1.5
+            <motion.button
+              type="button"
+              onClick={handleShop}
+              whileHover={{
+                scale: 1.04,
+                y: -1,
+              }}
+              whileTap={{
+                scale: 0.95,
+              }}
+              className="
+                flex
+                items-center
+                gap-1.5
 
-    rounded-full
+                rounded-full
 
-    bg-red-600
+                bg-red-600
 
-    px-3.5
-    py-1.5
+                px-3.5
+                py-1.5
 
-    text-[7px]
+                text-[7px]
 
-    font-bold
+                font-bold
 
-    uppercase
+                uppercase
 
-    tracking-[0.16em]
+                tracking-[0.16em]
 
-    text-white
+                text-white
 
-    shadow-[0_6px_18px_rgba(239,68,68,.25)]
+                shadow-[0_6px_18px_rgba(239,68,68,.25)]
 
-    transition-all
-    duration-300
+                transition-all
+                duration-300
 
-    hover:bg-red-500
-    hover:shadow-[0_8px_24px_rgba(239,68,68,.4)]
-  "
->
-  SHOP
+                hover:bg-red-500
+                hover:shadow-[0_8px_22px_rgba(239,68,68,.3)]
+              "
+            >
+              SHOP
 
-  <ArrowRight size={10} />
-</motion.button>
-
+              <ArrowRight size={10} />
+            </motion.button>
           </div>
 
-          {/* MICRO DETAIL */}
+          {/* =================================================
+              MICRO DETAIL
+          ================================================= */}
 
           <div
             className="
@@ -497,4 +464,3 @@ export default function FloatingCard({ product, onClose }) {
     </motion.div>
   );
 }
-

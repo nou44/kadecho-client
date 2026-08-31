@@ -1,7 +1,7 @@
 
 import { motion } from "framer-motion";
 
-const WHATSAPP_NUMBER = "212600000000";
+const WHATSAPP_NUMBER = "212658551365";
 
 const WHATSAPP_MESSAGE =
   "Hello, I would like to know more about your products.";
