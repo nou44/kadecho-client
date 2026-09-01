@@ -335,7 +335,7 @@ export default function MobileNav() {
                     />
 
                     <img
-                      src="/logo1.webp"
+                      src="/kadecho-logo-256-optimized.webp"
                       alt="KADECHO"
                       className="
                         relative

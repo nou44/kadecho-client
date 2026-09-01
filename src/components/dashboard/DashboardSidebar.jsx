@@ -254,20 +254,20 @@ export default function DashboardSidebar({
 
       {/* Logo image */}
 
-      <img
-        src="/kadecho-logo-320.webp"
-        alt="Kadecho"
-        className="
-          relative
-          z-10
-          h-10
-          w-10
-          object-contain
-          transition-transform
-          duration-500
-          group-hover:scale-105
-        "
-      />
+     <img
+  src="/kadecho-logo-64.webp"
+  alt="Kadecho"
+  className="
+    relative
+    z-10
+    h-10
+    w-10
+    object-contain
+    transition-transform
+    duration-500
+    group-hover:scale-105
+  "
+/>
 
       {/* Tiny corner accent */}
 

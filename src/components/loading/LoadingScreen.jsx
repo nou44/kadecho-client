@@ -262,8 +262,8 @@ export default function LoadingScreen() {
               sm:w-36
             "
           >
-           <img
-  src="/kadecho-logo-320.webp"
+<img
+  src="/kadecho-logo-128.webp"
   alt="KADECHO"
   className="
     relative
