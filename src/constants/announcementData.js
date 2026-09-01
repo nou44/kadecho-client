@@ -18,6 +18,6 @@ export const announcements = [
   {
     id: 3,
     icon: Phone,
-    text: "+212 6 XX XX XX XX",
+    text: "+212 6 58 55 13 65",
   },
 ];

@@ -13,40 +13,52 @@ export default function HeroSlider() {
   const [loading, setLoading] = useState(true);
 
   /* =====================================================
-     GET HERO VIDEOS
+     FETCH HERO VIDEOS
   ===================================================== */
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchHeroVideos = async () => {
       try {
         const response = await fetch(
-  `${API_URL}/hero-videos`
-);
-
-        const data = await response.json();
+          `${API_URL}/hero-videos`
+        );
 
         if (!response.ok) {
           throw new Error(
-            data.message || "Failed to fetch hero videos"
+            `Failed to fetch hero videos: ${response.status}`
           );
         }
 
-        setHeroSlides(
-          Array.isArray(data.heroVideos)
-            ? data.heroVideos
-            : []
-        );
+        const data = await response.json();
+
+        if (!cancelled) {
+          setHeroSlides(
+            Array.isArray(data.heroVideos)
+              ? data.heroVideos
+              : []
+          );
+        }
       } catch (error) {
-        console.error(
-          "❌ Failed to load hero videos:",
-          error
-        );
+        if (!cancelled) {
+          console.error(
+            "Failed to load hero videos:",
+            error
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchHeroVideos();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   /* =====================================================
@@ -55,7 +67,7 @@ export default function HeroSlider() {
 
   const nextSlide = () => {
     setCurrent((prev) =>
-      prev === heroSlides.length - 1
+      prev >= heroSlides.length - 1
         ? 0
         : prev + 1
     );
@@ -67,7 +79,7 @@ export default function HeroSlider() {
 
   const prevSlide = () => {
     setCurrent((prev) =>
-      prev === 0
+      prev <= 0
         ? heroSlides.length - 1
         : prev - 1
     );
@@ -80,15 +92,17 @@ export default function HeroSlider() {
   useEffect(() => {
     if (heroSlides.length <= 1) return;
 
-    const timer = setInterval(() => {
+    const timer = window.setInterval(() => {
       setCurrent((prev) =>
-        prev === heroSlides.length - 1
+        prev >= heroSlides.length - 1
           ? 0
           : prev + 1
       );
     }, 5000);
 
-    return () => clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+    };
   }, [heroSlides.length]);
 
   /* =====================================================
@@ -102,35 +116,38 @@ export default function HeroSlider() {
           relative
           mx-auto
           w-full
-          max-w-[700px]
-          xl:max-w-[720px]
+          max-w-[720px]
 
-          pb-[100px]
-          sm:pb-[110px]
-          md:pb-[120px]
-          lg:pb-[135px]
+          pb-24
+          sm:pb-28
+          lg:pb-32
         "
       >
         <div
           className="
-            h-[255px]
-            xs:h-[270px]
-            sm:h-[300px]
-            md:h-[325px]
-            lg:h-[345px]
-            xl:h-[365px]
+            aspect-[16/9]
+            w-full
 
-            rounded-[19px]
-            sm:rounded-[21px]
-
-            bg-[#070707]
+            overflow-hidden
+            rounded-[20px]
 
             border
-            border-white/[0.08]
+            border-white/[0.07]
 
-            animate-pulse
+            bg-[#080808]
           "
-        />
+        >
+          <div
+            className="
+              h-full
+              w-full
+
+              animate-pulse
+
+              bg-white/[0.025]
+            "
+          />
+        </div>
       </section>
     );
   }
@@ -139,11 +156,34 @@ export default function HeroSlider() {
      NO VIDEOS
   ===================================================== */
 
-  if (heroSlides.length === 0) {
+  if (!heroSlides.length) {
     return null;
   }
 
   const slide = heroSlides[current];
+
+  /*
+    Support different backend names.
+
+    Ideally backend sends:
+    {
+      video: "...",
+      poster: "..."
+    }
+
+    or:
+    {
+      video: "...",
+      thumbnail: "..."
+    }
+  */
+
+  const poster =
+    slide.poster ||
+    slide.thumbnail ||
+    slide.thumbnailUrl ||
+    slide.posterUrl ||
+    undefined;
 
   return (
     <section
@@ -151,70 +191,94 @@ export default function HeroSlider() {
         relative
         mx-auto
         w-full
-        max-w-[700px]
-        xl:max-w-[720px]
+        max-w-[720px]
 
-        pb-[100px]
-        sm:pb-[110px]
-        md:pb-[120px]
-        lg:pb-[135px]
-
-        overflow-visible
+        pb-24
+        sm:pb-28
+        lg:pb-32
       "
     >
       {/* =================================================
-          VIDEO GLOW
+          LIGHT AMBIENCE
+
+          Kept intentionally subtle.
+          Avoid heavy blur because video already costs GPU.
       ================================================= */}
 
       <div
         className="
           pointer-events-none
+
           absolute
-          inset-8
+          left-1/2
+          top-1/2
 
-          rounded-[24px]
+          h-[65%]
+          w-[75%]
 
-          bg-red-600/[0.06]
+          -translate-x-1/2
+          -translate-y-1/2
 
-          blur-[45px]
+          rounded-full
+
+          bg-red-600/[0.035]
+
+          blur-[35px]
         "
       />
 
       {/* =================================================
-          VIDEO
+          VIDEO CONTAINER
       ================================================= */}
 
       <div
         className="
           relative
+          z-10
 
-          h-[255px]
-          xs:h-[270px]
-          sm:h-[300px]
-          md:h-[325px]
-          lg:h-[345px]
-          xl:h-[365px]
+          aspect-[16/9]
+          w-full
 
           overflow-hidden
 
-          rounded-[19px]
-          sm:rounded-[21px]
+          rounded-[20px]
 
           border
           border-white/[0.08]
 
           bg-[#070707]
 
-          shadow-[0_18px_55px_rgba(0,0,0,.42)]
+          shadow-[0_14px_40px_rgba(0,0,0,.32)]
+
+          sm:rounded-[22px]
         "
       >
+        {/* =================================================
+            VIDEO
+        ================================================= */}
+
         <video
           key={slide.video}
           autoPlay
           muted
           loop
           playsInline
+
+          /*
+            Metadata is enough for the first video.
+            Browser will still fetch what autoplay requires,
+            but we avoid aggressively preloading the entire file.
+          */
           preload="metadata"
+
+          poster={poster}
+
+          /*
+            Prevent unnecessary rendering work.
+          */
+          disablePictureInPicture
+          controls={false}
+
           className="
             absolute
             inset-0
@@ -224,8 +288,6 @@ export default function HeroSlider() {
 
             object-cover
             object-center
-
-            scale-[1.025]
           "
         >
           <source
@@ -235,33 +297,43 @@ export default function HeroSlider() {
         </video>
 
         {/* =================================================
-            DARK GRADIENT
+            SIMPLE VIDEO OVERLAY
+
+            One gradient instead of multiple expensive layers.
         ================================================= */}
 
         <div
           className="
             pointer-events-none
+
             absolute
             inset-0
 
             bg-gradient-to-t
-            from-black
-            via-black/25
-            to-black/5
+            from-black/95
+            via-black/20
+            to-transparent
           "
         />
 
         {/* =================================================
-            VIGNETTE
+            SUBTLE TOP LIGHT
         ================================================= */}
 
         <div
           className="
             pointer-events-none
-            absolute
-            inset-0
 
-            bg-[radial-gradient(circle_at_center,transparent_40%,rgba(0,0,0,.30)_100%)]
+            absolute
+            inset-x-0
+            top-0
+
+            h-px
+
+            bg-gradient-to-r
+            from-transparent
+            via-white/15
+            to-transparent
           "
         />
 
@@ -272,21 +344,22 @@ export default function HeroSlider() {
         <div
           className="
             pointer-events-none
+
             absolute
             inset-0
 
-            rounded-[19px]
-            sm:rounded-[21px]
+            rounded-[20px]
+            sm:rounded-[22px]
 
             ring-1
             ring-inset
-            ring-white/[0.045]
+            ring-white/[0.035]
           "
         />
       </div>
 
       {/* =================================================
-          OVERLAY
+          CONTENT OVERLAY
       ================================================= */}
 
       <div
@@ -294,20 +367,18 @@ export default function HeroSlider() {
           absolute
           left-1/2
 
-          top-[210px]
-          xs:top-[225px]
-          sm:top-[245px]
-          md:top-[270px]
-          lg:top-[285px]
-          xl:top-[300px]
+          top-[56%]
 
-          z-30
+          z-20
 
           w-[88%]
-          sm:w-[84%]
-          lg:w-[78%]
-
           -translate-x-1/2
+
+          sm:top-[58%]
+          sm:w-[84%]
+
+          lg:top-[60%]
+          lg:w-[78%]
         "
       >
         <HeroOverlay slide={slide} />

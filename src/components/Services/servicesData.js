@@ -1,12 +1,12 @@
-import doors from "../../assets/images/services/doors.png";
-import staircases from "../../assets/images/services/staircases.png";
-import furniture from "../../assets/images/services/furniture.png";
-import tvUnits from "../../assets/images/services/tv-inuts.png";
-import gamingDesk from "../../assets/images/services/gaming-desk.png";
-import pergolas from "../../assets/images/services/pergolas.png";
-import railings from "../../assets/images/services/railings.png";
-import gates from "../../assets/images/services/gates.png";
-import decoration from "../../assets/images/services/decoration.png";
+import doors from "../../assets/images/services/Doors.webp";
+import staircases from "../../assets/images/services/staircases.webp";
+import furniture from "../../assets/images/services/furniture.webp";
+import tvUnits from "../../assets/images/services/Tv-unit.webp";
+import gamingDesk from "../../assets/images/services/gaming.webp";
+import pergolas from "../../assets/images/services/pergola.webp";
+import railings from "../../assets/images/services/railings.webp";
+import gates from "../../assets/images/services/gates.webp";
+
 
 export const services = [
   {
@@ -65,10 +65,5 @@ export const services = [
     image: gates,
   },
 
-  {
-    id: 9,
-    title: "Decoration",
-    description: "Decorative metal pieces designed for modern interiors.",
-    image: decoration,
-  },
+ 
 ];

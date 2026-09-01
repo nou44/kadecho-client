@@ -1,15 +1,12 @@
-
 import { ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ServiceCard({ service }) {
   return (
     <motion.article
-      whileHover={{
-        y: -6,
-      }}
+      whileHover={{ y: -5 }}
       transition={{
-        duration: 0.3,
+        duration: 0.25,
         ease: [0.22, 1, 0.36, 1],
       }}
       className="
@@ -29,17 +26,14 @@ export default function ServiceCard({ service }) {
 
         bg-[#090909]
 
-        transition-all
-        duration-500
+        transition-[border-color,box-shadow]
+        duration-300
 
         hover:border-red-500/40
-        hover:shadow-[0_20px_55px_rgba(239,68,68,.16)]
+        hover:shadow-[0_20px_55px_rgba(239,68,68,.12)]
       "
     >
-
-      {/* =========================================
-          IMAGE
-      ========================================= */}
+      {/* IMAGE */}
 
       <div
         className="
@@ -51,17 +45,11 @@ export default function ServiceCard({ service }) {
           overflow-hidden
         "
       >
-
-        <motion.img
+        <img
           src={service.image}
           alt={service.title}
-          whileHover={{
-            scale: 1.06,
-          }}
-          transition={{
-            duration: 0.7,
-            ease: [0.22, 1, 0.36, 1],
-          }}
+          loading="lazy"
+          decoding="async"
           className="
             absolute
             inset-0
@@ -71,13 +59,20 @@ export default function ServiceCard({ service }) {
 
             object-cover
             object-center
+
+            transition-transform
+            duration-700
+            ease-out
+
+            group-hover:scale-[1.04]
           "
         />
 
-        {/* Dark cinematic overlay */}
+        {/* Dark overlay */}
 
         <div
           className="
+            pointer-events-none
             absolute
             inset-0
 
@@ -85,24 +80,23 @@ export default function ServiceCard({ service }) {
             from-[#050505]
             via-black/20
             to-black/10
-
-            opacity-90
           "
         />
 
-        {/* Subtle hover glow */}
+        {/* Hover tint */}
 
         <div
           className="
+            pointer-events-none
             absolute
             inset-0
 
             bg-red-500/0
 
-            transition-all
-            duration-500
+            transition-colors
+            duration-300
 
-            group-hover:bg-red-500/[0.04]
+            group-hover:bg-red-500/[0.035]
           "
         />
 
@@ -124,19 +118,15 @@ export default function ServiceCard({ service }) {
             px-3
             py-1.5
 
-            backdrop-blur-xl
+            backdrop-blur-md
           "
         >
           <span
             className="
               font-bebas
-
               text-[9px]
-
               uppercase
-
               tracking-[0.28em]
-
               text-zinc-200
             "
           >
@@ -144,8 +134,7 @@ export default function ServiceCard({ service }) {
           </span>
         </div>
 
-
-        {/* Small corner accent */}
+        {/* Arrow */}
 
         <div
           className="
@@ -167,8 +156,6 @@ export default function ServiceCard({ service }) {
 
             bg-black/40
 
-            backdrop-blur-xl
-
             text-zinc-400
 
             transition-all
@@ -180,13 +167,9 @@ export default function ServiceCard({ service }) {
         >
           <ArrowUpRight size={14} />
         </div>
-
       </div>
 
-
-      {/* =========================================
-          CONTENT
-      ========================================= */}
+      {/* CONTENT */}
 
       <div
         className="
@@ -204,11 +187,7 @@ export default function ServiceCard({ service }) {
           pt-16
         "
       >
-
-        <motion.h3
-          whileHover={{
-            x: 2,
-          }}
+        <h3
           className="
             font-bebas
 
@@ -217,9 +196,7 @@ export default function ServiceCard({ service }) {
             lg:text-[25px]
 
             uppercase
-
             leading-none
-
             tracking-[0.06em]
 
             text-white
@@ -231,8 +208,7 @@ export default function ServiceCard({ service }) {
           "
         >
           {service.title}
-        </motion.h3>
-
+        </h3>
 
         <p
           className="
@@ -251,13 +227,7 @@ export default function ServiceCard({ service }) {
           {service.description}
         </p>
 
-
-        {/* Explore */}
-
-        <motion.div
-          whileHover={{
-            x: 4,
-          }}
+        <div
           className="
             mt-3
 
@@ -268,35 +238,28 @@ export default function ServiceCard({ service }) {
             font-bebas
 
             text-[10px]
-
             uppercase
-
             tracking-[0.24em]
 
             text-zinc-300
 
-            transition-colors
+            transition-all
             duration-300
 
+            group-hover:translate-x-1
             group-hover:text-red-400
           "
         >
           Explore
-
           <ArrowUpRight size={13} />
-        </motion.div>
-
+        </div>
       </div>
 
-
-      {/* =========================================
-          BORDER GLOW
-      ========================================= */}
+      {/* BORDER */}
 
       <div
         className="
           pointer-events-none
-
           absolute
           inset-0
 
@@ -306,19 +269,17 @@ export default function ServiceCard({ service }) {
           ring-red-500/0
 
           transition-all
-          duration-500
+          duration-300
 
-          group-hover:ring-red-500/30
+          group-hover:ring-red-500/25
         "
       />
 
+      {/* TOP ACCENT */}
 
-      {/* =========================================
-          TOP ACCENT
-      ========================================= */}
-
-      <motion.div
+      <div
         className="
+          pointer-events-none
           absolute
           left-1/2
           top-0
@@ -336,45 +297,12 @@ export default function ServiceCard({ service }) {
           opacity-60
 
           transition-all
-          duration-500
+          duration-300
 
-          group-hover:w-32
+          group-hover:w-28
           group-hover:opacity-100
         "
       />
-
-
-      {/* Bottom glow */}
-
-      <div
-        className="
-          pointer-events-none
-
-          absolute
-          -bottom-10
-          left-1/2
-
-          h-20
-          w-28
-
-          -translate-x-1/2
-
-          rounded-full
-
-          bg-red-600/20
-
-          opacity-0
-
-          blur-[50px]
-
-          transition-all
-          duration-500
-
-          group-hover:opacity-100
-        "
-      />
-
     </motion.article>
   );
 }
-
