@@ -29,7 +29,7 @@ export default function AboutHero() {
         muted
         loop
         playsInline
-        preload="auto"
+        preload="metadata"
         initial={{
           scale: 1.06,
         }}

@@ -32,7 +32,7 @@ export default function ContactHero() {
         muted
         loop
         playsInline
-        preload="auto"
+        preload="matadata"
         className="
           pointer-events-none
           absolute

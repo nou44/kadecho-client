@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 
 export default function VideoBackground() {
@@ -16,6 +15,7 @@ export default function VideoBackground() {
         muted
         loop
         playsInline
+        preload="metadata"
 
         initial={{
           scale: 1.04,
@@ -34,14 +34,10 @@ export default function VideoBackground() {
         className="
           absolute
           inset-0
-
           h-full
           w-full
-
           object-cover
-
           will-change-transform
-
           opacity-80
         "
       >
@@ -53,4 +49,3 @@ export default function VideoBackground() {
     </div>
   );
 }
-
