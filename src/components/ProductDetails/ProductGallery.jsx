@@ -1,6 +1,20 @@
-import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  createPortal,
+} from "react-dom";
+
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  motion,
+  AnimatePresence,
+} from "framer-motion";
+
 import {
   Expand,
   X,
@@ -12,7 +26,7 @@ import {
   Maximize2,
 } from "lucide-react";
 
-export default function ProductGallery({ product }) {
+function ProductGallery({ product }) {
   // =========================================================
   // PRODUCT IMAGES
   // =========================================================
@@ -21,6 +35,14 @@ export default function ProductGallery({ product }) {
     product?.image ||
     product?.images?.[0] ||
     "";
+
+  const initialGalleryImages = useMemo(
+    () =>
+      Array.isArray(product?.images)
+        ? product.images.slice(1)
+        : [],
+    [product?.images]
+  );
 
   // =========================================================
   // MAIN IMAGE
@@ -34,11 +56,7 @@ export default function ProductGallery({ product }) {
   // =========================================================
 
   const [galleryImages, setGalleryImages] =
-  useState(
-    Array.isArray(product?.images)
-      ? product.images.slice(1)
-      : []
-  );
+    useState(initialGalleryImages);
 
   // =========================================================
   // LIGHTBOX
@@ -50,53 +68,64 @@ export default function ProductGallery({ product }) {
   const [selectedIndex, setSelectedIndex] =
     useState(0);
 
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] =
+    useState(1);
 
   // =========================================================
   // SYNC PRODUCT
   // =========================================================
 
   useEffect(() => {
-    const nextImage =
-      product?.image ||
-      product?.images?.[0] ||
-      "";
-
-    setActiveImage(nextImage);
-
-    setGalleryImages(
-  Array.isArray(product?.images)
-    ? product.images.slice(1)
-    : []
-);
+    setActiveImage(initialImage);
+    setGalleryImages(initialGalleryImages);
 
     setIsZoomOpen(false);
     setSelectedIndex(0);
     setZoom(1);
-  }, [product]);
+  }, [
+    initialImage,
+    initialGalleryImages,
+  ]);
 
   // =========================================================
   // ALL IMAGES
   // =========================================================
 
- const allImages = [
-  ...(activeImage
-    ? [activeImage]
-    : []),
+  const allImages = useMemo(() => {
+    const images = activeImage
+      ? [activeImage]
+      : [];
 
-  ...galleryImages.filter(
-    (image) => image && image !== activeImage
-  ),
-];
+    for (const image of galleryImages) {
+      if (
+        image &&
+        image !== activeImage
+      ) {
+        images.push(image);
+      }
+    }
+
+    return images;
+  }, [
+    activeImage,
+    galleryImages,
+  ]);
 
   // =========================================================
   // CURRENT INDEX
   // =========================================================
 
-  const currentIndex = Math.max(
-    0,
-    allImages.indexOf(activeImage)
-  );
+  const currentIndex = useMemo(() => {
+    const index =
+      allImages.indexOf(activeImage);
+
+    return index >= 0
+      ? index
+      : 0;
+  }, [
+    allImages,
+    activeImage,
+  ]);
 
   // =========================================================
   // ZOOM IMAGE
@@ -111,132 +140,167 @@ export default function ProductGallery({ product }) {
   // RESET ZOOM
   // =========================================================
 
-  const resetZoom = () => {
+  const resetZoom = useCallback(() => {
     setZoom(1);
-  };
+  }, []);
 
   // =========================================================
   // ZOOM IN
   // =========================================================
 
-  const zoomIn = () => {
+  const zoomIn = useCallback(() => {
     setZoom((current) =>
       Math.min(
-        Number((current + 0.25).toFixed(2)),
+        Number(
+          (current + 0.25).toFixed(2)
+        ),
         3
       )
     );
-  };
+  }, []);
 
   // =========================================================
   // ZOOM OUT
   // =========================================================
 
-  const zoomOut = () => {
+  const zoomOut = useCallback(() => {
     setZoom((current) =>
       Math.max(
-        Number((current - 0.25).toFixed(2)),
+        Number(
+          (current - 0.25).toFixed(2)
+        ),
         1
       )
     );
-  };
+  }, []);
 
   // =========================================================
   // OPEN LIGHTBOX
   // =========================================================
 
-  const openZoom = (index = currentIndex) => {
-    if (!allImages.length) return;
+  const openZoom = useCallback(
+    (index = currentIndex) => {
+      if (!allImages.length) return;
 
-    setSelectedIndex(index);
-    setZoom(1);
-    setIsZoomOpen(true);
-  };
+      setSelectedIndex(index);
+      setZoom(1);
+      setIsZoomOpen(true);
+    },
+    [
+      allImages.length,
+      currentIndex,
+    ]
+  );
 
   // =========================================================
   // CLOSE LIGHTBOX
   // =========================================================
 
-  const closeZoom = () => {
+  const closeZoom = useCallback(() => {
     setIsZoomOpen(false);
     setZoom(1);
-  };
+  }, []);
 
   // =========================================================
   // PREVIOUS IMAGE
   // =========================================================
 
-  const goToPrevious = () => {
-    if (allImages.length <= 1) return;
+  const goToPrevious =
+    useCallback(() => {
+      if (allImages.length <= 1) {
+        return;
+      }
 
-    setSelectedIndex((current) =>
-      current === 0
-        ? allImages.length - 1
-        : current - 1
-    );
+      setSelectedIndex((current) =>
+        current === 0
+          ? allImages.length - 1
+          : current - 1
+      );
 
-    setZoom(1);
-  };
+      setZoom(1);
+    }, [allImages.length]);
 
   // =========================================================
   // NEXT IMAGE
   // =========================================================
 
-  const goToNext = () => {
-    if (allImages.length <= 1) return;
+  const goToNext =
+    useCallback(() => {
+      if (allImages.length <= 1) {
+        return;
+      }
 
-    setSelectedIndex((current) =>
-      current === allImages.length - 1
-        ? 0
-        : current + 1
-    );
+      setSelectedIndex((current) =>
+        current ===
+        allImages.length - 1
+          ? 0
+          : current + 1
+      );
 
-    setZoom(1);
-  };
+      setZoom(1);
+    }, [allImages.length]);
 
   // =========================================================
   // MOUSE WHEEL ZOOM
   // =========================================================
 
-  const handleWheelZoom = (event) => {
-    event.preventDefault();
+  const handleWheelZoom =
+    useCallback(
+      (event) => {
+        event.preventDefault();
 
-    if (event.deltaY < 0) {
-      zoomIn();
-    } else {
-      zoomOut();
-    }
-  };
+        if (event.deltaY < 0) {
+          zoomIn();
+        } else {
+          zoomOut();
+        }
+      },
+      [
+        zoomIn,
+        zoomOut,
+      ]
+    );
 
   // =========================================================
   // SWAP MAIN <-> THUMBNAIL
   // =========================================================
 
-  const handleImageChange = (clickedImage) => {
-    if (
-      !clickedImage ||
-      clickedImage === activeImage
-    ) {
-      return;
-    }
+  const handleImageChange =
+    useCallback(
+      (clickedImage) => {
+        if (
+          !clickedImage ||
+          clickedImage === activeImage
+        ) {
+          return;
+        }
 
-    setGalleryImages((currentImages) => {
-      const newImages = [...currentImages];
+        setGalleryImages(
+          (currentImages) => {
+            const clickedIndex =
+              currentImages.indexOf(
+                clickedImage
+              );
 
-      const clickedIndex =
-        newImages.indexOf(clickedImage);
+            if (clickedIndex === -1) {
+              return currentImages;
+            }
 
-      if (clickedIndex === -1) {
-        return newImages;
-      }
+            const newImages = [
+              ...currentImages,
+            ];
 
-      newImages[clickedIndex] = activeImage;
+            newImages[clickedIndex] =
+              activeImage;
 
-      return newImages;
-    });
+            return newImages;
+          }
+        );
 
-    setActiveImage(clickedImage);
-  };
+        setActiveImage(clickedImage);
+      },
+      [activeImage]
+    );
 
   // =========================================================
   // KEYBOARD CONTROLS
@@ -289,7 +353,15 @@ export default function ProductGallery({ product }) {
         handleKeyDown
       );
     };
-  }, [isZoomOpen]);
+  }, [
+    isZoomOpen,
+    closeZoom,
+    goToPrevious,
+    goToNext,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+  ]);
 
   // =========================================================
   // LOCK BODY SCROLL
@@ -304,8 +376,11 @@ export default function ProductGallery({ product }) {
     const previousTouchAction =
       document.body.style.touchAction;
 
-    document.body.style.overflow = "hidden";
-    document.body.style.touchAction = "none";
+    document.body.style.overflow =
+      "hidden";
+
+    document.body.style.touchAction =
+      "none";
 
     return () => {
       document.body.style.overflow =
@@ -333,7 +408,6 @@ export default function ProductGallery({ product }) {
         =================================================== */}
 
         <motion.div
-          layout
           className="
             group
             relative
@@ -358,9 +432,7 @@ export default function ProductGallery({ product }) {
           "
         >
 
-          {/* =================================================
-              TOP RIGHT GLOW
-          ================================================= */}
+          {/* TOP RIGHT GLOW */}
 
           <div
             className="
@@ -381,9 +453,7 @@ export default function ProductGallery({ product }) {
             "
           />
 
-          {/* =================================================
-              BOTTOM LEFT GLOW
-          ================================================= */}
+          {/* BOTTOM LEFT GLOW */}
 
           <div
             className="
@@ -404,9 +474,7 @@ export default function ProductGallery({ product }) {
             "
           />
 
-          {/* =================================================
-              IMAGE COUNTER
-          ================================================= */}
+          {/* IMAGE COUNTER */}
 
           <motion.div
             initial={{
@@ -469,13 +537,14 @@ export default function ProductGallery({ product }) {
               "
             >
               {currentIndex + 1} /{" "}
-              {Math.max(allImages.length, 1)}
+              {Math.max(
+                allImages.length,
+                1
+              )}
             </span>
           </motion.div>
 
-          {/* =================================================
-              ZOOM BUTTON
-          ================================================= */}
+          {/* ZOOM BUTTON */}
 
           <motion.button
             type="button"
@@ -588,12 +657,9 @@ export default function ProductGallery({ product }) {
             </motion.span>
           </motion.button>
 
-          {/* =================================================
-              MAIN IMAGE
-          ================================================= */}
+          {/* MAIN IMAGE */}
 
           <AnimatePresence mode="wait">
-
             {activeImage && (
               <motion.img
                 key={activeImage}
@@ -602,22 +668,18 @@ export default function ProductGallery({ product }) {
                   product?.title ||
                   "Product image"
                 }
-
                 initial={{
                   opacity: 0,
                   scale: 1.035,
                 }}
-
                 animate={{
                   opacity: 1,
                   scale: 1,
                 }}
-
                 exit={{
                   opacity: 0,
                   scale: 0.985,
                 }}
-
                 transition={{
                   duration: 0.4,
                   ease: [
@@ -627,17 +689,13 @@ export default function ProductGallery({ product }) {
                     1,
                   ],
                 }}
-
                 whileHover={{
                   scale: 1.025,
                 }}
-
                 onClick={() =>
                   openZoom(currentIndex)
                 }
-
                 draggable={false}
-
                 className="
                   relative
                   z-10
@@ -657,12 +715,9 @@ export default function ProductGallery({ product }) {
                 "
               />
             )}
-
           </AnimatePresence>
 
-          {/* =================================================
-              CINEMATIC OVERLAY
-          ================================================= */}
+          {/* CINEMATIC OVERLAY */}
 
           <div
             className="
@@ -679,9 +734,7 @@ export default function ProductGallery({ product }) {
             "
           />
 
-          {/* =================================================
-              SHINE EFFECT
-          ================================================= */}
+          {/* SHINE EFFECT */}
 
           <div
             className="
@@ -705,9 +758,7 @@ export default function ProductGallery({ product }) {
             "
           />
 
-          {/* =================================================
-              BOTTOM HINT
-          ================================================= */}
+          {/* BOTTOM HINT */}
 
           <div
             className="
@@ -756,9 +807,7 @@ export default function ProductGallery({ product }) {
             </span>
           </div>
 
-          {/* =================================================
-              RED ACCENT LINE
-          ================================================= */}
+          {/* RED ACCENT LINE */}
 
           <motion.div
             initial={{
@@ -830,35 +879,37 @@ export default function ProductGallery({ product }) {
                 const isActive =
                   image === activeImage;
 
+                // +1 because activeImage
+                // is the first item in allImages
+                const lightboxIndex =
+                  allImages.indexOf(image);
+
                 return (
                   <motion.button
                     key={`${image}-${index}`}
-
                     type="button"
-
                     whileHover={{
                       y: -2,
                       scale: 1.025,
                     }}
-
                     whileTap={{
                       scale: 0.96,
                     }}
-
                     transition={{
                       duration: 0.2,
                     }}
-
                     onClick={() =>
                       handleImageChange(
                         image
                       )
                     }
-
                     onDoubleClick={() =>
-                      openZoom(index)
+                      openZoom(
+                        lightboxIndex >= 0
+                          ? lightboxIndex
+                          : 0
+                      )
                     }
-
                     className={`
                       group
 
@@ -903,9 +954,9 @@ export default function ProductGallery({ product }) {
                       alt={`Gallery ${
                         index + 1
                       }`}
-
                       draggable={false}
-
+                      loading="lazy"
+                      decoding="async"
                       className="
                         h-14
                         w-full
@@ -967,7 +1018,6 @@ export default function ProductGallery({ product }) {
                     {isActive && (
                       <motion.div
                         layoutId="active-gallery-dot"
-
                         className="
                           absolute
                           right-1.5
@@ -990,7 +1040,6 @@ export default function ProductGallery({ product }) {
                     {isActive && (
                       <motion.div
                         layoutId="active-gallery-line"
-
                         className="
                           absolute
                           bottom-0
@@ -1020,8 +1069,6 @@ export default function ProductGallery({ product }) {
 
       {/* =====================================================
           PREMIUM LIGHTBOX
-          IMPORTANT:
-          Render directly into BODY so Navbar cannot overlap.
       ===================================================== */}
 
       {typeof document !== "undefined" &&
@@ -1030,19 +1077,15 @@ export default function ProductGallery({ product }) {
             {isZoomOpen && (
               <motion.div
                 key="product-lightbox"
-
                 initial={{
                   opacity: 0,
                 }}
-
                 animate={{
                   opacity: 1,
                 }}
-
                 exit={{
                   opacity: 0,
                 }}
-
                 transition={{
                   duration: 0.25,
                   ease: [
@@ -1052,7 +1095,6 @@ export default function ProductGallery({ product }) {
                     1,
                   ],
                 }}
-
                 className="
                   fixed
                   inset-0
@@ -1070,7 +1112,6 @@ export default function ProductGallery({ product }) {
                   p-3
                   sm:p-6
                 "
-
                 onMouseDown={(event) => {
                   if (
                     event.target ===
@@ -1081,9 +1122,7 @@ export default function ProductGallery({ product }) {
                 }}
               >
 
-                {/* =========================================
-                    TOP BAR
-                ========================================= */}
+                {/* TOP BAR */}
 
                 <div
                   className="
@@ -1112,16 +1151,13 @@ export default function ProductGallery({ product }) {
                       opacity: 0,
                       y: -8,
                     }}
-
                     animate={{
                       opacity: 1,
                       y: 0,
                     }}
-
                     transition={{
                       duration: 0.35,
                     }}
-
                     className="
                       flex
                       items-center
@@ -1188,19 +1224,14 @@ export default function ProductGallery({ product }) {
 
                     <motion.button
                       type="button"
-
                       whileHover={{
                         scale: 1.06,
                       }}
-
                       whileTap={{
                         scale: 0.9,
                       }}
-
                       onClick={zoomOut}
-
                       disabled={zoom <= 1}
-
                       className="
                         flex
                         h-9
@@ -1278,19 +1309,14 @@ export default function ProductGallery({ product }) {
 
                     <motion.button
                       type="button"
-
                       whileHover={{
                         scale: 1.06,
                       }}
-
                       whileTap={{
                         scale: 0.9,
                       }}
-
                       onClick={zoomIn}
-
                       disabled={zoom >= 3}
-
                       className="
                         flex
                         h-9
@@ -1329,18 +1355,14 @@ export default function ProductGallery({ product }) {
 
                     <motion.button
                       type="button"
-
                       whileHover={{
                         scale: 1.06,
                         rotate: -6,
                       }}
-
                       whileTap={{
                         scale: 0.9,
                       }}
-
                       onClick={resetZoom}
-
                       className="
                         flex
                         h-9
@@ -1376,18 +1398,14 @@ export default function ProductGallery({ product }) {
 
                     <motion.button
                       type="button"
-
                       whileHover={{
                         scale: 1.06,
                         rotate: 90,
                       }}
-
                       whileTap={{
                         scale: 0.9,
                       }}
-
                       onClick={closeZoom}
-
                       className="
                         ml-1
 
@@ -1424,25 +1442,19 @@ export default function ProductGallery({ product }) {
                   </div>
                 </div>
 
-                {/* =========================================
-                    PREVIOUS
-                ========================================= */}
+                {/* PREVIOUS */}
 
                 {allImages.length > 1 && (
                   <motion.button
                     type="button"
-
                     whileHover={{
                       scale: 1.08,
                       x: -3,
                     }}
-
                     whileTap={{
                       scale: 0.9,
                     }}
-
                     onClick={goToPrevious}
-
                     className="
                       absolute
 
@@ -1493,9 +1505,7 @@ export default function ProductGallery({ product }) {
                   </motion.button>
                 )}
 
-                {/* =========================================
-                    IMAGE AREA
-                ========================================= */}
+                {/* IMAGE AREA */}
 
                 <div
                   className="
@@ -1512,42 +1522,33 @@ export default function ProductGallery({ product }) {
                     pt-16
                     pb-10
                   "
-
                   onWheel={
                     handleWheelZoom
                   }
                 >
 
-                  <AnimatePresence
-                    mode="wait"
-                  >
+                  <AnimatePresence mode="wait">
 
                     {zoomImage && (
                       <motion.img
                         key={`${zoomImage}-${selectedIndex}`}
-
                         src={zoomImage}
-
                         alt={
                           product?.title ||
                           "Product image"
                         }
-
                         initial={{
                           opacity: 0,
                           scale: 0.96,
                         }}
-
                         animate={{
                           opacity: 1,
                           scale: zoom,
                         }}
-
                         exit={{
                           opacity: 0,
                           scale: 0.96,
                         }}
-
                         transition={{
                           duration: 0.25,
                           ease: [
@@ -1557,18 +1558,14 @@ export default function ProductGallery({ product }) {
                             1,
                           ],
                         }}
-
                         drag={zoom > 1}
-
                         dragConstraints={{
                           top: 160,
                           bottom: 160,
                           left: 160,
                           right: 160,
                         }}
-
                         dragElastic={0.12}
-
                         onDoubleClick={() => {
                           if (zoom === 1) {
                             setZoom(2);
@@ -1576,7 +1573,6 @@ export default function ProductGallery({ product }) {
                             resetZoom();
                           }
                         }}
-
                         className={`
                           max-h-full
                           max-w-full
@@ -1593,7 +1589,6 @@ export default function ProductGallery({ product }) {
                               : "cursor-zoom-in"
                           }
                         `}
-
                         draggable={false}
                       />
                     )}
@@ -1602,25 +1597,19 @@ export default function ProductGallery({ product }) {
 
                 </div>
 
-                {/* =========================================
-                    NEXT
-                ========================================= */}
+                {/* NEXT */}
 
                 {allImages.length > 1 && (
                   <motion.button
                     type="button"
-
                     whileHover={{
                       scale: 1.08,
                       x: 3,
                     }}
-
                     whileTap={{
                       scale: 0.9,
                     }}
-
                     onClick={goToNext}
-
                     className="
                       absolute
 
@@ -1671,26 +1660,21 @@ export default function ProductGallery({ product }) {
                   </motion.button>
                 )}
 
-                {/* =========================================
-                    BOTTOM HINT
-                ========================================= */}
+                {/* BOTTOM HINT */}
 
                 <motion.div
                   initial={{
                     opacity: 0,
                     y: 8,
                   }}
-
                   animate={{
                     opacity: 1,
                     y: 0,
                   }}
-
                   transition={{
                     delay: 0.25,
                     duration: 0.3,
                   }}
-
                   className="
                     absolute
 
@@ -1760,3 +1744,9 @@ export default function ProductGallery({ product }) {
     </>
   );
 }
+
+// =========================================================
+// PREVENT UNNECESSARY RE-RENDERS
+// =========================================================
+
+export default memo(ProductGallery);

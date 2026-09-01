@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 import ProductGallery from "./ProductGallery";
 import ProductInfo from "./ProductInfo";
 import ProductSpecs from "./ProductSpecs";
@@ -23,16 +21,11 @@ export default function ProductDetails({ product }) {
           absolute
           left-1/2
           top-0
-
           h-[420px]
           w-[420px]
-
           -translate-x-1/2
-
           rounded-full
-
           bg-red-600/10
-
           blur-[150px]
         "
       />
@@ -41,53 +34,28 @@ export default function ProductDetails({ product }) {
         className="
           relative
           z-10
-
           mx-auto
           max-w-7xl
-
           px-4
           sm:px-6
           lg:px-8
         "
       >
-
-        {/* MAIN */}
         <div
           className="
             grid
             items-start
-
             gap-5
-
             lg:grid-cols-[1.04fr_0.96fr]
           "
         >
 
-          {/* ================= LEFT — GALLERY ================= */}
-
-          <motion.div
-            initial={{
-              opacity: 0,
-              x: -20,
-            }}
-            whileInView={{
-              opacity: 1,
-              x: 0,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              duration: 0.5,
-            }}
-            className="min-w-0"
-          >
+          {/* LEFT — GALLERY */}
+          <div className="min-w-0">
             <ProductGallery product={product} />
-          </motion.div>
+          </div>
 
-
-          {/* ================= RIGHT ================= */}
-
+          {/* RIGHT */}
           <div
             className="
               flex
@@ -98,74 +66,33 @@ export default function ProductDetails({ product }) {
           >
 
             {/* PRODUCT INFO */}
-
-            <motion.div
-              initial={{
-                opacity: 0,
-                x: 20,
-              }}
-              whileInView={{
-                opacity: 1,
-                x: 0,
-              }}
-              viewport={{
-                once: true,
-              }}
-              transition={{
-                duration: 0.5,
-                delay: 0.05,
-              }}
+            <div
               className="
                 rounded-[22px]
-
                 border
                 border-white/[0.08]
-
                 bg-white/[0.02]
-
                 p-4
-
                 backdrop-blur-xl
               "
             >
               <ProductInfo product={product} />
-            </motion.div>
-
+            </div>
 
             {/* TECHNICAL DETAILS */}
-
-            <motion.div
-              initial={{
-                opacity: 0,
-                y: 15,
-              }}
-              whileInView={{
-                opacity: 1,
-                y: 0,
-              }}
-              viewport={{
-                once: true,
-              }}
-              transition={{
-                duration: 0.5,
-                delay: 0.12,
-              }}
+            <div
               className="
                 rounded-[22px]
-
                 border
                 border-white/[0.08]
-
                 bg-white/[0.02]
-
                 px-4
                 py-3
-
                 backdrop-blur-xl
               "
             >
               <ProductSpecs product={product} />
-            </motion.div>
+            </div>
 
           </div>
         </div>
