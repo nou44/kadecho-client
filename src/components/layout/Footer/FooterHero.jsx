@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -7,10 +6,7 @@ import {
   FaLinkedinIn,
   FaWhatsapp,
 } from "react-icons/fa6";
-import {
-  ArrowUpRight,
-  Sparkles,
-} from "lucide-react";
+import { ArrowUpRight, Sparkles } from "lucide-react";
 
 const socials = [
   {
@@ -58,9 +54,8 @@ export default function FooterHero() {
         lg:justify-between
       "
     >
-
       {/* =====================================================
-          BACKGROUND BRAND
+          BACKGROUND
       ===================================================== */}
 
       <div
@@ -71,7 +66,6 @@ export default function FooterHero() {
           overflow-hidden
         "
       >
-
         {/* Soft center glow */}
 
         <div
@@ -95,23 +89,7 @@ export default function FooterHero() {
 
         {/* Large Brand */}
 
-        <motion.div
-          initial={{
-            opacity: 0,
-            x: -30,
-          }}
-          whileInView={{
-            opacity: 1,
-            x: 0,
-          }}
-          viewport={{
-            once: false,
-            amount: 0.2,
-          }}
-          transition={{
-            duration: 1.2,
-            ease: [0.22, 1, 0.36, 1],
-          }}
+        <div
           className="
             absolute
             inset-0
@@ -147,19 +125,11 @@ export default function FooterHero() {
           >
             KADECHO
           </span>
-        </motion.div>
+        </div>
 
         {/* Subtle horizontal light */}
 
-        <motion.div
-          animate={{
-            x: ["-20%", "120%"],
-          }}
-          transition={{
-            duration: 9,
-            repeat: Infinity,
-            ease: "linear",
-          }}
+        <div
           className="
             absolute
             left-0
@@ -174,33 +144,17 @@ export default function FooterHero() {
             to-transparent
 
             blur-[1px]
+
+            opacity-60
           "
         />
-
       </div>
-
 
       {/* =====================================================
           LEFT / BRAND
       ===================================================== */}
 
-      <motion.div
-        initial={{
-          opacity: 0,
-          x: -35,
-        }}
-        whileInView={{
-          opacity: 1,
-          x: 0,
-        }}
-        viewport={{
-          once: false,
-          amount: 0.25,
-        }}
-        transition={{
-          duration: 0.9,
-          ease: [0.22, 1, 0.36, 1],
-        }}
+      <div
         className="
           relative
           z-10
@@ -208,7 +162,6 @@ export default function FooterHero() {
           flex-1
         "
       >
-
         <Link
           to="/"
           className="
@@ -225,21 +178,11 @@ export default function FooterHero() {
             sm:items-center
           "
         >
-
           {/* =================================================
               LOGO
           ================================================= */}
 
-          <motion.div
-            whileHover={{
-              scale: 1.06,
-              rotate: 3,
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 240,
-              damping: 18,
-            }}
+          <div
             className="
               relative
 
@@ -253,18 +196,9 @@ export default function FooterHero() {
               justify-center
             "
           >
-
             {/* Outer ring */}
 
-            <motion.div
-              animate={{
-                rotate: 360,
-              }}
-              transition={{
-                duration: 18,
-                repeat: Infinity,
-                ease: "linear",
-              }}
+            <div
               className="
                 absolute
                 -inset-2
@@ -304,39 +238,38 @@ export default function FooterHero() {
 
                 blur-2xl
 
-                transition-all
-                duration-500
+                transition-colors
+                duration-300
 
                 group-hover:bg-red-600/20
               "
             />
 
-<img
-  src="/kadecho-logo-128.webp"
-  alt="KADECHO"
-  className="
-    relative
-    z-10
-    h-20
-    w-20
-    object-contain
-    drop-shadow-[0_0_30px_rgba(220,38,38,.22)]
-  "
-/>
+            <img
+              src="/kadecho-logo-128.webp"
+              alt="KADECHO"
+              loading="lazy"
+              decoding="async"
+              className="
+                relative
+                z-10
 
-          </motion.div>
+                h-20
+                w-20
 
+                object-contain
+
+                drop-shadow-[0_0_30px_rgba(220,38,38,.22)]
+              "
+            />
+          </div>
 
           {/* =================================================
               BRAND TEXT
           ================================================= */}
 
           <div className="min-w-0">
-
-            <motion.h2
-              whileHover={{
-                x: 4,
-              }}
+            <h2
               className="
                 font-bebas
 
@@ -361,7 +294,7 @@ export default function FooterHero() {
               "
             >
               KADECHO
-            </motion.h2>
+            </h2>
 
             {/* Accent */}
 
@@ -374,19 +307,11 @@ export default function FooterHero() {
                 gap-3
               "
             >
-
-              <motion.span
-                animate={{
-                  width: [28, 55, 28],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
+              <span
                 className="
                   block
                   h-px
+                  w-[42px]
 
                   bg-red-500
                 "
@@ -407,7 +332,6 @@ export default function FooterHero() {
               >
                 Crafted With Precision
               </span>
-
             </div>
 
             {/* Description */}
@@ -442,32 +366,14 @@ export default function FooterHero() {
               creations crafted with precision,
               innovation and timeless luxury.
             </p>
-
           </div>
-
         </Link>
-
 
         {/* =================================================
             SOCIALS
         ================================================= */}
 
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 15,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
-          viewport={{
-            once: false,
-          }}
-          transition={{
-            delay: 0.25,
-            duration: 0.6,
-          }}
+        <div
           className="
             mt-8
 
@@ -476,32 +382,20 @@ export default function FooterHero() {
             gap-3
           "
         >
-
           {socials.map(
-            ({ icon: Icon, href, label }, index) => (
+            ({ icon: Icon, href, label }) => (
               <motion.a
                 key={label}
                 href={href}
                 aria-label={label}
-                initial={{
-                  opacity: 0,
-                  y: 10,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                viewport={{
-                  once: false,
-                }}
-                transition={{
-                  delay: 0.3 + index * 0.07,
-                }}
                 whileHover={{
                   y: -4,
                 }}
                 whileTap={{
                   scale: 0.94,
+                }}
+                transition={{
+                  duration: 0.18,
                 }}
                 className="
                   group/social
@@ -535,7 +429,6 @@ export default function FooterHero() {
                   hover:shadow-[0_10px_30px_rgba(239,68,68,.12)]
                 "
               >
-
                 {/* Hover glow */}
 
                 <span
@@ -545,7 +438,7 @@ export default function FooterHero() {
 
                     bg-red-500/0
 
-                    transition-all
+                    transition-colors
                     duration-300
 
                     group-hover/social:bg-red-500/10
@@ -559,43 +452,17 @@ export default function FooterHero() {
                     z-10
                   "
                 />
-
               </motion.a>
             )
           )}
-
-        </motion.div>
-
-      </motion.div>
-
+        </div>
+      </div>
 
       {/* =====================================================
           RIGHT CTA
       ===================================================== */}
 
-      <motion.div
-        initial={{
-          opacity: 0,
-          x: 45,
-          y: 20,
-        }}
-        whileInView={{
-          opacity: 1,
-          x: 0,
-          y: 0,
-        }}
-        viewport={{
-          once: false,
-          amount: 0.25,
-        }}
-        transition={{
-          duration: 0.9,
-          delay: 0.12,
-          ease: [0.22, 1, 0.36, 1],
-        }}
-        whileHover={{
-          y: -6,
-        }}
+      <div
         className="
           relative
           z-10
@@ -608,7 +475,6 @@ export default function FooterHero() {
           lg:mr-2
         "
       >
-
         <div
           className="
             relative
@@ -628,7 +494,6 @@ export default function FooterHero() {
             shadow-[0_25px_80px_rgba(0,0,0,.45)]
           "
         >
-
           {/* Card glow */}
 
           <div
@@ -650,17 +515,9 @@ export default function FooterHero() {
             "
           />
 
-          {/* Moving border light */}
+          {/* Static accent */}
 
-          <motion.div
-            animate={{
-              x: ["-120%", "420%"],
-            }}
-            transition={{
-              duration: 4.5,
-              repeat: Infinity,
-              ease: "linear",
-            }}
+          <div
             className="
               absolute
               left-0
@@ -673,6 +530,8 @@ export default function FooterHero() {
               from-transparent
               via-red-500
               to-transparent
+
+              opacity-70
             "
           />
 
@@ -698,7 +557,6 @@ export default function FooterHero() {
               py-1.5
             "
           >
-
             <Sparkles
               size={12}
               className="text-red-400"
@@ -719,9 +577,7 @@ export default function FooterHero() {
             >
               Let's Build
             </span>
-
           </div>
-
 
           {/* Title */}
 
@@ -752,7 +608,6 @@ export default function FooterHero() {
             </span>
           </h3>
 
-
           {/* Description */}
 
           <p
@@ -774,7 +629,6 @@ export default function FooterHero() {
             and let's create something
             exceptional together.
           </p>
-
 
           {/* CTA */}
 
@@ -820,13 +674,12 @@ export default function FooterHero() {
               hover:text-white
             "
           >
-
             Contact Us
 
             <ArrowUpRight
               size={16}
               className="
-                transition-all
+                transition-transform
                 duration-300
 
                 group-hover/cta:translate-x-1
@@ -834,9 +687,7 @@ export default function FooterHero() {
                 group-hover/cta:rotate-12
               "
             />
-
           </Link>
-
 
           {/* Bottom accent */}
 
@@ -855,12 +706,8 @@ export default function FooterHero() {
               to-transparent
             "
           />
-
         </div>
-
-      </motion.div>
-
+      </div>
     </section>
   );
 }
-
