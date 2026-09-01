@@ -12,35 +12,23 @@ export default function AboutHero() {
         bg-[#050505]
 
         min-h-[360px]
-
         sm:min-h-[400px]
-
         lg:min-h-[430px]
-
         xl:min-h-[450px]
       "
     >
-      {/* ================================================= */}
-      {/* VIDEO */}
-      {/* ================================================= */}
+      {/* =================================================
+          VIDEO
+          Static rendering — no transform animation
+      ================================================= */}
 
-      <motion.video
+      <video
         autoPlay
         muted
         loop
         playsInline
         preload="metadata"
-        initial={{
-          scale: 1.06,
-        }}
-        animate={{
-          scale: [1.06, 1.02, 1.06],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+        aria-hidden="true"
         className="
           pointer-events-none
           absolute
@@ -52,19 +40,17 @@ export default function AboutHero() {
 
           object-cover
           object-center
-
-          will-change-transform
         "
       >
         <source
           src="/vedio4.mp4"
           type="video/mp4"
         />
-      </motion.video>
+      </video>
 
-      {/* ================================================= */}
-      {/* DARK VIDEO OVERLAY */}
-      {/* ================================================= */}
+      {/* =================================================
+          DARK OVERLAY
+      ================================================= */}
 
       <div
         className="
@@ -76,14 +62,13 @@ export default function AboutHero() {
           bg-black/65
 
           sm:bg-black/60
-
           lg:bg-black/55
         "
       />
 
-      {/* ================================================= */}
-      {/* LEFT GRADIENT */}
-      {/* ================================================= */}
+      {/* =================================================
+          CINEMATIC LEFT GRADIENT
+      ================================================= */}
 
       <div
         className="
@@ -99,25 +84,17 @@ export default function AboutHero() {
         "
       />
 
-      {/* ================================================= */}
-      {/* RED CINEMATIC GLOW */}
-      {/* ================================================= */}
+      {/* =================================================
+          STATIC RED AMBIENCE
+          No animation / no scale
+      ================================================= */}
 
-      <motion.div
-        animate={{
-          opacity: [0.10, 0.22, 0.10],
-          scale: [1, 1.08, 1],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+      <div
         className="
           pointer-events-none
           absolute
 
-          left-[10%]
+          left-[8%]
           top-1/2
 
           z-[2]
@@ -129,21 +106,21 @@ export default function AboutHero() {
 
           rounded-full
 
-          bg-red-600/20
+          bg-red-600/[0.10]
 
-          blur-[120px]
+          blur-[90px]
 
           sm:h-[320px]
           sm:w-[320px]
 
-          lg:h-[380px]
-          lg:w-[380px]
+          lg:h-[360px]
+          lg:w-[360px]
         "
       />
 
-      {/* ================================================= */}
-      {/* GRID */}
-      {/* ================================================= */}
+      {/* =================================================
+          SUBTLE GRID
+      ================================================= */}
 
       <div
         className="
@@ -152,7 +129,7 @@ export default function AboutHero() {
           inset-0
           z-[2]
 
-          opacity-[0.025]
+          opacity-[0.022]
 
           bg-[linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)]
 
@@ -160,9 +137,9 @@ export default function AboutHero() {
         "
       />
 
-      {/* ================================================= */}
-      {/* BOTTOM FADE */}
-      {/* ================================================= */}
+      {/* =================================================
+          BOTTOM FADE
+      ================================================= */}
 
       <div
         className="
@@ -183,9 +160,9 @@ export default function AboutHero() {
         "
       />
 
-      {/* ================================================= */}
-      {/* CONTENT */}
-      {/* ================================================= */}
+      {/* =================================================
+          CONTENT
+      ================================================= */}
 
       <div
         className="
@@ -218,21 +195,22 @@ export default function AboutHero() {
             max-w-3xl
           "
         >
-          {/* ================================================= */}
-          {/* BREADCRUMB */}
-          {/* ================================================= */}
+          {/* =================================================
+              BREADCRUMB
+          ================================================= */}
 
           <motion.div
             initial={{
               opacity: 0,
-              y: 10,
+              y: 8,
             }}
             animate={{
               opacity: 1,
               y: 0,
             }}
             transition={{
-              duration: 0.5,
+              duration: 0.4,
+              ease: "easeOut",
             }}
             className="
               mb-4
@@ -256,7 +234,7 @@ export default function AboutHero() {
               to="/"
               className="
                 transition-colors
-                duration-300
+                duration-200
 
                 hover:text-red-500
               "
@@ -274,22 +252,23 @@ export default function AboutHero() {
             </span>
           </motion.div>
 
-          {/* ================================================= */}
-          {/* BADGE */}
-          {/* ================================================= */}
+          {/* =================================================
+              BADGE
+          ================================================= */}
 
-          <motion.span
+          <motion.div
             initial={{
               opacity: 0,
-              y: 14,
+              y: 10,
             }}
             animate={{
               opacity: 1,
               y: 0,
             }}
             transition={{
-              delay: 0.12,
-              duration: 0.45,
+              delay: 0.06,
+              duration: 0.4,
+              ease: "easeOut",
             }}
             className="
               mb-3
@@ -304,7 +283,7 @@ export default function AboutHero() {
               border
               border-red-500/20
 
-              bg-red-500/10
+              bg-red-500/[0.08]
 
               px-3
               py-1.5
@@ -318,8 +297,6 @@ export default function AboutHero() {
               tracking-[0.24em]
 
               text-red-400
-
-              backdrop-blur-md
             "
           >
             <span
@@ -327,40 +304,41 @@ export default function AboutHero() {
                 h-1.5
                 w-1.5
 
+                shrink-0
+
                 rounded-full
 
                 bg-red-500
 
-                shadow-[0_0_10px_rgba(239,68,68,.8)]
+                shadow-[0_0_8px_rgba(239,68,68,.55)]
               "
             />
 
             About KADECHO
-          </motion.span>
+          </motion.div>
 
-          {/* ================================================= */}
-          {/* TITLE */}
-          {/* ================================================= */}
+          {/* =================================================
+              TITLE
+          ================================================= */}
 
           <motion.h1
             initial={{
               opacity: 0,
-              y: 30,
+              y: 22,
             }}
             animate={{
               opacity: 1,
               y: 0,
             }}
             transition={{
-              delay: 0.22,
-              duration: 0.65,
+              delay: 0.12,
+              duration: 0.55,
               ease: [0.22, 1, 0.36, 1],
             }}
             className="
               max-w-3xl
 
               font-bebas
-              font-black
               uppercase
 
               leading-[0.88]
@@ -399,28 +377,32 @@ export default function AboutHero() {
             </span>
           </motion.h1>
 
-          {/* ================================================= */}
-          {/* ACCENT LINE */}
-          {/* ================================================= */}
+          {/* =================================================
+              ACCENT
+          ================================================= */}
 
           <motion.div
             initial={{
-              width: 0,
               opacity: 0,
+              scaleX: 0,
             }}
             animate={{
-              width: 90,
               opacity: 1,
+              scaleX: 1,
             }}
             transition={{
-              delay: 0.55,
-              duration: 0.7,
+              delay: 0.28,
+              duration: 0.5,
               ease: "easeOut",
+            }}
+            style={{
+              transformOrigin: "left",
             }}
             className="
               mt-4
 
               h-[2px]
+              w-[90px]
 
               rounded-full
 
@@ -433,22 +415,23 @@ export default function AboutHero() {
             "
           />
 
-          {/* ================================================= */}
-          {/* DESCRIPTION */}
-          {/* ================================================= */}
+          {/* =================================================
+              DESCRIPTION
+          ================================================= */}
 
           <motion.p
             initial={{
               opacity: 0,
-              y: 15,
+              y: 10,
             }}
             animate={{
               opacity: 1,
               y: 0,
             }}
             transition={{
-              delay: 0.65,
-              duration: 0.5,
+              delay: 0.36,
+              duration: 0.45,
+              ease: "easeOut",
             }}
             className="
               mt-3
@@ -475,24 +458,12 @@ export default function AboutHero() {
         </div>
       </div>
 
-      {/* ================================================= */}
-      {/* BOTTOM RED ACCENT */}
-      {/* ================================================= */}
+      {/* =================================================
+          BOTTOM RED ACCENT
+          Static — zero animation cost
+      ================================================= */}
 
-      <motion.div
-        initial={{
-          width: 0,
-          opacity: 0,
-        }}
-        animate={{
-          width: "100%",
-          opacity: 1,
-        }}
-        transition={{
-          delay: 0.8,
-          duration: 1.2,
-          ease: "easeOut",
-        }}
+      <div
         className="
           absolute
           bottom-0
@@ -500,6 +471,7 @@ export default function AboutHero() {
           z-[6]
 
           h-px
+          w-full
 
           bg-gradient-to-r
           from-transparent

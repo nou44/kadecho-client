@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import HeroOverlay from "./HeroOverlay";
 import HeroControls from "./HeroControls";
@@ -8,9 +12,16 @@ const API_URL =
   "http://localhost:5000/api";
 
 export default function HeroSlider() {
+  const sectionRef = useRef(null);
+  const videoRef = useRef(null);
+
   const [heroSlides, setHeroSlides] = useState([]);
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  const [isVisible, setIsVisible] = useState(true);
+  const [isPageVisible, setIsPageVisible] =
+    useState(true);
 
   /* =====================================================
      FETCH HERO VIDEOS
@@ -33,13 +44,16 @@ export default function HeroSlider() {
 
         const data = await response.json();
 
-        if (!cancelled) {
-          setHeroSlides(
-            Array.isArray(data.heroVideos)
-              ? data.heroVideos
-              : []
-          );
-        }
+        if (cancelled) return;
+
+        const videos = Array.isArray(
+          data.heroVideos
+        )
+          ? data.heroVideos
+          : [];
+
+        setHeroSlides(videos);
+        setCurrent(0);
       } catch (error) {
         if (!cancelled) {
           console.error(
@@ -62,10 +76,92 @@ export default function HeroSlider() {
   }, []);
 
   /* =====================================================
+     INTERSECTION OBSERVER
+
+     Pause everything when hero is outside screen
+  ===================================================== */
+
+  useEffect(() => {
+    const element = sectionRef.current;
+
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      {
+        threshold: 0.15,
+      }
+    );
+
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  /* =====================================================
+     PAGE VISIBILITY
+
+     Stop video when user changes browser tab
+  ===================================================== */
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(
+        document.visibilityState === "visible"
+      );
+    };
+
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange
+    );
+
+    return () => {
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange
+      );
+    };
+  }, []);
+
+  /* =====================================================
+     SMART VIDEO PLAY / PAUSE
+  ===================================================== */
+
+  useEffect(() => {
+    const video = videoRef.current;
+
+    if (!video) return;
+
+    const shouldPlay =
+      isVisible && isPageVisible;
+
+    if (shouldPlay) {
+      const playPromise = video.play();
+
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } else {
+      video.pause();
+    }
+  }, [
+    current,
+    isVisible,
+    isPageVisible,
+  ]);
+
+  /* =====================================================
      NEXT
   ===================================================== */
 
   const nextSlide = () => {
+    if (heroSlides.length <= 1) return;
+
     setCurrent((prev) =>
       prev >= heroSlides.length - 1
         ? 0
@@ -78,6 +174,8 @@ export default function HeroSlider() {
   ===================================================== */
 
   const prevSlide = () => {
+    if (heroSlides.length <= 1) return;
+
     setCurrent((prev) =>
       prev <= 0
         ? heroSlides.length - 1
@@ -87,10 +185,18 @@ export default function HeroSlider() {
 
   /* =====================================================
      AUTO SLIDE
+
+     Runs only when hero is actually visible
   ===================================================== */
 
   useEffect(() => {
-    if (heroSlides.length <= 1) return;
+    if (
+      heroSlides.length <= 1 ||
+      !isVisible ||
+      !isPageVisible
+    ) {
+      return;
+    }
 
     const timer = window.setInterval(() => {
       setCurrent((prev) =>
@@ -103,7 +209,11 @@ export default function HeroSlider() {
     return () => {
       window.clearInterval(timer);
     };
-  }, [heroSlides.length]);
+  }, [
+    heroSlides.length,
+    isVisible,
+    isPageVisible,
+  ]);
 
   /* =====================================================
      LOADING
@@ -129,10 +239,12 @@ export default function HeroSlider() {
             w-full
 
             overflow-hidden
-            rounded-[20px]
+
+            rounded-[18px]
+            sm:rounded-[20px]
 
             border
-            border-white/[0.07]
+            border-white/[0.06]
 
             bg-[#080808]
           "
@@ -144,7 +256,10 @@ export default function HeroSlider() {
 
               animate-pulse
 
-              bg-white/[0.025]
+              bg-gradient-to-br
+              from-white/[0.025]
+              via-transparent
+              to-red-500/[0.02]
             "
           />
         </div>
@@ -162,22 +277,6 @@ export default function HeroSlider() {
 
   const slide = heroSlides[current];
 
-  /*
-    Support different backend names.
-
-    Ideally backend sends:
-    {
-      video: "...",
-      poster: "..."
-    }
-
-    or:
-    {
-      video: "...",
-      thumbnail: "..."
-    }
-  */
-
   const poster =
     slide.poster ||
     slide.thumbnail ||
@@ -187,6 +286,7 @@ export default function HeroSlider() {
 
   return (
     <section
+      ref={sectionRef}
       className="
         relative
         mx-auto
@@ -200,35 +300,32 @@ export default function HeroSlider() {
     >
       {/* =================================================
           LIGHT AMBIENCE
-
-          Kept intentionally subtle.
-          Avoid heavy blur because video already costs GPU.
       ================================================= */}
 
       <div
+        aria-hidden="true"
         className="
           pointer-events-none
 
           absolute
           left-1/2
-          top-1/2
+          top-[42%]
 
-          h-[65%]
-          w-[75%]
+          h-[42%]
+          w-[65%]
 
           -translate-x-1/2
-          -translate-y-1/2
 
           rounded-full
 
-          bg-red-600/[0.035]
+          bg-red-600/[0.025]
 
-          blur-[35px]
+          blur-[30px]
         "
       />
 
       {/* =================================================
-          VIDEO CONTAINER
+          VIDEO
       ================================================= */}
 
       <div
@@ -241,44 +338,30 @@ export default function HeroSlider() {
 
           overflow-hidden
 
-          rounded-[20px]
+          rounded-[18px]
+          sm:rounded-[20px]
 
           border
-          border-white/[0.08]
+          border-white/[0.075]
 
           bg-[#070707]
 
-          shadow-[0_14px_40px_rgba(0,0,0,.32)]
+          shadow-[0_14px_40px_rgba(0,0,0,.28)]
 
-          sm:rounded-[22px]
+          isolate
         "
       >
-        {/* =================================================
-            VIDEO
-        ================================================= */}
-
         <video
-          key={slide.video}
+          ref={videoRef}
+          key={slide._id || slide.id || slide.video}
           autoPlay
           muted
           loop
           playsInline
-
-          /*
-            Metadata is enough for the first video.
-            Browser will still fetch what autoplay requires,
-            but we avoid aggressively preloading the entire file.
-          */
           preload="metadata"
-
           poster={poster}
-
-          /*
-            Prevent unnecessary rendering work.
-          */
           disablePictureInPicture
           controls={false}
-
           className="
             absolute
             inset-0
@@ -296,13 +379,10 @@ export default function HeroSlider() {
           />
         </video>
 
-        {/* =================================================
-            SIMPLE VIDEO OVERLAY
-
-            One gradient instead of multiple expensive layers.
-        ================================================= */}
+        {/* VIDEO GRADIENT */}
 
         <div
+          aria-hidden="true"
           className="
             pointer-events-none
 
@@ -311,16 +391,15 @@ export default function HeroSlider() {
 
             bg-gradient-to-t
             from-black/95
-            via-black/20
-            to-transparent
+            via-black/25
+            to-black/[0.02]
           "
         />
 
-        {/* =================================================
-            SUBTLE TOP LIGHT
-        ================================================= */}
+        {/* TOP LIGHT */}
 
         <div
+          aria-hidden="true"
           className="
             pointer-events-none
 
@@ -337,19 +416,18 @@ export default function HeroSlider() {
           "
         />
 
-        {/* =================================================
-            BORDER
-        ================================================= */}
+        {/* SUBTLE BORDER */}
 
         <div
+          aria-hidden="true"
           className="
             pointer-events-none
 
             absolute
             inset-0
 
-            rounded-[20px]
-            sm:rounded-[22px]
+            rounded-[18px]
+            sm:rounded-[20px]
 
             ring-1
             ring-inset
@@ -372,6 +450,7 @@ export default function HeroSlider() {
           z-20
 
           w-[88%]
+
           -translate-x-1/2
 
           sm:top-[58%]
