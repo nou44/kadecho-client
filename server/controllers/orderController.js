@@ -1,4 +1,5 @@
 import Order from "../models/Order.js";
+import { sendOrderEmail } from "../services/sendOrderEmail.js";
 
 // =====================================================
 // CREATE ORDER
@@ -6,6 +7,7 @@ import Order from "../models/Order.js";
 
 export const createOrder = async (req, res) => {
   try {
+    console.log("🔥 CREATE ORDER CALLED");
     const {
       customer,
       items,
@@ -75,6 +77,15 @@ export const createOrder = async (req, res) => {
 
       status: "pending",
     });
+
+
+    // ==============================
+// SEND CONFIRMATION EMAIL
+// ==============================
+
+console.log("📧 ABOUT TO SEND EMAIL");
+
+await sendOrderEmail(order);
 
     // ==============================
     // RESPONSE
