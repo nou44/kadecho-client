@@ -686,7 +686,7 @@ export default function MobileNav() {
                       </div>
 
                       <span className="text-xs text-zinc-400">
-                        Tangier, Morocco
+                        Meknas,agourai, Morocco
                       </span>
 
                     </div>

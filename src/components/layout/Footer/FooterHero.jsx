@@ -246,7 +246,7 @@ export default function FooterHero() {
             />
 
             <img
-              src="/kadecho-logo-128.webp"
+              src="/kadecho-logo-128.128.webp"
               alt="KADECHO"
               loading="lazy"
               decoding="async"
