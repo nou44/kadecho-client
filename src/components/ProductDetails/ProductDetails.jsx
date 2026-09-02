@@ -1,8 +1,41 @@
+import { useFlyToCart } from "../../context/FlyToCartContext";
+
 import ProductGallery from "./ProductGallery";
 import ProductInfo from "./ProductInfo";
 import ProductSpecs from "./ProductSpecs";
 
 export default function ProductDetails({ product }) {
+  const { flyToCart } = useFlyToCart();
+
+  const handleProductAddToCart = (
+    productImage,
+    buttonElement
+  ) => {
+    if (!buttonElement) {
+      console.error(
+        "❌ Add To Cart button not found"
+      );
+      return;
+    }
+
+    const rect =
+      buttonElement.getBoundingClientRect();
+
+    flyToCart({
+      image: productImage,
+
+      start: {
+        x:
+          rect.left +
+          rect.width / 2,
+
+        y:
+          rect.top +
+          rect.height / 2,
+      },
+    });
+  };
+
   return (
     <section
       className="
@@ -49,10 +82,11 @@ export default function ProductDetails({ product }) {
             lg:grid-cols-[1.04fr_0.96fr]
           "
         >
-
           {/* LEFT — GALLERY */}
           <div className="min-w-0">
-            <ProductGallery product={product} />
+            <ProductGallery
+              product={product}
+            />
           </div>
 
           {/* RIGHT */}
@@ -64,7 +98,6 @@ export default function ProductDetails({ product }) {
               gap-4
             "
           >
-
             {/* PRODUCT INFO */}
             <div
               className="
@@ -76,7 +109,12 @@ export default function ProductDetails({ product }) {
                 backdrop-blur-xl
               "
             >
-              <ProductInfo product={product} />
+              <ProductInfo
+                product={product}
+                onAddToCart={
+                  handleProductAddToCart
+                }
+              />
             </div>
 
             {/* TECHNICAL DETAILS */}
@@ -91,9 +129,10 @@ export default function ProductDetails({ product }) {
                 backdrop-blur-xl
               "
             >
-              <ProductSpecs product={product} />
+              <ProductSpecs
+                product={product}
+              />
             </div>
-
           </div>
         </div>
       </div>

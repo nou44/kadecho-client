@@ -164,7 +164,7 @@ export default function InvoicePreview({
   }}
 >
   <img
-    src="/logo1.png"
+    src="/kadecho-logo-64.webp"
     alt="KADECHO"
     draggable={false}
     loading="eager"

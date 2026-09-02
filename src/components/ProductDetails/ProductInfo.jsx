@@ -6,11 +6,11 @@ import {
   Star,
   Sparkles,
 } from "lucide-react";
-
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
 import { useCart } from "../../context/CartContext";
-import { useFlyToCart } from "../../context/FlyToCartContext";
+
 
 const ease = [0.22, 1, 0.36, 1];
 
@@ -38,9 +38,14 @@ const itemVariants = {
   },
 };
 
-export default function ProductInfo({ product }) {
+export default function ProductInfo({
+  product,
+  onAddToCart,
+}) {
   const { addToCart } = useCart();
-  const { flyToCart } = useFlyToCart();
+ 
+
+  const addButtonRef = useRef(null);
 
   // ==========================================
   // PRICE / DISCOUNT
@@ -63,84 +68,37 @@ export default function ProductInfo({ product }) {
   // ADD TO CART
   // ==========================================
 
-  const handleAddToCart = () => {
-    const productImage =
-      product?.image ||
-      product?.images?.[0];
+const handleAddToCart = () => {
+  const productImage =
+    product?.image ||
+    product?.images?.[0];
 
-    if (!productImage) {
-      console.error("❌ Product image not found");
-      return;
-    }
-
-    const imageElements = document.querySelectorAll(
-      `img[src="${productImage}"]`
+  if (!productImage) {
+    console.error(
+      "❌ Product image not found"
     );
+    return;
+  }
 
-    let productImageElement = null;
+  addToCart({
+    ...product,
+    _id:
+      product._id ||
+      product.id,
+    name:
+      product.name ||
+      product.title,
+    title:
+      product.title ||
+      product.name,
+    image: productImage,
+  });
 
-    imageElements.forEach((img) => {
-      const rect = img.getBoundingClientRect();
-
-      if (
-        rect.width > 0 &&
-        rect.height > 0
-      ) {
-        productImageElement = img;
-      }
-    });
-
-    if (!productImageElement) {
-      console.error(
-        "❌ Product image element not found"
-      );
-
-      addToCart({
-        ...product,
-        _id: product._id || product.id,
-        name: product.name || product.title,
-        image: productImage,
-      });
-
-      return;
-    }
-
-    const imageRect =
-      productImageElement.getBoundingClientRect();
-
-    const start = {
-      x:
-        imageRect.left +
-        imageRect.width / 2,
-
-      y:
-        imageRect.top +
-        imageRect.height / 2,
-    };
-
-    addToCart({
-      ...product,
-
-      _id:
-        product._id ||
-        product.id,
-
-      name:
-        product.name ||
-        product.title,
-
-      title:
-        product.title ||
-        product.name,
-
-      image: productImage,
-    });
-
-    flyToCart({
-      image: productImage,
-      start,
-    });
-  };
+  onAddToCart?.(
+    productImage,
+    addButtonRef.current
+  );
+};
 
   return (
     <motion.div
@@ -601,6 +559,7 @@ export default function ProductInfo({ product }) {
         {/* ADD TO CART */}
 
         <motion.button
+        ref={addButtonRef}
           type="button"
           onClick={handleAddToCart}
           whileHover={{
