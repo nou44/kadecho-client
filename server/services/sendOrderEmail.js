@@ -79,7 +79,7 @@ export const sendOrderEmail = async (order) => {
               <div style="margin-bottom:22px;">
 
                 <img
-                  src="https://kadecho.com/logo.png"
+                  src="/kadecho-logo-128.webp"
                   alt="KADECHO"
                   width="170"
                   style="
