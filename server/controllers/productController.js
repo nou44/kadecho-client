@@ -1,57 +1,93 @@
+
+import mongoose from "mongoose";
 import Product from "../models/Product.js";
-import cloudinary from "../config/cloudinary.js";
+import {
+  uploadToR2,
+  deleteFromR2,
+} from "../utils/r2Storage.js";
 
-/* =========================================================
-   CLOUDINARY UPLOAD HELPER
-========================================================= */
+// ===============================
+// HELPERS
+// ===============================
 
-const uploadToCloudinary = (file) => {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: "kadecho/products",
-        resource_type: "image",
-      },
-      (error, result) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(result);
-        }
-      }
-    );
+const slugify = (value = "") =>
+  String(value)
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
-    stream.end(file.buffer);
+const toBoolean = (value, fallback = false) => {
+  if (value === undefined) return fallback;
+  return value === true || value === "true";
+};
+
+const validPrice = (value) =>
+  value !== "" &&
+  value !== null &&
+  value !== undefined &&
+  Number.isFinite(Number(value)) &&
+  Number(value) >= 0;
+
+const cleanupR2 = async (urls = []) => {
+  const results = await Promise.allSettled(
+    [...new Set(urls)].filter(Boolean).map(deleteFromR2)
+  );
+
+  results.forEach((result) => {
+    if (result.status === "rejected") {
+      console.error("R2 cleanup failed:", result.reason);
+    }
   });
 };
 
-/* =========================================================
-   DELETE CLOUDINARY IMAGES
-========================================================= */
-
-const deleteCloudinaryImages = async (publicIds = []) => {
-  for (const publicId of publicIds) {
-    try {
-      await cloudinary.uploader.destroy(publicId);
-
-      console.log(
-        `🗑️ Cloudinary image deleted: ${publicId}`
-      );
-    } catch (error) {
-      console.error(
-        `❌ Failed to delete ${publicId}:`,
-        error.message
-      );
-    }
-  }
+const uploadImage = async (file, uploadedUrls) => {
+  const result = await uploadToR2(file, "products");
+  uploadedUrls.push(result.url);
+  return result.url;
 };
 
-/* =========================================================
-   CREATE PRODUCT
-========================================================= */
+const uploadGallery = async (files, uploadedUrls) => {
+  const urls = [];
+
+  for (const file of files) {
+    urls.push(await uploadImage(file, uploadedUrls));
+  }
+
+  return urls;
+};
+
+const handleError = (res, error, action) => {
+  console.error(`Product ${action} error:`, error);
+
+  if (error.code === 11000) {
+    return res.status(409).json({
+      success: false,
+      message: "Slug already exists",
+    });
+  }
+
+  if (error.name === "ValidationError") {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+
+  return res.status(500).json({
+    success: false,
+    message: `Failed to ${action} product`,
+  });
+};
+
+// ===============================
+// CREATE PRODUCT
+// ===============================
 
 export const createProduct = async (req, res) => {
-  const uploadedPublicIds = [];
+  const uploadedUrls = [];
 
   try {
     const {
@@ -69,875 +105,358 @@ export const createProduct = async (req, res) => {
       inStock,
     } = req.body;
 
-    /* =====================================================
-       VALIDATION
-    ===================================================== */
-
-    if (!name || !price || !category) {
+    if (!name?.trim() || !category?.trim() || !validPrice(price)) {
       return res.status(400).json({
         success: false,
-        message:
-          "Name, price and category are required",
+        message: "Valid name, price and category are required",
       });
     }
-
-    /* =====================================================
-       OLD PRICE VALIDATION
-    ===================================================== */
 
     if (
       oldPrice !== undefined &&
       oldPrice !== "" &&
-      Number(oldPrice) < Number(price)
+      oldPrice !== null &&
+      (!validPrice(oldPrice) || Number(oldPrice) < Number(price))
     ) {
       return res.status(400).json({
         success: false,
-        message:
-          "Old price must be higher than current price",
+        message: "Invalid old price",
       });
     }
 
-    /* =====================================================
-       SLUG
-    ===================================================== */
+    const finalSlug = slugify(slug?.trim() || name);
 
-    const finalSlug =
-      slug?.trim() ||
-      name
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-
-    /* =====================================================
-       DUPLICATE SLUG CHECK
-    ===================================================== */
-
-    const existingProduct =
-      await Product.findOne({
-        slug: finalSlug,
+    if (!finalSlug) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product slug",
       });
+    }
 
-    if (existingProduct) {
+    const existing = await Product.findOne({
+      slug: finalSlug,
+    });
+
+    if (existing) {
       return res.status(409).json({
         success: false,
-        message:
-          "A product with this slug already exists",
+        message: "Slug already exists",
         slug: finalSlug,
       });
     }
 
-    /* =====================================================
-       FILES
-    ===================================================== */
+    const mainFile = req.files?.image?.[0];
+    const galleryFiles = req.files?.images || [];
 
-    const mainImageFile =
-      req.files?.image?.[0];
+    const imageUrl = mainFile
+      ? await uploadImage(mainFile, uploadedUrls)
+      : "";
 
-    const galleryFiles =
-      req.files?.images || [];
+    const galleryUrls = await uploadGallery(
+      galleryFiles,
+      uploadedUrls
+    );
 
-    /* =====================================================
-       MAIN IMAGE
-    ===================================================== */
-
-    let imageUrl = "";
-
-    if (mainImageFile) {
-      const result =
-        await uploadToCloudinary(
-          mainImageFile
-        );
-
-      imageUrl =
-        result.secure_url;
-
-      uploadedPublicIds.push(
-        result.public_id
-      );
-
-      console.log(
-        "☁️ Main image uploaded"
-      );
-
-      console.log(
-        "🖼️ Main image:",
-        imageUrl
-      );
-    }
-
-    /* =====================================================
-       GALLERY IMAGES
-    ===================================================== */
-
-    const galleryUrls = [];
-
-    if (galleryFiles.length > 0) {
-      console.log(
-        `📸 Uploading ${galleryFiles.length} gallery images...`
-      );
-
-      for (const file of galleryFiles) {
-        const result =
-          await uploadToCloudinary(file);
-
-        galleryUrls.push(
-          result.secure_url
-        );
-
-        uploadedPublicIds.push(
-          result.public_id
-        );
-      }
-
-      console.log(
-        `✅ ${galleryUrls.length} gallery images uploaded`
-      );
-    }
-
-    /* =====================================================
-       CREATE PRODUCT
-    ===================================================== */
-
-    const product =
-      await Product.create({
-        name,
-
-        slug: finalSlug,
-
-        description:
-          description || "",
-
-        price:
-          Number(price),
-
-        oldPrice:
-          oldPrice !== undefined &&
-          oldPrice !== ""
-            ? Number(oldPrice)
-            : null,
-
-        category,
-
-        material:
-          material || "",
-
-        dimensions:
-          dimensions || "",
-
-        finish:
-          finish || "",
-
-        availability:
-          availability || "",
-
-        image:
-          imageUrl,
-
-        images:
-          galleryUrls,
-
-        featured:
-          featured === true ||
-          featured === "true",
-
-        inStock:
-          inStock === undefined
-            ? true
-            : inStock === true ||
-              inStock === "true",
-      });
-
-    /* =====================================================
-       SUCCESS
-    ===================================================== */
+    const product = await Product.create({
+      name: name.trim(),
+      slug: finalSlug,
+      description: description || "",
+      price: Number(price),
+      oldPrice:
+        oldPrice !== undefined &&
+        oldPrice !== "" &&
+        oldPrice !== null
+          ? Number(oldPrice)
+          : null,
+      category,
+      material: material || "",
+      dimensions: dimensions || "",
+      finish: finish || "",
+      availability: availability || "",
+      image: imageUrl,
+      images: galleryUrls,
+      featured: toBoolean(featured),
+      inStock: toBoolean(inStock, true),
+    });
 
     return res.status(201).json({
       success: true,
-
-      message:
-        "Product created successfully 🚀",
-
+      message: "Product created successfully",
       product,
     });
   } catch (error) {
-    console.error(
-      "❌ Create product error:",
-      error
-    );
-
-    /* =====================================================
-       CLEANUP CLOUDINARY
-    ===================================================== */
-
-    if (
-      uploadedPublicIds.length > 0
-    ) {
-      console.log(
-        "🧹 Cleaning Cloudinary uploads..."
-      );
-
-      await deleteCloudinaryImages(
-        uploadedPublicIds
-      );
-    }
-
-    /* =====================================================
-       DUPLICATE SLUG
-    ===================================================== */
-
-    if (error.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message:
-          "Slug already exists",
-        slug:
-          error.keyValue?.slug,
-      });
-    }
-
-    /* =====================================================
-       GENERAL ERROR
-    ===================================================== */
-
-    return res.status(500).json({
-      success: false,
-
-      message:
-        "Failed to create product",
-
-      error:
-        error.message,
-    });
+    await cleanupR2(uploadedUrls);
+    return handleError(res, error, "create");
   }
 };
 
-/* =========================================================
-   GET ALL PRODUCTS
-========================================================= */
+// ===============================
+// GET ALL PRODUCTS
+// ===============================
 
-export const getProducts = async (
-  req,
-  res
-) => {
+export const getProducts = async (req, res) => {
   try {
-    const products =
-      await Product.find().sort({
-        createdAt: -1,
-      });
+    const products = await Product.find()
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.status(200).json({
       success: true,
-
-      count:
-        products.length,
-
+      count: products.length,
       products,
     });
   } catch (error) {
-    console.error(
-      "❌ Get products error:",
-      error
-    );
-
-    return res.status(500).json({
-      success: false,
-
-      message:
-        "Failed to get products",
-
-      error:
-        error.message,
-    });
+    return handleError(res, error, "get");
   }
 };
 
-/* =========================================================
-   GET SINGLE PRODUCT
-========================================================= */
+// ===============================
+// GET SINGLE PRODUCT
+// ===============================
 
-export const getProduct = async (
-  req,
-  res
-) => {
+export const getProduct = async (req, res) => {
   try {
-    const product =
-      await Product.findById(
-        req.params.id
-      );
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product ID",
+      });
+    }
+
+    const product = await Product.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({
         success: false,
-
-        message:
-          "Product not found",
+        message: "Product not found",
       });
     }
 
     return res.status(200).json({
       success: true,
-
       product,
     });
   } catch (error) {
-    console.error(
-      "❌ Get product error:",
-      error
-    );
-
-    return res.status(500).json({
-      success: false,
-
-      message:
-        "Failed to get product",
-
-      error:
-        error.message,
-    });
+    return handleError(res, error, "get");
   }
 };
 
-/* =========================================================
-   UPDATE PRODUCT
-========================================================= */
+// ===============================
+// UPDATE PRODUCT
+// ===============================
 
-export const updateProduct = async (
-  req,
-  res
-) => {
-  const uploadedPublicIds = [];
+export const updateProduct = async (req, res) => {
+  const uploadedUrls = [];
 
   try {
-    /* =====================================================
-       FIND PRODUCT
-    ===================================================== */
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product ID",
+      });
+    }
 
-    const product =
-      await Product.findById(
-        req.params.id
-      );
+    const product = await Product.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({
         success: false,
-
-        message:
-          "Product not found",
+        message: "Product not found",
       });
     }
 
-    /* =====================================================
-       BODY
-    ===================================================== */
-
-    const {
-      name,
-      slug,
-      description,
-      price,
-      oldPrice,
-      category,
-      material,
-      dimensions,
-      finish,
-      availability,
-      featured,
-      inStock,
-    } = req.body;
-
-    /* =====================================================
-       MAIN IMAGE
-    ===================================================== */
-
-    let imageUrl =
-      product.image;
-
-    const mainImageFile =
-      req.files?.image?.[0];
-
-    if (mainImageFile) {
-      const result =
-        await uploadToCloudinary(
-          mainImageFile
-        );
-
-      imageUrl =
-        result.secure_url;
-
-      uploadedPublicIds.push(
-        result.public_id
-      );
-
-      console.log(
-        "☁️ New main image uploaded"
-      );
-    }
-
-    /* =====================================================
-       EXISTING GALLERY IMAGES
-
-       FRONTEND SENDS ONLY THE OLD
-       IMAGES THAT SHOULD REMAIN.
-    ===================================================== */
-
-    let existingImages = [];
-
-    if (req.body.existingImages) {
-      try {
-        existingImages =
-          JSON.parse(
-            req.body.existingImages
-          );
-
-        if (
-          !Array.isArray(
-            existingImages
-          )
-        ) {
-          existingImages = [];
-        }
-      } catch (error) {
-        console.error(
-          "❌ Invalid existingImages JSON:",
-          error.message
-        );
-
-        existingImages = [];
-      }
-    } else {
-      /*
-       * IMPORTANT:
-       * If frontend doesn't send existingImages,
-       * keep the current gallery instead of
-       * deleting everything accidentally.
-       */
-
-      existingImages =
-        Array.isArray(product.images)
-          ? product.images
-          : [];
-    }
-
-    /* =====================================================
-       OLD GALLERY
-    ===================================================== */
-
-    const oldGalleryImages =
-      Array.isArray(product.images)
-        ? product.images
-        : [];
-
-    /* =====================================================
-       FIND DELETED GALLERY IMAGES
-    ===================================================== */
-
-    const deletedGalleryImages =
-      oldGalleryImages.filter(
-        (oldImage) =>
-          !existingImages.includes(
-            oldImage
-          )
-      );
-
-    console.log(
-      "🖼️ Old gallery:",
-      oldGalleryImages
-    );
-
-    console.log(
-      "✅ Images kept:",
-      existingImages
-    );
-
-    console.log(
-      "🗑️ Images deleted:",
-      deletedGalleryImages
-    );
-
-    /* =====================================================
-       DELETE REMOVED GALLERY IMAGES
-       FROM CLOUDINARY
-    ===================================================== */
-
-    if (
-      deletedGalleryImages.length > 0
-    ) {
-      const publicIds =
-        deletedGalleryImages
-          .map((imageUrl) => {
-            try {
-              const url =
-                new URL(imageUrl);
-
-              const pathname =
-                url.pathname;
-
-              const uploadIndex =
-                pathname.indexOf(
-                  "/upload/"
-                );
-
-              if (
-                uploadIndex === -1
-              ) {
-                return null;
-              }
-
-              let publicId =
-                pathname.substring(
-                  uploadIndex +
-                    "/upload/".length
-                );
-
-              /* Remove Cloudinary version */
-
-              publicId =
-                publicId.replace(
-                  /^v\d+\//,
-                  ""
-                );
-
-              /* Remove extension */
-
-              publicId =
-                publicId.replace(
-                  /\.[^/.]+$/,
-                  ""
-                );
-
-              return publicId;
-            } catch (error) {
-              console.error(
-                "❌ Failed to extract Cloudinary public ID:",
-                imageUrl
-              );
-
-              return null;
-            }
-          })
-          .filter(Boolean);
-
-      if (
-        publicIds.length > 0
-      ) {
-        console.log(
-          "🗑️ Deleting removed gallery images from Cloudinary..."
-        );
-
-        await deleteCloudinaryImages(
-          publicIds
-        );
-      }
-    }
-
-    /* =====================================================
-       NEW GALLERY IMAGES
-    ===================================================== */
-
-    const galleryFiles =
-      req.files?.images || [];
-
-    const newGalleryUrls = [];
-
-    if (
-      galleryFiles.length > 0
-    ) {
-      console.log(
-        `📸 Uploading ${galleryFiles.length} new gallery images...`
-      );
-
-      for (const file of galleryFiles) {
-        const result =
-          await uploadToCloudinary(
-            file
-          );
-
-        newGalleryUrls.push(
-          result.secure_url
-        );
-
-        uploadedPublicIds.push(
-          result.public_id
-        );
-      }
-
-      console.log(
-        `✅ ${newGalleryUrls.length} new gallery images uploaded`
-      );
-    }
-
-    /* =====================================================
-       FINAL GALLERY
-
-       OLD KEPT
-       +
-       NEW
-    ===================================================== */
-
-    const galleryUrls = [
-      ...existingImages,
-      ...newGalleryUrls,
-    ];
-
-    console.log(
-      "🎯 Final gallery:",
-      galleryUrls
-    );
-
-    /* =====================================================
-       SLUG
-    ===================================================== */
-
-    let finalSlug =
-      product.slug;
-
-    if (slug?.trim()) {
-      finalSlug =
-        slug.trim();
-    } else if (name?.trim()) {
-      finalSlug =
-        name
-          .toLowerCase()
-          .trim()
-          .replace(
-            /[^a-z0-9]+/g,
-            "-"
-          )
-          .replace(
-            /^-+|-+$/g,
-            ""
-          );
-    }
-
-    /* =====================================================
-       DUPLICATE SLUG CHECK
-    ===================================================== */
-
-    const duplicate =
-      await Product.findOne({
-        slug: finalSlug,
-
-        _id: {
-          $ne: product._id,
-        },
-      });
-
-    if (duplicate) {
-      await deleteCloudinaryImages(
-        uploadedPublicIds
-      );
-
-      return res.status(409).json({
-        success: false,
-
-        message:
-          "Slug already exists",
-
-        slug:
-          finalSlug,
-      });
-    }
-
-    /* =====================================================
-       UPDATE PRODUCT
-    ===================================================== */
-
-    product.name =
-      name ?? product.name;
-
-    product.slug =
-      finalSlug;
-
-    product.description =
-      description ??
-      product.description;
-
-    product.price =
-      price !== undefined
-        ? Number(price)
-        : product.price;
-
-    product.oldPrice =
-      oldPrice !== undefined
-        ? (
-            oldPrice === ""
-              ? null
-              : Number(oldPrice)
-          )
+    const body = req.body;
+    const oldImage = product.image;
+    const oldGallery = [...(product.images || [])];
+
+    const nextName = body.name ?? product.name;
+    const nextCategory = body.category ?? product.category;
+    const nextPrice = body.price ?? product.price;
+    const nextOldPrice =
+      body.oldPrice !== undefined
+        ? body.oldPrice
         : product.oldPrice;
 
-    product.category =
-      category ??
-      product.category;
-
-    product.material =
-      material ??
-      product.material;
-
-    product.dimensions =
-      dimensions ??
-      product.dimensions;
-
-    product.finish =
-      finish ??
-      product.finish;
-
-    product.availability =
-      availability ??
-      product.availability;
-
-    product.image =
-      imageUrl;
-
-    product.images =
-      galleryUrls;
-
     if (
-      featured !== undefined
-    ) {
-      product.featured =
-        featured === true ||
-        featured === "true";
-    }
-
-    if (
-      inStock !== undefined
-    ) {
-      product.inStock =
-        inStock === true ||
-        inStock === "true";
-    }
-
-    /* =====================================================
-       OLD PRICE VALIDATION
-    ===================================================== */
-
-    if (
-      product.oldPrice !== null &&
-      product.oldPrice !== undefined &&
-      product.oldPrice < product.price
+      !String(nextName).trim() ||
+      !String(nextCategory).trim() ||
+      !validPrice(nextPrice)
     ) {
       return res.status(400).json({
         success: false,
-
-        message:
-          "Old price must be higher than current price",
+        message: "Invalid name, price or category",
       });
     }
 
-    /* =====================================================
-       SAVE
-    ===================================================== */
+    if (
+      nextOldPrice !== null &&
+      nextOldPrice !== "" &&
+      nextOldPrice !== undefined &&
+      (!validPrice(nextOldPrice) ||
+        Number(nextOldPrice) < Number(nextPrice))
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid old price",
+      });
+    }
+
+    const finalSlug = slugify(
+      body.slug?.trim() || body.name?.trim() || product.slug
+    );
+
+    if (!finalSlug) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid slug",
+      });
+    }
+
+    const duplicate = await Product.findOne({
+      slug: finalSlug,
+      _id: { $ne: product._id },
+    });
+
+    if (duplicate) {
+      return res.status(409).json({
+        success: false,
+        message: "Slug already exists",
+      });
+    }
+
+    // Keep only URLs already owned by this product
+    let existingImages = oldGallery;
+
+    if (body.existingImages !== undefined) {
+      let parsed;
+
+      try {
+        parsed = JSON.parse(body.existingImages);
+      } catch {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid existingImages JSON",
+        });
+      }
+
+      if (
+        !Array.isArray(parsed) ||
+        !parsed.every((url) =>
+          typeof url === "string" && oldGallery.includes(url)
+        )
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid existing images",
+        });
+      }
+
+      existingImages = [...new Set(parsed)];
+    }
+
+    const mainFile = req.files?.image?.[0];
+    const galleryFiles = req.files?.images || [];
+
+    const newMainImage = mainFile
+      ? await uploadImage(mainFile, uploadedUrls)
+      : oldImage;
+
+    const newGallery = await uploadGallery(
+      galleryFiles,
+      uploadedUrls
+    );
+
+    product.name = String(nextName).trim();
+    product.slug = finalSlug;
+    product.description = body.description ?? product.description;
+    product.price = Number(nextPrice);
+    product.oldPrice =
+      nextOldPrice === "" || nextOldPrice == null
+        ? null
+        : Number(nextOldPrice);
+    product.category = nextCategory;
+    product.material = body.material ?? product.material;
+    product.dimensions = body.dimensions ?? product.dimensions;
+    product.finish = body.finish ?? product.finish;
+    product.availability =
+      body.availability ?? product.availability;
+    product.image = newMainImage;
+    product.images = [...existingImages, ...newGallery];
+
+    if (body.featured !== undefined) {
+      product.featured = toBoolean(body.featured);
+    }
+
+    if (body.inStock !== undefined) {
+      product.inStock = toBoolean(body.inStock);
+    }
 
     await product.save();
 
-    /* =====================================================
-       SUCCESS
-    ===================================================== */
+    // Delete old R2 media only after MongoDB save
+    const removedImages = oldGallery.filter(
+      (url) => !existingImages.includes(url)
+    );
+
+    if (mainFile && oldImage) {
+      removedImages.push(oldImage);
+    }
+
+    // Never delete URLs still referenced by this product
+    const stillUsed = new Set([
+      product.image,
+      ...product.images,
+    ]);
+
+    await cleanupR2(
+      removedImages.filter((url) => !stillUsed.has(url))
+    );
 
     return res.status(200).json({
       success: true,
-
-      message:
-        "Product updated successfully 🚀",
-
+      message: "Product updated successfully",
       product,
     });
   } catch (error) {
-    console.error(
-      "❌ Update product error:",
-      error
-    );
-
-    /* =====================================================
-       CLEANUP NEW UPLOADS
-    ===================================================== */
-
-    if (
-      uploadedPublicIds.length > 0
-    ) {
-      console.log(
-        "🧹 Cleaning newly uploaded Cloudinary images..."
-      );
-
-      await deleteCloudinaryImages(
-        uploadedPublicIds
-      );
-    }
-
-    /* =====================================================
-       DUPLICATE SLUG
-    ===================================================== */
-
-    if (error.code === 11000) {
-      return res.status(409).json({
-        success: false,
-
-        message:
-          "Slug already exists",
-      });
-    }
-
-    /* =====================================================
-       GENERAL ERROR
-    ===================================================== */
-
-    return res.status(500).json({
-      success: false,
-
-      message:
-        "Failed to update product",
-
-      error:
-        error.message,
-    });
+    await cleanupR2(uploadedUrls);
+    return handleError(res, error, "update");
   }
 };
 
-/* =========================================================
-   DELETE PRODUCT
-========================================================= */
+// ===============================
+// DELETE PRODUCT
+// ===============================
 
-export const deleteProduct = async (
-  req,
-  res
-) => {
+export const deleteProduct = async (req, res) => {
   try {
-    const product =
-      await Product.findByIdAndDelete(
-        req.params.id
-      );
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product ID",
+      });
+    }
+
+    const product = await Product.findByIdAndDelete(
+      req.params.id
+    );
 
     if (!product) {
       return res.status(404).json({
         success: false,
-
-        message:
-          "Product not found",
+        message: "Product not found",
       });
     }
 
+    await cleanupR2([
+      product.image,
+      ...(product.images || []),
+    ]);
+
     return res.status(200).json({
       success: true,
-
-      message:
-        "Product deleted successfully 🗑️",
+      message: "Product deleted successfully",
     });
   } catch (error) {
-    console.error(
-      "❌ Delete product error:",
-      error
-    );
-
-    return res.status(500).json({
-      success: false,
-
-      message:
-        "Failed to delete product",
-
-      error:
-        error.message,
-    });
+    return handleError(res, error, "delete");
   }
 };

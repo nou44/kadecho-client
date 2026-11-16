@@ -1,6 +1,7 @@
+
 import express from "express";
 
-import upload from "../middleware/uploadMiddleware.js";
+import heroVideoUpload from "../middleware/heroVideoUploadMiddleware.js";
 
 import {
   createHeroVideo,
@@ -12,51 +13,42 @@ import {
 
 const router = express.Router();
 
-/* =========================================================
+/* ========================================
    CREATE HERO VIDEO
-========================================================= */
+======================================== */
 
 router.post(
   "/",
-  upload.single("video"),
+  heroVideoUpload.single("video"),
   createHeroVideo
 );
 
-/* =========================================================
+/* ========================================
    GET ALL HERO VIDEOS
-========================================================= */
+======================================== */
 
-router.get(
-  "/",
-  getHeroVideos
-);
+router.get("/", getHeroVideos);
 
-/* =========================================================
+/* ========================================
    GET SINGLE HERO VIDEO
-========================================================= */
+======================================== */
 
-router.get(
-  "/:id",
-  getHeroVideo
-);
+router.get("/:id", getHeroVideo);
 
-/* =========================================================
+/* ========================================
    UPDATE HERO VIDEO
-========================================================= */
+======================================== */
 
 router.put(
   "/:id",
-  upload.single("video"),
+  heroVideoUpload.single("video"),
   updateHeroVideo
 );
 
-/* =========================================================
+/* ========================================
    DELETE HERO VIDEO
-========================================================= */
+======================================== */
 
-router.delete(
-  "/:id",
-  deleteHeroVideo
-);
+router.delete("/:id", deleteHeroVideo);
 
 export default router;

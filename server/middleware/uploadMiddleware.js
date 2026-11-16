@@ -1,16 +1,28 @@
+
 import multer from "multer";
 
-const storage = multer.memoryStorage();
+const allowedTypes = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+  "image/gif",
+]);
 
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
 
   limits: {
-    // Maximum size for EACH image
     fileSize: 10 * 1024 * 1024,
+    files: 11,
+  },
 
-    // Maximum number of files in one request
-    files: 101,
+  fileFilter: (req, file, cb) => {
+    if (!allowedTypes.has(file.mimetype)) {
+      return cb(new Error("Unsupported image format"));
+    }
+
+    cb(null, true);
   },
 });
 
