@@ -1,49 +1,32 @@
 import Project from "../models/Project.js";
-import cloudinary from "../config/cloudinary.js";
+
+import {
+  uploadToR2,
+  deleteFromR2,
+} from "../utils/r2Storage.js";
 
 // =========================
-// CLOUDINARY UPLOAD HELPER
+// DELETE R2 IMAGES SAFELY
 // =========================
 
-const uploadToCloudinary = (file) => {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: "kadecho/projects",
-        resource_type: "image",
-      },
-      (error, result) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(result);
-        }
-      }
-    );
+const cleanupR2Images = async (urls = []) => {
+  const uniqueUrls = [
+    ...new Set(urls.filter(Boolean)),
+  ];
 
-    stream.end(file.buffer);
-  });
-};
+  const results = await Promise.allSettled(
+    uniqueUrls.map((url) => deleteFromR2(url))
+  );
 
-// =========================
-// DELETE CLOUDINARY IMAGES
-// =========================
-
-const deleteCloudinaryImages = async (publicIds = []) => {
-  for (const publicId of publicIds) {
-    try {
-      await cloudinary.uploader.destroy(publicId);
-
-      console.log(
-        `🗑️ Cloudinary image deleted: ${publicId}`
-      );
-    } catch (error) {
+  results.forEach((result, index) => {
+    if (result.status === "rejected") {
       console.error(
-        `❌ Failed to delete ${publicId}:`,
-        error.message
+        "❌ Failed to delete R2 image:",
+        uniqueUrls[index],
+        result.reason
       );
     }
-  }
+  });
 };
 
 // =========================
@@ -51,7 +34,7 @@ const deleteCloudinaryImages = async (publicIds = []) => {
 // =========================
 
 export const addProject = async (req, res) => {
-  const uploadedPublicIds = [];
+  const uploadedUrls = [];
 
   try {
     const {
@@ -131,23 +114,21 @@ export const addProject = async (req, res) => {
     }
 
     // =========================
-    // UPLOAD MAIN IMAGE
+    // UPLOAD MAIN IMAGE TO R2
     // =========================
 
     const mainImageResult =
-      await uploadToCloudinary(
-        mainImageFile
+      await uploadToR2(
+        mainImageFile,
+        "projects"
       );
 
-    const imageUrl =
-      mainImageResult.secure_url;
+    const imageUrl = mainImageResult.url;
 
-    uploadedPublicIds.push(
-      mainImageResult.public_id
-    );
+    uploadedUrls.push(imageUrl);
 
     // =========================
-    // UPLOAD GALLERY
+    // UPLOAD GALLERY TO R2
     // =========================
 
     const galleryFiles =
@@ -156,58 +137,38 @@ export const addProject = async (req, res) => {
     const galleryUrls = [];
 
     for (const file of galleryFiles) {
-      const result =
-        await uploadToCloudinary(file);
-
-      galleryUrls.push(
-        result.secure_url
+      const result = await uploadToR2(
+        file,
+        "projects"
       );
 
-      uploadedPublicIds.push(
-        result.public_id
-      );
+      galleryUrls.push(result.url);
+      uploadedUrls.push(result.url);
     }
 
     // =========================
-    // CREATE PROJECT
+    // CREATE PROJECT IN MONGODB
     // =========================
 
-    const project =
-      await Project.create({
-        title: title.trim(),
-
-        slug: finalSlug,
-
-        description:
-          description?.trim() || "",
-
-        client: client.trim(),
-
-        location: location.trim(),
-
-        category: category.trim(),
-
-        product: product.trim(),
-
-        date,
-
-        image: imageUrl,
-
-        images: galleryUrls,
-
-        featured:
-          featured === true ||
-          featured === "true",
-      });
-
-    // =========================
-    // SUCCESS
-    // =========================
+    const project = await Project.create({
+      title: title.trim(),
+      slug: finalSlug,
+      description: description?.trim() || "",
+      client: client.trim(),
+      location: location.trim(),
+      category: category.trim(),
+      product: product.trim(),
+      date,
+      image: imageUrl,
+      images: galleryUrls,
+      featured:
+        featured === true ||
+        featured === "true",
+    });
 
     return res.status(201).json({
       success: true,
-      message:
-        "Project created successfully 🚀",
+      message: "Project created successfully 🚀",
       project,
     });
   } catch (error) {
@@ -216,36 +177,19 @@ export const addProject = async (req, res) => {
       error
     );
 
-    // =========================
-    // CLEANUP CLOUDINARY
-    // =========================
-
-    if (uploadedPublicIds.length > 0) {
-      await deleteCloudinaryImages(
-        uploadedPublicIds
-      );
-    }
-
-    // =========================
-    // DUPLICATE SLUG
-    // =========================
+    // Rollback R2 uploads if creation fails
+    await cleanupR2Images(uploadedUrls);
 
     if (error.code === 11000) {
       return res.status(409).json({
         success: false,
-        message:
-          "Slug already exists.",
+        message: "Slug already exists.",
       });
     }
 
-    // =========================
-    // GENERAL ERROR
-    // =========================
-
     return res.status(500).json({
       success: false,
-      message:
-        "Failed to create project.",
+      message: "Failed to create project.",
       error: error.message,
     });
   }
@@ -255,15 +199,11 @@ export const addProject = async (req, res) => {
 // GET ALL PROJECTS
 // =========================
 
-export const getProjects = async (
-  req,
-  res
-) => {
+export const getProjects = async (req, res) => {
   try {
-    const projects =
-      await Project.find().sort({
-        createdAt: -1,
-      });
+    const projects = await Project.find().sort({
+      createdAt: -1,
+    });
 
     return res.status(200).json({
       success: true,
@@ -278,8 +218,7 @@ export const getProjects = async (
 
     return res.status(500).json({
       success: false,
-      message:
-        "Failed to get projects.",
+      message: "Failed to get projects.",
       error: error.message,
     });
   }
@@ -289,21 +228,16 @@ export const getProjects = async (
 // GET SINGLE PROJECT
 // =========================
 
-export const getProjectById = async (
-  req,
-  res
-) => {
+export const getProjectById = async (req, res) => {
   try {
-    const project =
-      await Project.findById(
-        req.params.id
-      );
+    const project = await Project.findById(
+      req.params.id
+    );
 
     if (!project) {
       return res.status(404).json({
         success: false,
-        message:
-          "Project not found.",
+        message: "Project not found.",
       });
     }
 
@@ -319,18 +253,20 @@ export const getProjectById = async (
 
     return res.status(500).json({
       success: false,
-      message:
-        "Failed to get project.",
+      message: "Failed to get project.",
       error: error.message,
     });
   }
 };
 
 // =========================
-// GET SINGLE PROJECT BY SLUG
+// GET PROJECT BY SLUG
 // =========================
 
-export const getProjectBySlug = async (req, res) => {
+export const getProjectBySlug = async (
+  req,
+  res
+) => {
   try {
     const project = await Project.findOne({
       slug: req.params.slug,
@@ -370,22 +306,27 @@ export const deleteProject = async (
   res
 ) => {
   try {
-    const project =
-      await Project.findById(
-        req.params.id
-      );
+    const project = await Project.findById(
+      req.params.id
+    );
 
     if (!project) {
       return res.status(404).json({
         success: false,
-        message:
-          "Project not found.",
+        message: "Project not found.",
       });
     }
 
-    await Project.findByIdAndDelete(
-      req.params.id
-    );
+    const imageUrls = [
+      project.image,
+      ...(project.images || []),
+    ];
+
+    // Delete MongoDB record
+    await project.deleteOne();
+
+    // Delete only images belonging to our R2
+    await cleanupR2Images(imageUrls);
 
     return res.status(200).json({
       success: true,
@@ -400,8 +341,7 @@ export const deleteProject = async (
 
     return res.status(500).json({
       success: false,
-      message:
-        "Failed to delete project.",
+      message: "Failed to delete project.",
       error: error.message,
     });
   }

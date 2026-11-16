@@ -12,9 +12,10 @@ import {
 
 const router = express.Router();
 
-// =========================
+// =====================================
 // CREATE PROJECT
-// =========================
+// Main image + max 10 gallery images
+// =====================================
 
 router.post(
   "/",
@@ -25,47 +26,34 @@ router.post(
     },
     {
       name: "images",
-      maxCount: 101,
+      maxCount: 10,
     },
   ]),
   addProject
 );
 
-// =========================
+// =====================================
 // GET ALL PROJECTS
-// =========================
+// =====================================
 
-router.get(
-  "/",
-  getProjects
-);
+router.get("/", getProjects);
 
-// =========================
-// GET SINGLE PROJECT BY SLUG
-// =========================
+// =====================================
+// GET PROJECT BY ID
+// =====================================
 
-router.get(
-  "/:slug",
-  getProjectBySlug
-);
+router.get("/id/:id", getProjectById);
 
-// =========================
-// GET SINGLE PROJECT BY ID
-// =========================
+// =====================================
+// GET PROJECT BY SLUG
+// =====================================
 
-// إلا كنت محتاج هاد route فالـ dashboard
-router.get(
-  "/id/:id",
-  getProjectById
-);
+router.get("/:slug", getProjectBySlug);
 
-// =========================
+// =====================================
 // DELETE PROJECT
-// =========================
+// =====================================
 
-router.delete(
-  "/:id",
-  deleteProject
-);
+router.delete("/:id", deleteProject);
 
 export default router;
