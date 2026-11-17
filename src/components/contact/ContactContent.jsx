@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+
+import { motion, useReducedMotion } from "framer-motion";
 
 import Container from "../ui/Container";
 
@@ -6,105 +7,70 @@ import ContactForm from "./ContactForm";
 import ContactInfo from "./ContactInfo";
 
 export default function ContactContent() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <section
       className="
-        relative
+        relative isolate
         overflow-hidden
         bg-[#050505]
-        py-16
-        lg:py-20
+        py-10 sm:py-12 lg:py-14
       "
     >
-      {/* Background Glow */}
+      {/* SOFT STATIC ATMOSPHERE */}
       <div
+        aria-hidden="true"
         className="
           pointer-events-none
-          absolute
-          left-1/2
-          top-0
-          h-[500px]
-          w-[500px]
-          -translate-x-1/2
-          rounded-full
-          bg-red-600/[0.06]
-          blur-[140px]
+          absolute inset-0
+          bg-[radial-gradient(ellipse_45%_40%_at_50%_0%,rgba(185,28,28,0.065),transparent_100%)]
         "
       />
 
-      {/* Side Glow */}
+      {/* SUBTLE SIDE LIGHT */}
       <div
+        aria-hidden="true"
         className="
           pointer-events-none
-          absolute
-          -left-40
-          top-1/2
-          h-[350px]
-          w-[350px]
-          -translate-y-1/2
-          rounded-full
-          bg-red-600/[0.035]
-          blur-[120px]
+          absolute inset-0
+          bg-[radial-gradient(ellipse_25%_45%_at_0%_65%,rgba(185,28,28,0.03),transparent_100%)]
         "
       />
 
       <Container>
-        <div
+        <motion.div
+          initial={
+            reduceMotion
+              ? false
+              : { opacity: 0, y: 18 }
+          }
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{
+            once: true,
+            amount: 0.1,
+          }}
+          transition={{
+            duration: 0.55,
+            ease: [0.22, 1, 0.36, 1],
+          }}
           className="
-            relative
-            z-10
-            grid
-            items-start
-            gap-6
-            lg:grid-cols-[1.35fr_.75fr]
-            xl:gap-8
+            relative z-10
+            grid items-start
+            gap-5 sm:gap-6 lg:gap-7
+            lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.75fr)]
           "
         >
           {/* CONTACT FORM */}
-          <motion.div
-            initial={{
-              opacity: 0,
-              x: -30,
-            }}
-            whileInView={{
-              opacity: 1,
-              x: 0,
-            }}
-            viewport={{
-              once: true,
-              amount: 0.15,
-            }}
-            transition={{
-              duration: 0.6,
-              ease: "easeOut",
-            }}
-          >
+          <div className="min-w-0">
             <ContactForm />
-          </motion.div>
+          </div>
 
-          {/* CONTACT INFO */}
-          <motion.div
-            initial={{
-              opacity: 0,
-              x: 30,
-            }}
-            whileInView={{
-              opacity: 1,
-              x: 0,
-            }}
-            viewport={{
-              once: true,
-              amount: 0.15,
-            }}
-            transition={{
-              duration: 0.6,
-              delay: 0.08,
-              ease: "easeOut",
-            }}
-          >
+          {/* CONTACT INFORMATION */}
+          <div className="min-w-0">
             <ContactInfo />
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       </Container>
     </section>
   );

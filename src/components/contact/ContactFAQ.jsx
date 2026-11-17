@@ -1,10 +1,7 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus,
-  Minus,
-  MessageCircle,
-} from "lucide-react";
+
+import { useId, useState } from "react";
+import { Link } from "react-router-dom";
+import { Plus, Minus, MessageCircle, ArrowUpRight } from "lucide-react";
 
 const faqs = [
   {
@@ -31,515 +28,273 @@ const faqs = [
 
 export default function ContactFAQ() {
   const [active, setActive] = useState(0);
+  const idPrefix = useId();
 
   return (
-    <section className="bg-[#050505] py-14 sm:py-16 lg:py-20">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6">
+    <section
+      aria-labelledby={`${idPrefix}-heading`}
+      className="
+        relative overflow-hidden
+        bg-[#050505]
+        py-10 sm:py-12 lg:py-14
+      "
+    >
+      {/* SUBTLE TOP LIGHT */}
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute inset-0
+          bg-[radial-gradient(ellipse_35%_40%_at_50%_0%,rgba(185,28,28,0.045),transparent_100%)]
+        "
+      />
 
-        {/* ================================================= */}
+      <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
         {/* HEADER */}
-        {/* ================================================= */}
-
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 18,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
-          viewport={{
-            once: true,
-            amount: 0.2,
-          }}
-          transition={{
-            duration: 0.6,
-            ease: "easeOut",
-          }}
-          className="text-center"
-        >
-          {/* Badge */}
-
-          <motion.div
-            initial={{
-              opacity: 0,
-              scale: 0.95,
-            }}
-            whileInView={{
-              opacity: 1,
-              scale: 1,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              duration: 0.4,
-            }}
+        <div className="text-center">
+          <div
             className="
-              inline-flex
-              items-center
-              gap-1.5
-
+              inline-flex items-center gap-2
               rounded-full
-              border
-              border-red-500/20
-
+              border border-red-500/20
               bg-red-500/[0.06]
-
-              px-2.5
-              py-1
-
-              text-[8px]
-              font-bold
-              uppercase
-              tracking-[0.22em]
-
-              text-red-400
+              px-3 py-1.5
             "
           >
+            <MessageCircle size={12} className="text-red-400" />
+
             <span
               className="
-                flex
-                h-4
-                w-4
-                items-center
-                justify-center
-
-                rounded-full
-
-                bg-red-500/10
+                text-[10px] font-semibold
+                uppercase tracking-[0.2em]
+                text-red-400
               "
             >
-              <MessageCircle size={9} />
+              FAQ
             </span>
-
-            FAQ
-          </motion.div>
-
-          {/* Title */}
+          </div>
 
           <h2
+            id={`${idPrefix}-heading`}
             className="
-              mt-4
-
-              text-[28px]
-              font-black
-              uppercase
-              leading-none
-              tracking-[-0.02em]
-
+              mt-3 font-bebas
+              text-[34px] leading-none
+              tracking-[0.035em]
               text-white
-
-              sm:text-[34px]
-              lg:text-[38px]
+              sm:text-[40px]
+              lg:text-[44px]
             "
           >
-            Questions{" "}
+            QUESTIONS{" "}
             <span
               className="
                 bg-gradient-to-r
-                from-red-400
-                via-red-500
-                to-red-700
-
-                bg-clip-text
-                text-transparent
+                from-red-400 via-red-500 to-red-700
+                bg-clip-text text-transparent
               "
             >
-              & Answers
+              & ANSWERS
             </span>
           </h2>
 
-          {/* Accent */}
-
-          <motion.div
-            initial={{
-              width: 0,
-              opacity: 0,
-            }}
-            whileInView={{
-              width: 55,
-              opacity: 1,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              delay: 0.2,
-              duration: 0.6,
-              ease: "easeOut",
-            }}
+          <div
+            aria-hidden="true"
             className="
-              mx-auto
-              mt-3
-
-              h-[2px]
-
+              mx-auto mt-3 h-[2px] w-14
               rounded-full
-
               bg-gradient-to-r
-              from-red-600
-              to-transparent
+              from-red-600 to-transparent
             "
           />
-
-          {/* Description */}
 
           <p
             className="
-              mx-auto
-              mt-3
-
-              max-w-md
-
-              text-[10px]
-              leading-5
-
-              text-zinc-600
-
-              sm:text-[11px]
+              mx-auto mt-3 max-w-md
+              text-[12px] leading-6
+              text-zinc-400
             "
           >
-            Everything you need to know before starting
-            your project.
+            Everything you need to know before starting your project.
           </p>
-        </motion.div>
+        </div>
 
-        {/* ================================================= */}
-        {/* FAQ LIST */}
-        {/* ================================================= */}
-
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{
-            once: true,
-            amount: 0.1,
-          }}
-          variants={{
-            hidden: {},
-            visible: {
-              transition: {
-                staggerChildren: 0.07,
-              },
-            },
-          }}
-          className="
-            mt-8
-            space-y-2.5
-
-            sm:mt-9
-          "
-        >
+        {/* FAQ ACCORDION */}
+        <div className="mt-7 space-y-2.5 sm:mt-8">
           {faqs.map((faq, index) => {
             const open = active === index;
+            const questionId = `${idPrefix}-question-${index}`;
+            const answerId = `${idPrefix}-answer-${index}`;
 
             return (
-              <motion.div
+              <div
                 key={faq.question}
-                layout
-                variants={{
-                  hidden: {
-                    opacity: 0,
-                    y: 12,
-                  },
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                    transition: {
-                      duration: 0.4,
-                      ease: "easeOut",
-                    },
-                  },
-                }}
                 className={`
-                  group
-                  relative
-                  overflow-hidden
-
-                  rounded-xl
-
-                  border
-
-                  transition-all
-                  duration-300
-
+                  group relative overflow-hidden
+                  rounded-xl border
+                  transition-[background-color,border-color]
+                  duration-200
                   ${
                     open
-                      ? "border-red-500/20 bg-white/[0.035]"
-                      : "border-white/[0.06] bg-white/[0.018]"
+                      ? "border-red-500/25 bg-white/[0.035]"
+                      : "border-white/[0.07] bg-white/[0.018] hover:border-white/[0.14]"
                   }
-
-                  hover:border-white/[0.12]
                 `}
               >
-
-                {/* Active glow */}
-
-                <motion.div
-                  initial={false}
-                  animate={{
-                    opacity: open ? 1 : 0,
-                  }}
-                  transition={{
-                    duration: 0.3,
-                  }}
-                  className="
+                {/* ACTIVE RED LINE */}
+                <div
+                  aria-hidden="true"
+                  className={`
                     pointer-events-none
-                    absolute
-                    left-0
-                    top-0
-                    h-full
+                    absolute left-0 top-0 bottom-0
                     w-[2px]
-
                     bg-gradient-to-b
-                    from-red-400
-                    via-red-600
-                    to-transparent
-                  "
+                    from-red-400 via-red-600 to-transparent
+                    transition-opacity duration-200
+                    ${open ? "opacity-100" : "opacity-0"}
+                  `}
                 />
 
-                {/* ================================================= */}
                 {/* QUESTION */}
-                {/* ================================================= */}
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActive(open ? -1 : index)
-                  }
-                  className="
-                    flex
-                    w-full
-                    items-center
-                    justify-between
-                    gap-4
-
-                    px-4
-                    py-3.5
-
-                    text-left
-
-                    sm:px-5
-                    sm:py-4
-                  "
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-
-                    {/* Number */}
-
-                    <span
-                      className={`
-                        hidden
-                        h-6
-                        w-6
-                        shrink-0
-                        items-center
-                        justify-center
-
-                        rounded-md
-
-                        text-[8px]
-                        font-bold
-
-                        sm:flex
-
-                        ${
-                          open
-                            ? "bg-red-500/10 text-red-400"
-                            : "bg-white/[0.03] text-zinc-700"
-                        }
-                      `}
-                    >
-                      0{index + 1}
-                    </span>
-
-                    {/* Question */}
-
-                    <span
-                      className={`
-                        text-[11px]
-                        font-semibold
-                        leading-5
-
-                        transition-colors
-                        duration-300
-
-                        sm:text-[12px]
-
-                        ${
-                          open
-                            ? "text-white"
-                            : "text-zinc-300"
-                        }
-                      `}
-                    >
-                      {faq.question}
-                    </span>
-                  </div>
-
-                  {/* Toggle */}
-
-                  <motion.span
-                    animate={{
-                      rotate: open ? 180 : 0,
-                    }}
-                    transition={{
-                      duration: 0.25,
-                      ease: "easeOut",
-                    }}
-                    className={`
-                      flex
-                      h-7
-                      w-7
-                      shrink-0
-                      items-center
-                      justify-center
-
-                      rounded-lg
-
-                      border
-
-                      transition-colors
-                      duration-300
-
-                      ${
-                        open
-                          ? "border-red-500/20 bg-red-500/10 text-red-400"
-                          : "border-white/[0.06] bg-white/[0.025] text-zinc-600"
-                      }
-                    `}
+                <h3>
+                  <button
+                    id={questionId}
+                    type="button"
+                    aria-expanded={open}
+                    aria-controls={answerId}
+                    onClick={() => setActive(open ? -1 : index)}
+                    className="
+                      flex w-full items-center
+                      justify-between gap-4
+                      px-4 py-3.5
+                      text-left
+                      sm:px-5 sm:py-4
+                      focus-visible:outline
+                      focus-visible:outline-2
+                      focus-visible:outline-offset-[-2px]
+                      focus-visible:outline-red-500
+                    "
                   >
-                    {open ? (
-                      <Minus size={12} />
-                    ) : (
-                      <Plus size={12} />
-                    )}
-                  </motion.span>
-                </button>
-
-                {/* ================================================= */}
-                {/* ANSWER */}
-                {/* ================================================= */}
-
-                <AnimatePresence initial={false}>
-                  {open && (
-                    <motion.div
-                      initial={{
-                        height: 0,
-                        opacity: 0,
-                      }}
-                      animate={{
-                        height: "auto",
-                        opacity: 1,
-                      }}
-                      exit={{
-                        height: 0,
-                        opacity: 0,
-                      }}
-                      transition={{
-                        height: {
-                          duration: 0.3,
-                          ease: "easeOut",
-                        },
-                        opacity: {
-                          duration: 0.2,
-                        },
-                      }}
-                    >
-                      <div
-                        className="
-                          border-t
-                          border-white/[0.05]
-
-                          px-4
-                          pb-4
-                          pt-3.5
-
-                          sm:px-5
-                          sm:pb-5
-                        "
+                    <span className="flex min-w-0 items-center gap-3">
+                      {/* NUMBER */}
+                      <span
+                        aria-hidden="true"
+                        className={`
+                          hidden h-7 w-7 shrink-0
+                          items-center justify-center
+                          rounded-lg text-[10px]
+                          font-semibold
+                          sm:flex
+                          ${
+                            open
+                              ? "bg-red-500/10 text-red-400"
+                              : "bg-white/[0.035] text-zinc-600"
+                          }
+                        `}
                       >
-                        <p
-                          className="
-                            max-w-2xl
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
 
-                            pl-0
+                      {/* QUESTION TEXT */}
+                      <span
+                        className={`
+                          text-[12px] font-semibold
+                          leading-5
+                          sm:text-[13px]
+                          transition-colors duration-200
+                          ${open ? "text-white" : "text-zinc-300"}
+                        `}
+                      >
+                        {faq.question}
+                      </span>
+                    </span>
 
-                            text-[10px]
-                            leading-5
+                    {/* TOGGLE ICON */}
+                    <span
+                      aria-hidden="true"
+                      className={`
+                        flex h-8 w-8 shrink-0
+                        items-center justify-center
+                        rounded-lg border
+                        transition-[background-color,border-color,color]
+                        duration-200
+                        ${
+                          open
+                            ? "border-red-500/25 bg-red-500/10 text-red-400"
+                            : "border-white/[0.07] bg-white/[0.025] text-zinc-500"
+                        }
+                      `}
+                    >
+                      {open ? <Minus size={14} /> : <Plus size={14} />}
+                    </span>
+                  </button>
+                </h3>
 
-                            text-zinc-500
-
-                            sm:text-[11px]
-                            sm:leading-6
-                          "
-                        >
-                          {faq.answer}
-                        </p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-              </motion.div>
+                {/* ANSWER */}
+                <div
+                  id={answerId}
+                  role="region"
+                  aria-labelledby={questionId}
+                  hidden={!open}
+                >
+                  <div
+                    className="
+                      border-t border-white/[0.06]
+                      px-4 pb-4 pt-3
+                      sm:px-5 sm:pb-5
+                    "
+                  >
+                    <p
+                      className="
+                        max-w-2xl
+                        text-[12px] leading-[1.8]
+                        text-zinc-400
+                        sm:text-[13px]
+                      "
+                    >
+                      {faq.answer}
+                    </p>
+                  </div>
+                </div>
+              </div>
             );
           })}
-        </motion.div>
+        </div>
 
-        {/* ================================================= */}
-        {/* BOTTOM NOTE */}
-        {/* ================================================= */}
-
-        <motion.div
-          initial={{
-            opacity: 0,
-          }}
-          whileInView={{
-            opacity: 1,
-          }}
-          viewport={{
-            once: true,
-          }}
-          transition={{
-            delay: 0.4,
-          }}
+        {/* BOTTOM CTA */}
+        <div
           className="
-            mt-5
-            flex
-            items-center
-            justify-center
-            gap-2
-
-            text-center
-            text-[8px]
-            uppercase
-            tracking-[0.16em]
-            text-zinc-700
+            mt-6 flex flex-wrap
+            items-center justify-center
+            gap-2 text-center
+            text-[11px] text-zinc-500
           "
         >
-          <span
+          <span>Still have questions?</span>
+
+          <Link
+            to="/contact"
             className="
-              h-1
-              w-1
-              rounded-full
-              bg-red-500/60
+              group inline-flex items-center gap-1
+              font-semibold text-red-400
+              transition-colors duration-200
+              hover:text-red-300
+              focus-visible:outline
+              focus-visible:outline-2
+              focus-visible:outline-offset-2
+              focus-visible:outline-red-500
             "
-          />
-
-          Still have questions? Contact us
-
-          <span
-            className="
-              h-1
-              w-1
-              rounded-full
-              bg-red-500/60
-            "
-          />
-        </motion.div>
-
+          >
+            Contact us
+            <ArrowUpRight
+              size={13}
+              className="
+                transition-transform duration-200
+                group-hover:translate-x-0.5
+                group-hover:-translate-y-0.5
+              "
+            />
+          </Link>
+        </div>
       </div>
     </section>
   );

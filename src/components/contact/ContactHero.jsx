@@ -1,650 +1,352 @@
-import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Phone,
-  ChevronRight,
-} from "lucide-react";
+
+import { useEffect, useRef } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight, Phone, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
+const PHONE = "+212658551365";
+
 export default function ContactHero() {
+  const videoRef = useRef(null);
+  const sectionRef = useRef(null);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const section = sectionRef.current;
+
+    if (!video || !section) return;
+
+    let isVisible = false;
+
+    const syncPlayback = () => {
+      if (
+        !isVisible ||
+        document.hidden ||
+        reduceMotion
+      ) {
+        video.pause();
+        return;
+      }
+
+      const playPromise = video.play();
+      playPromise?.catch(() => {});
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        syncPlayback();
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(section);
+
+    document.addEventListener(
+      "visibilitychange",
+      syncPlayback
+    );
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener(
+        "visibilitychange",
+        syncPlayback
+      );
+      video.pause();
+    };
+  }, [reduceMotion]);
+
+  const reveal = {
+    hidden: { opacity: 0, y: 16 },
+    show: { opacity: 1, y: 0 },
+  };
+
   return (
-  <section
-  className="
-    relative
-    isolate
-    min-h-[360px]
-    overflow-hidden
-    bg-[#050505]
-
-    sm:min-h-[390px]
-
-    lg:min-h-[430px]
-
-    xl:min-h-[450px]
-  "
->
-      {/* ================================================= */}
+    <section
+      ref={sectionRef}
+      className="
+        relative isolate
+        min-h-[320px]
+        overflow-hidden
+        bg-[#050505]
+        sm:min-h-[350px]
+        lg:min-h-[380px]
+      "
+    >
       {/* VIDEO BACKGROUND */}
-      {/* ================================================= */}
-
       <video
-        autoPlay
+        ref={videoRef}
         muted
         loop
         playsInline
-        preload="matadata"
+        preload="metadata"
+        aria-hidden="true"
         className="
           pointer-events-none
-          absolute
-          inset-0
-          z-0
-
-          h-full
-          w-full
-
-          object-cover
-          object-center
+          absolute inset-0
+          h-full w-full
+          object-cover object-center
         "
       >
-        <source
-          src="/vedio.mp4"
-          type="video/mp4"
-        />
+        <source src="/vedio.mp4" type="video/mp4" />
       </video>
 
-      {/* ================================================= */}
-      {/* DARK OVERLAY */}
-      {/* ================================================= */}
-
+      {/* CINEMATIC OVERLAYS */}
       <div
+        aria-hidden="true"
         className="
           pointer-events-none
-          absolute
-          inset-0
-          z-[1]
-
-          bg-black/55
-
-          sm:bg-black/50
-
-          lg:bg-black/45
+          absolute inset-0
+          bg-black/50
         "
       />
 
-      {/* ================================================= */}
-      {/* LEFT DARK GRADIENT */}
-      {/* ================================================= */}
-
       <div
+        aria-hidden="true"
         className="
           pointer-events-none
-          absolute
-          inset-0
-          z-[2]
-
+          absolute inset-0
           bg-gradient-to-r
-          from-black/95
-          via-black/65
-          to-transparent
+          from-black/95 via-black/65
+          to-black/20
         "
       />
 
-      {/* ================================================= */}
-      {/* BOTTOM FADE */}
-      {/* ================================================= */}
-
       <div
+        aria-hidden="true"
         className="
           pointer-events-none
-          absolute
-          inset-x-0
-          bottom-0
-          z-[3]
-
-          h-32
-
+          absolute inset-x-0 bottom-0
+          h-24
           bg-gradient-to-t
-          from-[#050505]
-          via-[#050505]/60
-          to-transparent
+          from-[#050505] to-transparent
         "
       />
 
-      {/* ================================================= */}
-      {/* RED ATMOSPHERIC GLOW */}
-      {/* ================================================= */}
-
-      <motion.div
-        animate={{
-          opacity: [0.12, 0.22, 0.12],
-          scale: [1, 1.06, 1],
-        }}
-        transition={{
-          duration: 7,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="
-          pointer-events-none
-          absolute
-
-          left-[18%]
-          top-1/2
-
-          z-[2]
-
-          h-[280px]
-          w-[280px]
-
-          -translate-y-1/2
-
-          rounded-full
-
-          bg-red-600/20
-
-          blur-[120px]
-
-          sm:h-[340px]
-          sm:w-[340px]
-        "
-      />
-
-      {/* ================================================= */}
-      {/* GRID */}
-      {/* ================================================= */}
-
+      {/* STATIC RED ATMOSPHERE */}
       <div
+        aria-hidden="true"
         className="
           pointer-events-none
-          absolute
-          inset-0
-          z-[2]
-
-          opacity-[0.025]
-
-          bg-[linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)]
-
-          bg-[size:38px_38px]
+          absolute inset-0
+          bg-[radial-gradient(ellipse_40%_75%_at_20%_55%,rgba(220,38,38,0.12),transparent_100%)]
         "
       />
 
-      {/* ================================================= */}
       {/* CONTENT */}
-      {/* ================================================= */}
-
       <div
         className="
-          relative
-          z-10
-
-          mx-auto
-          flex
-
-          min-h-[430px]
-
-          max-w-7xl
-
+          relative z-10
+          mx-auto flex
+          min-h-[320px] max-w-7xl
           items-center
-
-          px-4
-          py-12
-
-          sm:min-h-[460px]
-          sm:px-5
-          sm:py-14
-
-          lg:min-h-[500px]
-          lg:px-8
-          lg:py-16
-
-          xl:min-h-[520px]
+          px-4 py-11
+          sm:min-h-[350px] sm:px-5
+          lg:min-h-[380px] lg:px-8
         "
       >
-        <div
-          className="
-            w-full
-            max-w-[850px]
-          "
+        <motion.div
+          variants={reveal}
+          initial={reduceMotion ? false : "hidden"}
+          animate="show"
+          transition={{
+            duration: 0.55,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          className="w-full max-w-[760px]"
         >
-          {/* ================================================= */}
           {/* BREADCRUMB */}
-          {/* ================================================= */}
-
-          <motion.div
-            initial={{
-              opacity: 0,
-              x: -15,
-            }}
-            animate={{
-              opacity: 1,
-              x: 0,
-            }}
-            transition={{
-              duration: 0.5,
-            }}
+          <nav
+            aria-label="Breadcrumb"
             className="
-              mb-4
-
-              flex
-              items-center
-              gap-2
-
-              text-[9px]
-
-              font-medium
-              uppercase
-              tracking-[0.18em]
-
-              text-zinc-500
-
-              sm:text-[10px]
+              mb-4 flex items-center gap-2
+              text-[10px] font-medium
+              uppercase tracking-[0.16em]
             "
           >
             <Link
               to="/"
               className="
-                text-red-500
-
-                transition-colors
-                duration-300
-
-                hover:text-red-400
+                text-red-400
+                transition-colors duration-300
+                hover:text-red-300
               "
             >
               Home
             </Link>
 
             <ChevronRight
-              size={11}
+              size={12}
               className="text-zinc-600"
             />
 
-            <span className="text-white">
+            <span
+              aria-current="page"
+              className="text-zinc-300"
+            >
               Contact
             </span>
-          </motion.div>
+          </nav>
 
-          {/* ================================================= */}
           {/* BADGE */}
-          {/* ================================================= */}
-
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: 15,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              delay: 0.12,
-              duration: 0.45,
-            }}
+          <div
             className="
-              mb-5
-
-              inline-flex
-              items-center
-              gap-2
-
-              rounded-xl
-
-              border
-              border-red-500/30
-
-              bg-black/40
-
-              px-4
-              py-2
-
-              backdrop-blur-md
-
-              shadow-[0_0_30px_rgba(239,68,68,.05)]
+              mb-4 inline-flex
+              items-center gap-2
+              rounded-full
+              border border-red-500/25
+              bg-red-500/[0.07]
+              px-3 py-1.5
             "
           >
             <span
               className="
-                h-2
-                w-2
-
-                rounded-full
-
-                bg-red-500
-
-                shadow-[0_0_12px_rgba(239,68,68,.9)]
-
-                animate-pulse
+                h-1.5 w-1.5
+                rounded-full bg-red-500
               "
             />
 
             <span
               className="
-                text-[10px]
-
-                font-bold
-                uppercase
-
-                tracking-[0.2em]
-
+                text-[10px] font-semibold
+                uppercase tracking-[0.18em]
                 text-red-400
               "
             >
               Get In Touch
             </span>
-          </motion.div>
+          </div>
 
-          {/* ================================================= */}
           {/* TITLE */}
-          {/* ================================================= */}
-
-          <motion.h1
-            initial={{
-              opacity: 0,
-              y: 25,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              delay: 0.22,
-              duration: 0.6,
-              ease: "easeOut",
-            }}
+          <h1
             className="
-              max-w-[900px]
-
-              font-black
-              uppercase
-
-              leading-[0.88]
-
+              font-black uppercase
+              text-[38px] leading-[0.95]
               tracking-[-0.025em]
-
-              text-[42px]
-
-              sm:text-[52px]
-
-              lg:text-[64px]
-
-              xl:text-[70px]
+              text-white
+              sm:text-[46px]
+              lg:text-[56px]
             "
           >
-            <span className="text-white">
-              Contact
-            </span>{" "}
+            Contact{" "}
             <span
               className="
                 bg-gradient-to-r
-                from-red-300
-                via-red-500
+                from-red-300 via-red-500
                 to-orange-500
-
-                bg-clip-text
-
-                text-transparent
+                bg-clip-text text-transparent
               "
             >
               KADECHO
             </span>
-          </motion.h1>
+          </h1>
 
-          {/* ================================================= */}
-          {/* RED LINE */}
-          {/* ================================================= */}
-
-          <motion.div
-            initial={{
-              width: 0,
-              opacity: 0,
-            }}
-            animate={{
-              width: 95,
-              opacity: 1,
-            }}
-            transition={{
-              delay: 0.42,
-              duration: 0.7,
-              ease: "easeOut",
-            }}
+          {/* RED ACCENT */}
+          <div
+            aria-hidden="true"
             className="
-              mt-5
-
-              h-[3px]
-
+              mt-4 h-[2px] w-16
               rounded-full
-
               bg-gradient-to-r
-              from-red-600
-              via-red-400
+              from-red-600 via-red-400
               to-transparent
             "
           />
 
-          {/* ================================================= */}
           {/* DESCRIPTION */}
-          {/* ================================================= */}
-
-          <motion.p
-            initial={{
-              opacity: 0,
-              y: 15,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              delay: 0.52,
-              duration: 0.5,
-            }}
+          <p
             className="
-              mt-5
-
-              max-w-[570px]
-
-              text-[12px]
-
-              leading-6
-
+              mt-4 max-w-[530px]
+              text-[12px] leading-6
               text-zinc-300
-
               sm:text-[13px]
-
-              lg:text-[14px]
             "
           >
             Let&apos;s discuss your custom metal project and
             transform your ideas into premium craftsmanship.
-          </motion.p>
+          </p>
 
-          {/* ================================================= */}
-          {/* BUTTONS */}
-          {/* ================================================= */}
-
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: 15,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              delay: 0.65,
-              duration: 0.5,
-            }}
+          {/* ACTIONS */}
+          <div
             className="
-              mt-6
-
-              flex
-              flex-wrap
-              items-center
-
-              gap-3
+              mt-5 flex flex-wrap
+              items-center gap-3
             "
           >
-            {/* VIEW PROJECTS */}
-
             <Link
               to="/projects"
               className="
-                group
-
-                inline-flex
-
-                h-11
-
-                items-center
-                justify-center
-
-                gap-3
-
-                rounded-xl
-
-                bg-red-600
-
-                px-6
-
-                text-[10px]
-
-                font-bold
-                uppercase
-
-                tracking-[0.1em]
-
+                group inline-flex h-10
+                items-center justify-center gap-2.5
+                rounded-xl bg-red-600
+                px-5
+                text-[11px] font-semibold
+                uppercase tracking-[0.08em]
                 text-white
-
-                shadow-[0_8px_30px_rgba(239,68,68,.2)]
-
-                transition-all
+                transition-[background-color,transform]
                 duration-300
-
                 hover:-translate-y-0.5
-
                 hover:bg-red-500
-
-                hover:shadow-[0_12px_35px_rgba(239,68,68,.35)]
+                focus-visible:outline
+                focus-visible:outline-2
+                focus-visible:outline-offset-2
+                focus-visible:outline-red-500
               "
             >
-              <span>
-                View Projects
-              </span>
+              View Projects
 
               <ArrowRight
-                size={17}
+                size={15}
                 className="
-                  transition-transform
-                  duration-300
-
+                  transition-transform duration-300
                   group-hover:translate-x-1
                 "
               />
             </Link>
 
-            {/* CALL NOW */}
-
             <a
-              href="tel:+212600000000"
+              href={`tel:${PHONE}`}
               className="
-                group
-
-                inline-flex
-
-                h-11
-
-                items-center
-                justify-center
-
-                gap-3
-
+                group inline-flex h-10
+                items-center justify-center gap-2.5
                 rounded-xl
-
-                border
-                border-white/15
-
-                bg-black/40
-
-                px-6
-
-                text-[10px]
-
-                font-bold
-                uppercase
-
-                tracking-[0.1em]
-
+                border border-white/15
+                bg-white/[0.045]
+                px-5
+                text-[11px] font-semibold
+                uppercase tracking-[0.08em]
                 text-white
-
-                backdrop-blur-md
-
-                transition-all
+                transition-[background-color,border-color,transform]
                 duration-300
-
                 hover:-translate-y-0.5
-
                 hover:border-red-500/40
-
                 hover:bg-red-500/10
+                focus-visible:outline
+                focus-visible:outline-2
+                focus-visible:outline-offset-2
+                focus-visible:outline-red-500
               "
             >
-              <Phone
-                size={15}
-                className="
-                  text-red-400
-
-                  transition-transform
-                  duration-300
-
-                  group-hover:scale-110
-                "
-              />
-
+              <Phone size={14} className="text-red-400" />
               Call Now
             </a>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       </div>
 
-      {/* ================================================= */}
       {/* BOTTOM RED LIGHT */}
-      {/* ================================================= */}
-
-      <motion.div
-        initial={{
-          opacity: 0,
-          scaleX: 0,
-        }}
-        animate={{
-          opacity: 1,
-          scaleX: 1,
-        }}
-        transition={{
-          duration: 1.2,
-          delay: 0.8,
-          ease: "easeOut",
-        }}
+      <div
+        aria-hidden="true"
         className="
           pointer-events-none
-
-          absolute
-          bottom-0
-          left-0
-          z-[6]
-
-          h-[2px]
-          w-full
-
-          origin-center
-
+          absolute bottom-0 left-1/2
+          h-px w-[70%]
+          -translate-x-1/2
           bg-gradient-to-r
-          from-transparent
-          via-red-500
+          from-transparent via-red-500/55
           to-transparent
-
-          shadow-[0_0_15px_rgba(239,68,68,.7)]
         "
       />
     </section>

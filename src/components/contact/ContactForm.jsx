@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
+import { useEffect, useRef, useState } from "react";
 import {
   User,
   Mail,
@@ -7,1003 +7,533 @@ import {
   FileText,
   MessageSquare,
   Send,
-  CheckCircle2,
   AlertCircle,
+  ShieldCheck,
 } from "lucide-react";
+
 import SuccessMessage from "../ui/SuccessMessage";
 
-export default function ContactForm() {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    subject: "",
-    message: "",
-  });
+const INITIAL_FORM = {
+  name: "",
+  email: "",
+  phone: "",
+  subject: "",
+  message: "",
+};
 
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000/api";
+
+const inputWrapper = `
+  group relative flex min-h-[48px]
+  items-center gap-2.5
+  rounded-xl
+  border border-white/[0.08]
+  bg-white/[0.025]
+  px-3
+  transition-[background-color,border-color,box-shadow]
+  duration-200
+  hover:border-white/[0.14]
+  focus-within:border-red-500/45
+  focus-within:bg-red-500/[0.025]
+  focus-within:shadow-[0_0_16px_rgba(239,68,68,0.045)]
+`;
+
+const iconWrapper = `
+  flex h-8 w-8 shrink-0
+  items-center justify-center
+  rounded-lg
+  border border-red-500/15
+  bg-red-500/[0.06]
+  text-red-400
+  transition-colors duration-200
+  group-focus-within:border-red-500/30
+`;
+
+const inputClass = `
+  h-11 min-w-0 w-full flex-1
+  bg-transparent
+  text-[13px] text-white
+  outline-none
+  placeholder:text-zinc-600
+`;
+
+const labelClass = `
+  mb-1.5 block
+  text-[10px] font-semibold
+  uppercase tracking-[0.13em]
+  text-zinc-400
+`;
+
+function FormField({
+  id,
+  label,
+  icon: Icon,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  required = false,
+  autoComplete,
+}) {
+  return (
+    <div className="min-w-0">
+      <label htmlFor={id} className={labelClass}>
+        {label}
+        {required && (
+          <span className="ml-1 text-red-400">*</span>
+        )}
+      </label>
+
+      <div className={inputWrapper}>
+        <span aria-hidden="true" className={iconWrapper}>
+          <Icon size={15} />
+        </span>
+
+        <input
+          id={id}
+          name={id}
+          type={type}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          required={required}
+          maxLength={id === "subject" ? 150 : 120}
+          className={inputClass}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function ContactForm() {
+  const [form, setForm] = useState(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState("");
 
+  const requestRef = useRef(null);
+  const submittingRef = useRef(false);
+
   useEffect(() => {
-  if (!showSuccess) return;
+    if (!showSuccess) return;
 
-  const timer = setTimeout(() => {
-    setShowSuccess(false);
-  }, 3000);
+    const timer = setTimeout(() => {
+      setShowSuccess(false);
+    }, 3000);
 
-  return () => clearTimeout(timer);
-}, [showSuccess]);
+    return () => clearTimeout(timer);
+  }, [showSuccess]);
 
-  // =====================================================
-  // CHANGE
-  // =====================================================
+  useEffect(() => {
+    return () => {
+      requestRef.current?.abort();
+    };
+  }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (event) => {
+    const { name, value } = event.target;
 
-    setForm((prev) => ({
-      ...prev,
+    setForm((previous) => ({
+      ...previous,
       [name]: value,
     }));
 
-    // Clear error when user starts typing
-    if (error) {
-      setError("");
-    }
+    if (error) setError("");
   };
 
-  // =====================================================
-  // SUBMIT
-  // =====================================================
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (submittingRef.current) return;
 
-    // Reset previous messages
-    setError("");
-    setShowSuccess(false);
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      subject: form.subject.trim(),
+      message: form.message.trim(),
+    };
 
-    // ===================================================
-    // VALIDATION
-    // ===================================================
-
-    if (!form.name.trim()) {
+    if (!payload.name) {
       setError("Full name is required.");
       return;
     }
 
-    if (!form.email.trim()) {
+    if (!payload.email) {
       setError("Email address is required.");
       return;
     }
 
-    if (!form.message.trim()) {
+    if (!payload.message) {
       setError("Message is required.");
       return;
     }
 
-    // ===================================================
-    // SEND TO BACKEND
-    // ===================================================
+    submittingRef.current = true;
+    setLoading(true);
+    setError("");
+    setShowSuccess(false);
+
+    const controller = new AbortController();
+    requestRef.current = controller;
 
     try {
-      setLoading(true);
-
-   const response = await fetch(
-  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/contact`,
-  {
-    method: "POST",
-
-    headers: {
-      "Content-Type": "application/json",
-    },
-
-    body: JSON.stringify(form),
-  }
-);
+      const response = await fetch(
+        `${API_URL}/contact`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        }
+      );
 
       const result = await response.json();
 
-      // Backend returned error
       if (!response.ok || !result.success) {
         throw new Error(
-          result?.message || "Failed to send message."
+          result?.message ||
+            "Failed to send message. Please try again."
         );
       }
 
-      // =================================================
-      // SUCCESS
-      // =================================================
-
+      setForm({ ...INITIAL_FORM });
       setShowSuccess(true);
+    } catch (err) {
+      if (err.name === "AbortError") return;
 
-      // Clear form
-      setForm({
-        name: "",
-        email: "",
-        phone: "",
-        subject: "",
-        message: "",
-      });
-
-    } catch (error) {
-      console.error("❌ Contact error:", error);
+      console.error("Contact form error:", err);
 
       setError(
-        error.message || "Failed to send message."
+        err.message ||
+          "Something went wrong. Please try again."
       );
-
     } finally {
-      setLoading(false);
+      submittingRef.current = false;
+
+      if (requestRef.current === controller) {
+        requestRef.current = null;
+      }
+
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
-  // =====================================================
-  // ANIMATION
-  // =====================================================
-
-  const containerVariants = {
-    hidden: {},
-
-    visible: {
-      transition: {
-        staggerChildren: 0.08,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: {
-      opacity: 0,
-      y: 14,
-    },
-
-    visible: {
-      opacity: 1,
-      y: 0,
-
-      transition: {
-        duration: 0.45,
-        ease: "easeOut",
-      },
-    },
-  };
-
-  // =====================================================
-  // INPUT CLASS
-  // =====================================================
-
-  const inputWrapper = `
-    group
-    relative
-    flex
-    min-h-[54px]
-    items-center
-    gap-3
-    overflow-hidden
-    rounded-2xl
-    border
-    border-white/[0.08]
-    bg-white/[0.025]
-    px-4
-    transition-all
-    duration-300
-    hover:border-white/[0.14]
-    hover:bg-white/[0.035]
-    focus-within:border-red-500/50
-    focus-within:bg-red-500/[0.025]
-    focus-within:shadow-[0_0_25px_rgba(239,68,68,.06)]
-  `;
-
-  const iconWrapper = `
-    flex
-    h-9
-    w-9
-    shrink-0
-    items-center
-    justify-center
-    rounded-xl
-    border
-    border-red-500/15
-    bg-red-500/[0.07]
-    text-red-400
-    transition-all
-    duration-300
-    group-focus-within:border-red-500/40
-    group-focus-within:bg-red-500/10
-    group-focus-within:text-red-300
-  `;
-
-  const inputClass = `
-    h-full
-    min-w-0
-    flex-1
-    bg-transparent
-    text-[13px]
-    text-white
-    outline-none
-    placeholder:text-zinc-600
-  `;
-
-  // =====================================================
-  // RETURN
-  // =====================================================
-
   return (
-    <motion.div
-      initial={{
-        opacity: 0,
-        y: 35,
-      }}
-      whileInView={{
-        opacity: 1,
-        y: 0,
-      }}
-      viewport={{
-        once: true,
-        amount: 0.15,
-      }}
-      transition={{
-        duration: 0.7,
-        ease: "easeOut",
-      }}
+    <div
       className="
-        group
-        relative
-        overflow-hidden
-        rounded-[28px]
-        border
-        border-white/[0.08]
+        relative overflow-hidden
+        rounded-[22px]
+        border border-white/[0.09]
         bg-[#090909]
-        shadow-[0_25px_80px_rgba(0,0,0,.35)]
+        shadow-[0_18px_55px_rgba(0,0,0,0.25)]
       "
     >
-      {/* TOP RED LINE */}
-
-      <div className="absolute left-0 right-0 top-0 h-px overflow-hidden">
-        <motion.div
-          animate={{
-            x: ["-100%", "100%"],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          className="
-            h-full
-            w-1/3
-            bg-gradient-to-r
-            from-transparent
-            via-red-500
-            to-transparent
-          "
-        />
-      </div>
-
-      {/* BACKGROUND GLOW */}
-
+      {/* STATIC TOP ACCENT */}
       <div
+        aria-hidden="true"
         className="
           pointer-events-none
-          absolute
-          -right-32
-          -top-32
-          h-72
-          w-72
-          rounded-full
-          bg-red-600/[0.08]
-          blur-[110px]
-          transition-all
-          duration-700
-          group-hover:bg-red-600/[0.12]
+          absolute left-0 top-0
+          h-px w-40
+          bg-gradient-to-r
+          from-red-500/75 to-transparent
         "
       />
 
+      {/* SOFT BACKGROUND LIGHT */}
       <div
+        aria-hidden="true"
         className="
           pointer-events-none
-          absolute
-          -bottom-40
-          -left-32
-          h-64
-          w-64
-          rounded-full
-          bg-red-600/[0.04]
-          blur-[100px]
+          absolute inset-0
+          bg-[radial-gradient(circle_at_100%_0%,rgba(220,38,38,0.075),transparent_50%)]
         "
       />
 
-      {/* CONTENT */}
-
-      <div className="relative z-10 p-5 sm:p-7 lg:p-8">
-
+      <div className="relative z-10 p-5 sm:p-6 lg:p-7">
         {/* HEADER */}
-
-        <div className="mb-7">
-
-          <motion.div
-            initial={{
-              opacity: 0,
-              x: -10,
-            }}
-            whileInView={{
-              opacity: 1,
-              x: 0,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              duration: 0.4,
-            }}
+        <div className="mb-6">
+          <div
             className="
-              inline-flex
-              items-center
-              gap-2
+              inline-flex items-center gap-2
               rounded-full
-              border
-              border-red-500/20
+              border border-red-500/20
               bg-red-500/[0.07]
-              px-3
-              py-1.5
+              px-3 py-1.5
             "
           >
             <span
               className="
-                h-1.5
-                w-1.5
-                rounded-full
-                bg-red-500
-                shadow-[0_0_10px_rgba(239,68,68,.8)]
+                h-1.5 w-1.5
+                rounded-full bg-red-500
               "
             />
 
             <span
               className="
-                text-[9px]
-                font-bold
-                uppercase
-                tracking-[0.24em]
+                text-[10px] font-semibold
+                uppercase tracking-[0.2em]
                 text-red-400
               "
             >
               Contact
             </span>
-          </motion.div>
+          </div>
 
-          <motion.h2
-            initial={{
-              opacity: 0,
-              y: 10,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              duration: 0.5,
-              delay: 0.08,
-            }}
+          <h2
             className="
-              mt-4
-              font-bebas
-              text-4xl
-              leading-none
+              mt-3 font-bebas
+              text-[36px] leading-[0.95]
               tracking-[0.04em]
               text-white
-              sm:text-5xl
+              sm:text-[42px]
             "
           >
-            LET'S BUILD
-
+            LET&apos;S BUILD
             <span className="block text-red-500">
               TOGETHER
             </span>
-          </motion.h2>
+          </h2>
 
-          <motion.p
-            initial={{
-              opacity: 0,
-              y: 10,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              duration: 0.5,
-              delay: 0.15,
-            }}
+          <p
             className="
-              mt-3
-              max-w-lg
-              text-[12px]
-              leading-6
-              text-zinc-500
+              mt-3 max-w-lg
+              text-[12px] leading-[1.8]
+              text-zinc-400
               sm:text-[13px]
             "
           >
-            Share your idea with us and we'll help
-            transform it into a professional digital
-            experience.
-          </motion.p>
-
+            Share your project idea with us and we&apos;ll
+            help bring it to life with premium craftsmanship.
+          </p>
         </div>
 
-        {/* STATUS */}
+        {/* ERROR FEEDBACK */}
+        {error && (
+          <div
+            role="alert"
+            className="
+              mb-5 flex items-start gap-3
+              rounded-xl
+              border border-red-500/20
+              bg-red-500/[0.07]
+              px-3.5 py-3
+            "
+          >
+            <AlertCircle
+              size={17}
+              className="mt-0.5 shrink-0 text-red-400"
+            />
 
-        <AnimatePresence mode="wait">
+            <div className="min-w-0">
+              <p className="text-[12px] font-semibold text-red-300">
+                Unable to send message
+              </p>
+              <p className="mt-1 text-[11px] leading-5 text-red-300/75">
+                {error}
+              </p>
+            </div>
+          </div>
+        )}
 
-          {/* ERROR */}
-
-          {error && (
-            <motion.div
-              initial={{
-                opacity: 0,
-                height: 0,
-                y: -8,
-              }}
-              animate={{
-                opacity: 1,
-                height: "auto",
-                y: 0,
-              }}
-              exit={{
-                opacity: 0,
-                height: 0,
-              }}
-              className="
-                mb-5
-                flex
-                items-center
-                gap-3
-                overflow-hidden
-                rounded-2xl
-                border
-                border-red-500/20
-                bg-red-500/[0.07]
-                px-4
-                py-3
-              "
-            >
-              <div
-                className="
-                  flex
-                  h-8
-                  w-8
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-xl
-                  bg-red-500/10
-                  text-red-400
-                "
-              >
-                <AlertCircle size={16} />
-              </div>
-
-              <div>
-                <p className="text-[11px] font-semibold text-red-300">
-                  Something went wrong
-                </p>
-
-                <p className="mt-0.5 text-[9px] text-red-400/60">
-                  {error}
-                </p>
-              </div>
-            </motion.div>
-          )}
-
-        </AnimatePresence>
-
-        {/* FORM */}
-
-        <motion.form
+        {/* CONTACT FORM */}
+        <form
           onSubmit={handleSubmit}
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{
-            once: true,
-            amount: 0.1,
-          }}
           className="space-y-4"
         >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              id="name"
+              label="Full Name"
+              icon={User}
+              value={form.name}
+              onChange={handleChange}
+              placeholder="Your full name"
+              autoComplete="name"
+              required
+            />
 
-          {/* NAME + EMAIL */}
+            <FormField
+              id="email"
+              label="Email Address"
+              icon={Mail}
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              autoComplete="email"
+              required
+            />
 
-          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              id="phone"
+              label="Phone Number"
+              icon={Phone}
+              type="tel"
+              value={form.phone}
+              onChange={handleChange}
+              placeholder="+212 6XX XXX XXX"
+              autoComplete="tel"
+            />
 
-            {/* NAME */}
-
-            <motion.div
-              variants={itemVariants}
-              className="space-y-1.5"
-            >
-              <label
-                className="
-                  ml-1
-                  text-[9px]
-                  font-semibold
-                  uppercase
-                  tracking-[0.18em]
-                  text-zinc-600
-                "
-              >
-                Full Name
-              </label>
-
-              <div className={inputWrapper}>
-
-                <div className={iconWrapper}>
-                  <User size={16} />
-                </div>
-
-                <input
-                  type="text"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  placeholder="John Doe"
-                  className={inputClass}
-                />
-
-                <div
-                  className="
-                    pointer-events-none
-                    absolute
-                    bottom-0
-                    left-1/2
-                    h-px
-                    w-0
-                    -translate-x-1/2
-                    bg-red-500
-                    transition-all
-                    duration-500
-                    group-focus-within:w-full
-                  "
-                />
-
-              </div>
-            </motion.div>
-
-            {/* EMAIL */}
-
-            <motion.div
-              variants={itemVariants}
-              className="space-y-1.5"
-            >
-              <label
-                className="
-                  ml-1
-                  text-[9px]
-                  font-semibold
-                  uppercase
-                  tracking-[0.18em]
-                  text-zinc-600
-                "
-              >
-                Email Address
-              </label>
-
-              <div className={inputWrapper}>
-
-                <div className={iconWrapper}>
-                  <Mail size={16} />
-                </div>
-
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="john@example.com"
-                  className={inputClass}
-                />
-
-                <div
-                  className="
-                    pointer-events-none
-                    absolute
-                    bottom-0
-                    left-1/2
-                    h-px
-                    w-0
-                    -translate-x-1/2
-                    bg-red-500
-                    transition-all
-                    duration-500
-                    group-focus-within:w-full
-                  "
-                />
-
-              </div>
-            </motion.div>
-
-          </div>
-
-          {/* PHONE + SUBJECT */}
-
-          <div className="grid gap-4 md:grid-cols-2">
-
-            {/* PHONE */}
-
-            <motion.div
-              variants={itemVariants}
-              className="space-y-1.5"
-            >
-              <label
-                className="
-                  ml-1
-                  text-[9px]
-                  font-semibold
-                  uppercase
-                  tracking-[0.18em]
-                  text-zinc-600
-                "
-              >
-                Phone Number
-              </label>
-
-              <div className={inputWrapper}>
-
-                <div className={iconWrapper}>
-                  <Phone size={16} />
-                </div>
-
-                <input
-                  type="tel"
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  placeholder="+212 6XX XXX XXX"
-                  className={inputClass}
-                />
-
-                <div
-                  className="
-                    pointer-events-none
-                    absolute
-                    bottom-0
-                    left-1/2
-                    h-px
-                    w-0
-                    -translate-x-1/2
-                    bg-red-500
-                    transition-all
-                    duration-500
-                    group-focus-within:w-full
-                  "
-                />
-
-              </div>
-            </motion.div>
-
-            {/* SUBJECT */}
-
-            <motion.div
-              variants={itemVariants}
-              className="space-y-1.5"
-            >
-              <label
-                className="
-                  ml-1
-                  text-[9px]
-                  font-semibold
-                  uppercase
-                  tracking-[0.18em]
-                  text-zinc-600
-                "
-              >
-                Subject
-              </label>
-
-              <div className={inputWrapper}>
-
-                <div className={iconWrapper}>
-                  <FileText size={16} />
-                </div>
-
-                <input
-                  type="text"
-                  name="subject"
-                  value={form.subject}
-                  onChange={handleChange}
-                  placeholder="Project inquiry"
-                  className={inputClass}
-                />
-
-                <div
-                  className="
-                    pointer-events-none
-                    absolute
-                    bottom-0
-                    left-1/2
-                    h-px
-                    w-0
-                    -translate-x-1/2
-                    bg-red-500
-                    transition-all
-                    duration-500
-                    group-focus-within:w-full
-                  "
-                />
-
-              </div>
-            </motion.div>
-
+            <FormField
+              id="subject"
+              label="Subject"
+              icon={FileText}
+              value={form.subject}
+              onChange={handleChange}
+              placeholder="Your project type"
+              autoComplete="off"
+            />
           </div>
 
           {/* MESSAGE */}
-
-          <motion.div
-            variants={itemVariants}
-            className="space-y-1.5"
-          >
+          <div>
             <label
-              className="
-                ml-1
-                text-[9px]
-                font-semibold
-                uppercase
-                tracking-[0.18em]
-                text-zinc-600
-              "
+              htmlFor="message"
+              className={labelClass}
             >
               Your Message
+              <span className="ml-1 text-red-400">*</span>
             </label>
 
             <div
               className="
-                group
-                relative
-                flex
-                gap-3
-                overflow-hidden
-                rounded-2xl
-                border
-                border-white/[0.08]
+                group flex items-start gap-2.5
+                rounded-xl
+                border border-white/[0.08]
                 bg-white/[0.025]
-                p-4
-                transition-all
-                duration-300
+                p-3
+                transition-[background-color,border-color]
+                duration-200
                 hover:border-white/[0.14]
-                focus-within:border-red-500/50
+                focus-within:border-red-500/45
                 focus-within:bg-red-500/[0.025]
-                focus-within:shadow-[0_0_30px_rgba(239,68,68,.06)]
               "
             >
-
-              <div
-                className="
-                  flex
-                  h-9
-                  w-9
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-xl
-                  border
-                  border-red-500/15
-                  bg-red-500/[0.07]
-                  text-red-400
-                "
+              <span
+                aria-hidden="true"
+                className={iconWrapper}
               >
-                <MessageSquare size={16} />
-              </div>
+                <MessageSquare size={15} />
+              </span>
 
               <textarea
+                id="message"
                 name="message"
                 value={form.message}
                 onChange={handleChange}
-                rows={5}
-                placeholder="Tell us about your project..."
+                rows={4}
+                maxLength={3000}
+                placeholder="Tell us about your project, materials, dimensions..."
+                required
                 className="
-                  min-h-[120px]
-                  w-full
-                  resize-none
+                  min-h-[105px] min-w-0
+                  w-full resize-y
                   bg-transparent
-                  text-[13px]
-                  leading-6
-                  text-white
-                  outline-none
+                  pt-1.5
+                  text-[13px] leading-6
+                  text-white outline-none
                   placeholder:text-zinc-600
                 "
               />
-
-              <div
-                className="
-                  pointer-events-none
-                  absolute
-                  bottom-0
-                  left-1/2
-                  h-px
-                  w-0
-                  -translate-x-1/2
-                  bg-red-500
-                  transition-all
-                  duration-500
-                  group-focus-within:w-full
-                "
-              />
-
             </div>
-          </motion.div>
+          </div>
 
-          {/* BOTTOM */}
-
-          <motion.div
-            variants={itemVariants}
+          {/* BOTTOM ACTIONS */}
+          <div
             className="
-              flex
-              flex-col
-              gap-4
-              pt-1
+              flex flex-col gap-4 pt-1
               sm:flex-row
               sm:items-center
               sm:justify-between
             "
           >
-
             <p
               className="
-                max-w-xs
-                text-[9px]
-                leading-5
-                text-zinc-600
+                flex max-w-[300px]
+                items-start gap-2
+                text-[10px] leading-5
+                text-zinc-500
               "
             >
-              Your information is kept private and will only
-              be used to respond to your message.
+              <ShieldCheck
+                size={15}
+                className="mt-0.5 shrink-0 text-red-400/70"
+              />
+              Your information will only be used to respond
+              to your inquiry.
             </p>
 
-            {/* BUTTON */}
-
-            <motion.button
+            <button
               type="submit"
               disabled={loading}
-              whileHover={{
-                scale: loading ? 1 : 1.025,
-                y: loading ? 0 : -2,
-              }}
-              whileTap={{
-                scale: loading ? 1 : 0.97,
-              }}
               className="
-                group
-                relative
-                flex
-                h-12
-                shrink-0
-                items-center
-                justify-center
-                gap-2.5
-                overflow-hidden
-                rounded-2xl
-                bg-red-600
-                px-7
-                text-[10px]
-                font-bold
-                uppercase
-                tracking-[0.16em]
+                group inline-flex h-11
+                shrink-0 items-center
+                justify-center gap-2.5
+                rounded-xl
+                bg-red-600 px-6
+                text-[11px] font-semibold
+                uppercase tracking-[0.12em]
                 text-white
-                shadow-[0_8px_30px_rgba(239,68,68,.16)]
-                transition-all
+                shadow-[0_6px_22px_rgba(239,68,68,0.14)]
+                transition-[background-color,transform]
                 duration-300
+                hover:-translate-y-0.5
                 hover:bg-red-500
-                hover:shadow-[0_12px_40px_rgba(239,68,68,.28)]
+                active:scale-[0.98]
                 disabled:cursor-not-allowed
-                disabled:opacity-50
+                disabled:opacity-60
+                disabled:hover:translate-y-0
+                focus-visible:outline
+                focus-visible:outline-2
+                focus-visible:outline-offset-2
+                focus-visible:outline-red-500
               "
             >
-
-              {/* BUTTON SHINE */}
-
-              <motion.span
-                animate={{
-                  x: ["-150%", "250%"],
-                }}
-                transition={{
-                  duration: 2.8,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-                className="
-                  absolute
-                  inset-y-0
-                  left-0
-                  w-14
-                  -skew-x-12
-                  bg-white/20
-                  blur-[1px]
-                "
-              />
-
-              {/* BUTTON GLOW */}
-
-              <span
-                className="
-                  pointer-events-none
-                  absolute
-                  inset-0
-                  rounded-2xl
-                  opacity-0
-                  shadow-[inset_0_0_25px_rgba(255,255,255,.12)]
-                  transition-opacity
-                  duration-300
-                  group-hover:opacity-100
-                "
-              />
-
-              {/* CONTENT */}
-
-              <span
-                className="
-                  relative
-                  z-10
-                  flex
-                  items-center
-                  gap-2.5
-                "
-              >
-
-                {loading ? (
-                  <>
-                    <span
-                      className="
-                        h-4
-                        w-4
-                        animate-spin
-                        rounded-full
-                        border-2
-                        border-white/30
-                        border-t-white
-                      "
-                    />
-
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    Send Message
-
-                    <Send
-                      size={15}
-                      className="
-                        transition-transform
-                        duration-300
-                        group-hover:translate-x-1
-                      "
-                    />
-                  </>
-                )}
-
-              </span>
-
-            </motion.button>
-
-          </motion.div>
-
-        </motion.form>
-
+              {loading ? (
+                <>
+                  <span
+                    className="
+                      h-4 w-4 animate-spin
+                      rounded-full border-2
+                      border-white/30 border-t-white
+                    "
+                  />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  Send Message
+                  <Send
+                    size={15}
+                    className="
+                      transition-transform duration-300
+                      group-hover:translate-x-0.5
+                    "
+                  />
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
 
-      {/* SUCCESS MODAL */}
-
+      {/* ORIGINAL SUCCESS MODAL */}
       <SuccessMessage
         show={showSuccess}
         title="Message Sent"
         message="Your message has been successfully sent."
       />
-
-    </motion.div>
+    </div>
   );
 }
