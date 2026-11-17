@@ -1,6 +1,6 @@
-import { useRef } from "react";
+
+import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 
 const footerLinks = [
@@ -15,36 +15,42 @@ export default function FooterBottom() {
   const clickCount = useRef(0);
   const clickTimer = useRef(null);
 
+  // Keep the original 3-click secret login.
   const handleSecretLogin = () => {
     clickCount.current += 1;
 
-    // Reset after 1 second
     clearTimeout(clickTimer.current);
+
+    if (clickCount.current >= 3) {
+      clickCount.current = 0;
+      navigate("/login");
+      return;
+    }
 
     clickTimer.current = setTimeout(() => {
       clickCount.current = 0;
+      clickTimer.current = null;
     }, 1000);
-
-    // 3 clicks → Login
-    if (clickCount.current === 3) {
-      clickCount.current = 0;
-
-      clearTimeout(clickTimer.current);
-
-      navigate("/login");
-    }
   };
 
-  return (
-    <footer className="relative mt-6 pt-5 pb-6">
+  // Clean up the timer when the footer unmounts.
+  useEffect(() => {
+    return () => clearTimeout(clickTimer.current);
+  }, []);
 
-      {/* Top line */}
+  return (
+    <div
+      className="
+        relative
+        py-5 sm:py-6
+      "
+    >
+      {/* TOP DIVIDER */}
       <div
+        aria-hidden="true"
         className="
-          absolute
-          left-0
-          right-0
-          top-0
+          pointer-events-none
+          absolute left-0 right-0 top-0
           h-px
           bg-gradient-to-r
           from-transparent
@@ -53,78 +59,67 @@ export default function FooterBottom() {
         "
       />
 
-      <motion.div
-        animate={{
-          x: ["-100%", "100%"],
-        }}
-        transition={{
-          duration: 7,
-          repeat: Infinity,
-          ease: "linear",
-        }}
+      {/* RED CENTER ACCENT */}
+      <div
+        aria-hidden="true"
         className="
-          absolute
-          top-0
-          left-0
-          h-px
-          w-24
+          pointer-events-none
+          absolute left-1/2 top-0
+          h-px w-24
+          -translate-x-1/2
           bg-gradient-to-r
           from-transparent
-          via-red-500
+          via-red-500/60
           to-transparent
         "
       />
 
       <div
         className="
-          flex
-          flex-col
-          items-center
-          justify-between
+          flex flex-col
+          items-center justify-between
           gap-4
-          lg:flex-row
+          lg:flex-row lg:gap-6
         "
       >
-
-        {/* Copyright */}
-        <motion.p
-          initial={{ opacity: 0, y: 6 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false }}
-          transition={{ duration: 0.4 }}
+        {/* COPYRIGHT */}
+        <div
           className="
-            flex
-            items-center
+            flex flex-wrap
+            items-center justify-center
             gap-2
-            text-[10px]
-            sm:text-[11px]
-            tracking-[0.08em]
-            text-zinc-600
+            text-[10px] sm:text-[11px]
+            tracking-[0.06em]
+            text-zinc-500
+            lg:justify-start
           "
         >
-          © {new Date().getFullYear()}
+          <span>© {new Date().getFullYear()}</span>
 
-          <span className="h-1 w-1 rounded-full bg-red-500/70" />
+          <span
+            aria-hidden="true"
+            className="
+              h-1 w-1 rounded-full
+              bg-red-500/70
+            "
+          />
 
-          {/* KADECHO */}
           <button
             type="button"
             onClick={handleSecretLogin}
             aria-label="KADECHO"
             className="
-              font-bebas
-              text-[13px]
-              tracking-[0.18em]
-              text-zinc-300
-
-              outline-none
-
-              transition-colors
-              duration-300
-
-              hover:text-white
-
               cursor-default
+              font-bebas text-[13px]
+              tracking-[0.16em]
+              text-zinc-300
+              transition-colors duration-300
+              hover:text-white
+              focus-visible:rounded-sm
+              focus-visible:outline
+              focus-visible:outline-2
+              focus-visible:outline-offset-2
+              focus-visible:outline-red-500
             "
           >
             KADECHO
@@ -133,26 +128,17 @@ export default function FooterBottom() {
           <span className="hidden sm:inline">
             All Rights Reserved.
           </span>
-        </motion.p>
+        </div>
 
-        {/* Links */}
-        <motion.nav
-          initial={{ opacity: 0, y: 6 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false }}
-          transition={{
-            duration: 0.4,
-            delay: 0.08,
-          }}
+        {/* LEGAL NAVIGATION */}
+        <nav
+          aria-label="Legal and footer links"
           className="
-            flex
-            items-center
+            flex items-center
             rounded-full
-            border
-            border-white/[0.07]
+            border border-white/[0.07]
             bg-white/[0.02]
-            px-1
-            py-1
+            p-1
           "
         >
           {footerLinks.map((link) => (
@@ -160,107 +146,82 @@ export default function FooterBottom() {
               key={link.name}
               to={link.path}
               className="
-                group
-                relative
+                group relative
                 rounded-full
-                px-3
-                py-1.5
-                text-[9px]
-                sm:text-[10px]
-                uppercase
-                tracking-[0.15em]
+                px-3 py-1.5
+                text-[10px]
+                uppercase tracking-[0.12em]
                 text-zinc-500
-                transition-all
-                duration-300
+                transition-colors duration-300
                 hover:text-white
+                focus-visible:outline
+                focus-visible:outline-2
+                focus-visible:outline-offset-2
+                focus-visible:outline-red-500
               "
             >
               {link.name}
 
               <span
+                aria-hidden="true"
                 className="
-                  absolute
-                  bottom-0.5
-                  left-1/2
-                  h-px
-                  w-0
+                  absolute bottom-0.5 left-1/2
+                  h-px w-0
                   -translate-x-1/2
                   bg-red-500
-                  transition-all
-                  duration-300
+                  transition-[width] duration-300
                   group-hover:w-3
                 "
               />
             </Link>
           ))}
-        </motion.nav>
+        </nav>
 
-        {/* Signature */}
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false }}
-          transition={{
-            duration: 0.4,
-            delay: 0.16,
-          }}
+        {/* SIGNATURE */}
+        <div
           className="
-            flex
-            items-center
+            flex flex-wrap
+            items-center justify-center
             gap-1.5
-            text-[10px]
-            sm:text-[11px]
-            tracking-[0.06em]
-            text-zinc-600
+            text-[10px] sm:text-[11px]
+            tracking-[0.05em]
+            text-zinc-500
+            lg:justify-end
           "
         >
           <span>Crafted with</span>
 
-          <motion.span
-            animate={{
-              scale: [1, 1.12, 1],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          >
-            <Heart
-              size={10}
-              fill="currentColor"
-              className="text-red-500"
-            />
-          </motion.span>
+          <Heart
+            aria-hidden="true"
+            size={11}
+            fill="currentColor"
+            className="text-red-500"
+          />
 
           <span>by</span>
 
-          {/* Secret login trigger */}
           <button
             type="button"
             onClick={handleSecretLogin}
-            aria-label="KADECHO admin access"
+            aria-label="KADECHO development team"
             className="
-              font-bebas
-              text-[13px]
-              tracking-[0.16em]
-              text-zinc-300
-
-              outline-none
-
               cursor-default
-
-              transition-colors
-              duration-300
-
+              font-bebas text-[13px]
+              tracking-[0.1em]
+              text-zinc-300
+              transition-colors duration-300
               hover:text-white
+              focus-visible:rounded-sm
+              focus-visible:outline
+              focus-visible:outline-2
+              focus-visible:outline-offset-2
+              focus-visible:outline-red-500
             "
           >
             Nouhe/dev,Nohayla/Disgne
           </button>
-        </motion.div>
-
+        </div>
       </div>
-    </footer>
+    </div>
   );
 }

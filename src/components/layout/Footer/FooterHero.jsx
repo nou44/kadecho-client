@@ -1,5 +1,5 @@
+
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import {
   FaFacebookF,
   FaInstagram,
@@ -35,677 +35,356 @@ export default function FooterHero() {
   return (
     <section
       className="
-        relative
+        relative isolate
         overflow-hidden
-
-        flex
-        flex-col
-        gap-12
-
-        border-b
-        border-white/[0.08]
-
-        py-16
-        sm:py-20
-        lg:py-24
-
-        lg:flex-row
-        lg:items-center
-        lg:justify-between
+        border-b border-white/[0.07]
+        py-10 sm:py-11 lg:py-12
       "
     >
-      {/* =====================================================
-          BACKGROUND
-      ===================================================== */}
-
+      {/* BACKGROUND WATERMARK */}
       <div
+        aria-hidden="true"
         className="
           pointer-events-none
-          absolute
-          inset-0
+          absolute inset-0 -z-10
+          flex items-center justify-center
           overflow-hidden
         "
       >
-        {/* Soft center glow */}
-
-        <div
+        <span
           className="
-            absolute
-            left-[15%]
-            top-1/2
-
-            h-[320px]
-            w-[320px]
-
-            -translate-y-1/2
-
-            rounded-full
-
-            bg-red-600/[0.055]
-
-            blur-[130px]
-          "
-        />
-
-        {/* Large Brand */}
-
-        <div
-          className="
-            absolute
-            inset-0
-
-            flex
-            items-center
-            justify-center
-
-            overflow-hidden
+            select-none whitespace-nowrap
+            font-bebas uppercase
+            text-white/[0.025]
+            text-[95px] sm:text-[145px]
+            md:text-[190px] lg:text-[250px]
+            xl:text-[300px]
+            tracking-[0.12em]
           "
         >
-          <span
-            className="
-              select-none
-              whitespace-nowrap
-
-              font-bebas
-
-              uppercase
-
-              tracking-[0.16em]
-
-              text-white/[0.025]
-
-              text-[100px]
-              sm:text-[150px]
-              md:text-[210px]
-              lg:text-[270px]
-              xl:text-[340px]
-
-              translate-y-2
-            "
-          >
-            KADECHO
-          </span>
-        </div>
-
-        {/* Subtle horizontal light */}
-
-        <div
-          className="
-            absolute
-            left-0
-            top-1/2
-
-            h-px
-            w-[35%]
-
-            bg-gradient-to-r
-            from-transparent
-            via-red-500/30
-            to-transparent
-
-            blur-[1px]
-
-            opacity-60
-          "
-        />
+          KADECHO
+        </span>
       </div>
 
-      {/* =====================================================
-          LEFT / BRAND
-      ===================================================== */}
+      {/* SOFT BACKGROUND LIGHT */}
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute inset-0 -z-10
+          bg-[radial-gradient(ellipse_38%_70%_at_18%_50%,rgba(220,38,38,0.055),transparent_100%)]
+        "
+      />
 
       <div
         className="
-          relative
-          z-10
-
-          flex-1
+          relative z-10
+          grid grid-cols-1
+          items-center
+          gap-9
+          lg:grid-cols-[minmax(0,1fr)_310px]
+          lg:gap-10
         "
       >
-        <Link
-          to="/"
-          className="
-            group
-
-            inline-flex
-
-            w-full
-
-            flex-col
-            gap-7
-
-            sm:flex-row
-            sm:items-center
-          "
-        >
-          {/* =================================================
-              LOGO
-          ================================================= */}
-
+        {/* LEFT — BRAND */}
+        <div className="min-w-0">
           <div
             className="
-              relative
-
-              flex
-              h-24
-              w-24
-
-              shrink-0
-
-              items-center
-              justify-center
+              flex flex-col
+              gap-4
+              sm:flex-row sm:items-center
+              sm:gap-5
             "
           >
-            {/* Outer ring */}
-
-            <div
+            {/* LOGO */}
+            <Link
+              to="/"
+              aria-label="KADECHO Home"
               className="
-                absolute
-                -inset-2
-
+                group/logo relative
+                flex h-[76px] w-[76px]
+                shrink-0 items-center justify-center
                 rounded-full
-
-                border
-                border-dashed
-                border-red-500/20
-              "
-            />
-
-            {/* Inner ring */}
-
-            <div
-              className="
-                absolute
-                inset-1
-
-                rounded-full
-
-                border
-                border-white/[0.06]
-              "
-            />
-
-            {/* Glow */}
-
-            <div
-              className="
-                absolute
-                inset-0
-
-                rounded-full
-
-                bg-red-600/10
-
-                blur-2xl
-
-                transition-colors
-                duration-300
-
-                group-hover:bg-red-600/20
-              "
-            />
-
-            <img
-              src="/kadecho-logo-128.128.webp"
-              alt="KADECHO"
-              loading="lazy"
-              decoding="async"
-              className="
-                relative
-                z-10
-
-                h-20
-                w-20
-
-                object-contain
-
-                drop-shadow-[0_0_30px_rgba(220,38,38,.22)]
-              "
-            />
-          </div>
-
-          {/* =================================================
-              BRAND TEXT
-          ================================================= */}
-
-          <div className="min-w-0">
-            <h2
-              className="
-                font-bebas
-
-                text-5xl
-                sm:text-6xl
-                lg:text-[68px]
-
-                leading-[0.85]
-
-                tracking-[0.11em]
-
-                bg-gradient-to-r
-                from-white
-                via-zinc-100
-                to-red-500
-
-                bg-[length:200%_100%]
-
-                bg-clip-text
-
-                text-transparent
-              "
-            >
-              KADECHO
-            </h2>
-
-            {/* Accent */}
-
-            <div
-              className="
-                mt-4
-
-                flex
-                items-center
-                gap-3
               "
             >
               <span
+                aria-hidden="true"
                 className="
-                  block
-                  h-px
-                  w-[42px]
-
-                  bg-red-500
+                  absolute -inset-1
+                  rounded-full
+                  border border-dashed border-red-500/20
+                  transition-colors duration-300
+                  group-hover/logo:border-red-500/45
                 "
               />
 
               <span
+                aria-hidden="true"
                 className="
-                  font-bebas
+                  absolute inset-1
+                  rounded-full
+                  border border-white/[0.07]
+                  bg-red-500/[0.035]
+                "
+              />
 
-                  text-[9px]
+              <img
+                src="/kadecho-logo-128.128.webp"
+                alt="KADECHO"
+                loading="lazy"
+                decoding="async"
+                width="64"
+                height="64"
+                className="
+                  relative z-10
+                  h-16 w-16
+                  object-contain
+                  transition-transform duration-300
+                  group-hover/logo:scale-105
+                "
+              />
+            </Link>
 
-                  uppercase
+            {/* BRAND NAME + TAGLINE */}
+            <div className="min-w-0">
+              <Link
+                to="/"
+                className="group/brand inline-block"
+              >
+                <h2
+                  className="
+                    font-bebas uppercase
+                    text-[42px] leading-[0.9]
+                    tracking-[0.105em]
+                    sm:text-[46px]
+                    lg:text-[50px]
+                    bg-gradient-to-r
+                    from-white via-zinc-100 to-red-500
+                    bg-clip-text text-transparent
+                  "
+                >
+                  KADECHO
+                </h2>
+              </Link>
 
-                  tracking-[0.38em]
-
-                  text-zinc-500
+              <div
+                className="
+                  mt-2.5
+                  flex items-center gap-2.5
                 "
               >
-                Crafted With Precision
-              </span>
+                <span
+                  className="
+                    h-px w-7
+                    bg-red-500/80
+                  "
+                />
+                <span
+                  className="
+                    font-bebas uppercase
+                    text-[10px] tracking-[0.25em]
+                    text-zinc-500
+                  "
+                >
+                  Crafted With Precision
+                </span>
+              </div>
             </div>
-
-            {/* Description */}
-
-            <p
-              className="
-                mt-5
-
-                max-w-[510px]
-
-                text-[14px]
-                sm:text-[15px]
-
-                leading-7
-                sm:leading-8
-
-                text-zinc-400
-              "
-            >
-              Premium handcrafted{" "}
-              <span className="text-zinc-200">
-                metal
-              </span>
-              ,{" "}
-              <span className="text-red-400">
-                glass
-              </span>{" "}
-              and{" "}
-              <span className="text-zinc-200">
-                wood
-              </span>{" "}
-              creations crafted with precision,
-              innovation and timeless luxury.
-            </p>
           </div>
-        </Link>
 
-        {/* =================================================
-            SOCIALS
-        ================================================= */}
+          {/* DESCRIPTION */}
+          <p
+            className="
+              mt-5 max-w-[480px]
+              text-[12px] leading-[1.9]
+              sm:text-[13px]
+              text-zinc-400
+            "
+          >
+            Premium handcrafted{" "}
+            <span className="text-zinc-200">metal</span>,{" "}
+            <span className="text-red-400">glass</span> and{" "}
+            <span className="text-zinc-200">wood</span>{" "}
+            creations crafted with precision, innovation
+            and timeless luxury.
+          </p>
 
-        <div
-          className="
-            mt-8
-
-            flex
-            items-center
-            gap-3
-          "
-        >
-          {socials.map(
-            ({ icon: Icon, href, label }) => (
-              <motion.a
+          {/* SOCIAL LINKS */}
+          <div
+            className="
+              mt-5
+              flex items-center gap-2.5
+            "
+          >
+            {socials.map(({ icon: Icon, href, label }) => (
+              <a
                 key={label}
                 href={href}
                 aria-label={label}
-                whileHover={{
-                  y: -4,
-                }}
-                whileTap={{
-                  scale: 0.94,
-                }}
-                transition={{
-                  duration: 0.18,
-                }}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="
-                  group/social
-
-                  relative
-
-                  flex
-                  h-11
-                  w-11
-
-                  items-center
-                  justify-center
-
-                  overflow-hidden
-
-                  rounded-xl
-
-                  border
-                  border-white/[0.08]
-
+                  group/social relative
+                  flex h-9 w-9
+                  items-center justify-center
+                  overflow-hidden rounded-[10px]
+                  border border-white/[0.08]
                   bg-white/[0.025]
-
                   text-zinc-400
-
-                  transition-all
+                  transition-[color,background-color,border-color,transform]
                   duration-300
-
-                  hover:border-red-500/40
+                  hover:-translate-y-0.5
+                  hover:border-red-500/35
+                  hover:bg-red-500/[0.09]
                   hover:text-white
-
-                  hover:shadow-[0_10px_30px_rgba(239,68,68,.12)]
+                  focus-visible:outline
+                  focus-visible:outline-2
+                  focus-visible:outline-offset-2
+                  focus-visible:outline-red-500
                 "
               >
-                {/* Hover glow */}
-
-                <span
-                  className="
-                    absolute
-                    inset-0
-
-                    bg-red-500/0
-
-                    transition-colors
-                    duration-300
-
-                    group-hover/social:bg-red-500/10
-                  "
-                />
-
-                <Icon
-                  size={17}
-                  className="
-                    relative
-                    z-10
-                  "
-                />
-              </motion.a>
-            )
-          )}
+                <Icon size={15} />
+              </a>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* =====================================================
-          RIGHT CTA
-      ===================================================== */}
-
-      <div
-        className="
-          relative
-          z-10
-
-          w-full
-          max-w-[330px]
-
-          lg:max-w-[350px]
-
-          lg:mr-2
-        "
-      >
-        <div
-          className="
-            relative
-
-            overflow-hidden
-
-            rounded-[28px]
-
-            border
-            border-white/[0.09]
-
-            bg-[#090909]
-
-            p-6
-            sm:p-7
-
-            shadow-[0_25px_80px_rgba(0,0,0,.45)]
-          "
-        >
-          {/* Card glow */}
-
+        {/* RIGHT — CTA CARD */}
+        <div className="w-full max-w-[340px] lg:max-w-none">
           <div
             className="
-              pointer-events-none
-
-              absolute
-              -right-20
-              -top-20
-
-              h-48
-              w-48
-
-              rounded-full
-
-              bg-red-600/15
-
-              blur-[90px]
-            "
-          />
-
-          {/* Static accent */}
-
-          <div
-            className="
-              absolute
-              left-0
-              top-0
-
-              h-px
-              w-28
-
-              bg-gradient-to-r
-              from-transparent
-              via-red-500
-              to-transparent
-
-              opacity-70
-            "
-          />
-
-          {/* Badge */}
-
-          <div
-            className="
-              relative
-
-              inline-flex
-
-              items-center
-              gap-2
-
-              rounded-full
-
-              border
-              border-red-500/20
-
-              bg-red-500/[0.07]
-
-              px-3.5
-              py-1.5
+              relative overflow-hidden
+              rounded-[22px]
+              border border-white/[0.09]
+              bg-[#0a0a0a]
+              p-5 sm:p-6
+              shadow-[0_16px_45px_rgba(0,0,0,0.25)]
             "
           >
-            <Sparkles
-              size={12}
-              className="text-red-400"
+            {/* CARD LIGHT */}
+            <div
+              aria-hidden="true"
+              className="
+                pointer-events-none
+                absolute inset-0
+                bg-[radial-gradient(circle_at_100%_0%,rgba(220,38,38,0.11),transparent_55%)]
+              "
             />
 
-            <span
+            {/* TOP ACCENT */}
+            <div
+              aria-hidden="true"
               className="
-                font-bebas
+                absolute left-0 top-0
+                h-px w-28
+                bg-gradient-to-r
+                from-red-500/70 to-transparent
+              "
+            />
 
-                text-[10px]
-
-                uppercase
-
-                tracking-[0.3em]
-
-                text-red-300
+            {/* BADGE */}
+            <div
+              className="
+                relative inline-flex
+                items-center gap-2
+                rounded-full
+                border border-red-500/20
+                bg-red-500/[0.065]
+                px-3 py-1.5
               "
             >
-              Let's Build
-            </span>
-          </div>
+              <Sparkles size={12} className="text-red-400" />
+              <span
+                className="
+                  font-bebas uppercase
+                  text-[10px] tracking-[0.24em]
+                  text-red-300
+                "
+              >
+                Let's Build
+              </span>
+            </div>
 
-          {/* Title */}
-
-          <h3
-            className="
-              relative
-
-              mt-5
-
-              font-bebas
-
-              text-[44px]
-              sm:text-[48px]
-
-              leading-[0.86]
-
-              uppercase
-
-              tracking-[0.04em]
-
-              text-white
-            "
-          >
-            Ready
-            <br />
-            <span className="text-red-500">
-              To Start?
-            </span>
-          </h3>
-
-          {/* Description */}
-
-          <p
-            className="
-              relative
-
-              mt-4
-
-              max-w-[280px]
-
-              text-[13px]
-
-              leading-6
-
-              text-zinc-500
-            "
-          >
-            Tell us about your dream project
-            and let's create something
-            exceptional together.
-          </p>
-
-          {/* CTA */}
-
-          <Link
-            to="/contact"
-            className="
-              group/cta
-
-              relative
-
-              mt-6
-
-              inline-flex
-
-              items-center
-              gap-3
-
-              rounded-full
-
-              border
-              border-red-500/25
-
-              bg-red-500/[0.07]
-
-              px-5
-              py-2.5
-
-              font-bebas
-
-              text-[12px]
-
-              uppercase
-
-              tracking-[0.28em]
-
-              text-red-400
-
-              transition-all
-              duration-300
-
-              hover:border-red-500
-              hover:bg-red-500
-              hover:text-white
-            "
-          >
-            Contact Us
-
-            <ArrowUpRight
-              size={16}
+            {/* HEADING */}
+            <h3
               className="
-                transition-transform
-                duration-300
+                relative mt-4
+                font-bebas uppercase
+                text-[34px] sm:text-[38px]
+                leading-[0.92]
+                tracking-[0.04em]
+                text-white
+              "
+            >
+              Ready
+              <span className="block text-red-500">
+                To Start?
+              </span>
+            </h3>
 
-                group-hover/cta:translate-x-1
-                group-hover/cta:-translate-y-1
-                group-hover/cta:rotate-12
+            {/* DESCRIPTION */}
+            <p
+              className="
+                relative mt-3
+                max-w-[270px]
+                text-[12px] leading-[1.75]
+                text-zinc-500
+              "
+            >
+              Tell us about your dream project and let's
+              create something exceptional together.
+            </p>
+
+            {/* CTA */}
+            <Link
+              to="/contact"
+              className="
+                group/cta relative
+                mt-5 inline-flex
+                items-center gap-2.5
+                rounded-full
+                border border-red-500/25
+                bg-red-500/[0.08]
+                px-4 py-2.5
+                font-bebas uppercase
+                text-[12px] tracking-[0.2em]
+                text-red-400
+                transition-[color,background-color,border-color]
+                duration-300
+                hover:border-red-500
+                hover:bg-red-600
+                hover:text-white
+                focus-visible:outline
+                focus-visible:outline-2
+                focus-visible:outline-offset-2
+                focus-visible:outline-red-500
+              "
+            >
+              Contact Us
+
+              <ArrowUpRight
+                size={15}
+                className="
+                  transition-transform duration-300
+                  group-hover/cta:translate-x-0.5
+                  group-hover/cta:-translate-y-0.5
+                "
+              />
+            </Link>
+
+            {/* BOTTOM ACCENT */}
+            <div
+              aria-hidden="true"
+              className="
+                pointer-events-none
+                absolute bottom-0 left-5 right-5
+                h-px
+                bg-gradient-to-r
+                from-transparent via-red-500/25
+                to-transparent
               "
             />
-          </Link>
-
-          {/* Bottom accent */}
-
-          <div
-            className="
-              absolute
-              bottom-0
-              left-6
-              right-6
-
-              h-px
-
-              bg-gradient-to-r
-              from-transparent
-              via-red-500/40
-              to-transparent
-            "
-          />
+          </div>
         </div>
       </div>
     </section>

@@ -1,58 +1,40 @@
-import { motion } from "framer-motion";
 
-const particles = Array.from({ length: 18 });
+const PARTICLES = [
+  { x: "9%", y: "22%", size: 2 },
+  { x: "19%", y: "72%", size: 3 },
+  { x: "31%", y: "13%", size: 2 },
+  { x: "74%", y: "18%", size: 2 },
+  { x: "88%", y: "48%", size: 3 },
+  { x: "94%", y: "78%", size: 2 },
+];
 
 export default function CTAParticles() {
   return (
     <div
+      aria-hidden="true"
       className="
         pointer-events-none
-
-        absolute
-        inset-0
-
-        z-10
-
-        overflow-hidden
+        absolute inset-0 z-10
+        hidden overflow-hidden
+        sm:block
       "
     >
-      {particles.map((_, index) => {
-        const size = Math.random() * 5 + 2;
-
-        return (
-          <motion.span
-            key={index}
-            initial={{
-              y: "110%",
-              x: `${Math.random() * 100}%`,
-              opacity: 0,
-            }}
-            animate={{
-              y: "-20%",
-              opacity: [0, .5, .15, 0],
-            }}
-            transition={{
-              duration: 12 + Math.random() * 8,
-              repeat: Infinity,
-              delay: Math.random() * 8,
-              ease: "linear",
-            }}
-            style={{
-              width: size,
-              height: size,
-            }}
-            className="
-              absolute
-
-              rounded-full
-
-              bg-red-500/40
-
-              blur-[2px]
-            "
-          />
-        );
-      })}
+      {PARTICLES.map((particle, index) => (
+        <span
+          key={index}
+          className="
+            absolute rounded-full
+            bg-red-400/40
+            shadow-[0_0_7px_rgba(239,68,68,0.25)]
+          "
+          style={{
+            left: particle.x,
+            top: particle.y,
+            width: particle.size,
+            height: particle.size,
+          }}
+        />
+      ))}
     </div>
   );
 }

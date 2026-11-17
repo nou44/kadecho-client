@@ -1,272 +1,136 @@
 
-import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
+
+const STATS = [
+  { value: "250+", label: "Projects" },
+  { value: "100%", label: "Custom Built" },
+  { value: "6+", label: "Years Experience" },
+];
 
 export default function CTAContent() {
   return (
     <>
-      {/* Badge */}
-
-      <motion.div
-        initial={{
-          opacity: 0,
-          y: -15,
-        }}
-        whileInView={{
-          opacity: 1,
-          y: 0,
-        }}
-        viewport={{
-          once: false,
-        }}
-        transition={{
-          duration: 0.5,
-        }}
+      {/* BADGE */}
+      <div
         className="
-          inline-flex
-          items-center
-          gap-2
+          inline-flex items-center gap-2
+          rounded-full border border-red-500/25
+          bg-red-500/[0.09]
+          px-3 py-1.5
         "
       >
+        <Sparkles
+          size={12}
+          className="text-red-400"
+          aria-hidden="true"
+        />
+
         <span
           className="
-            rounded-full
-
-            border
-            border-red-500/25
-
-            bg-red-500/10
-
-            px-4
-            py-1.5
-
-            font-bebas
-
-            text-[10px]
-
-            uppercase
-
-            tracking-[0.32em]
-
-            text-red-400
-
-            backdrop-blur-xl
+            font-bebas text-[10px]
+            uppercase tracking-[0.2em]
+            text-red-300
           "
         >
           Let's Build Together
         </span>
+      </div>
 
-        <span
-          className="
-            flex
-            h-7
-            w-7
-
-            items-center
-            justify-center
-
-            rounded-full
-
-            border
-            border-red-500/20
-
-            bg-red-500/10
-          "
-        >
-          <Sparkles
-            size={13}
-            className="text-red-400"
-          />
-        </span>
-      </motion.div>
-
-      {/* Title */}
-
-      <motion.h2
-        initial={{
-          opacity: 0,
-          y: 25,
-        }}
-        whileInView={{
-          opacity: 1,
-          y: 0,
-        }}
-        viewport={{
-          once: false,
-        }}
-        transition={{
-          delay: 0.1,
-          duration: 0.7,
-        }}
+      {/* TITLE */}
+      <h2
+        id="cta-heading"
         className="
-          mt-6
-
-          font-bebas
-
-          text-[38px]
-          sm:text-[50px]
-          lg:text-[68px]
-
-          uppercase
-
-          leading-[0.9]
-
-          tracking-[0.045em]
-
+          mt-4 font-bebas
+          text-[34px] leading-[0.96]
+          uppercase tracking-[0.055em]
           text-white
+          sm:text-[42px]
+          lg:text-[48px]
         "
       >
         Crafted For
-
-        <br />
-
         <span
           className="
-            bg-[linear-gradient(90deg,#ffffff_0%,#f8fafc_15%,#ef4444_35%,#7f1d1d_50%,#ef4444_70%,#ffffff_100%)]
-
-            bg-[length:300%_100%]
-
-            bg-clip-text
-
-            text-transparent
-
-            animate-gradient-x
+            mt-1 block
+            bg-gradient-to-r
+            from-white via-red-400 to-red-600
+            bg-clip-text text-transparent
           "
         >
-          Extraordinary
+          Extraordinary Spaces
         </span>
+      </h2>
 
-        <br />
-
-        Spaces
-      </motion.h2>
-
-      {/* Description */}
-
-      <motion.p
-        initial={{
-          opacity: 0,
-          y: 20,
-        }}
-        whileInView={{
-          opacity: 1,
-          y: 0,
-        }}
-        viewport={{
-          once: false,
-        }}
-        transition={{
-          delay: 0.2,
-          duration: 0.7,
-        }}
+      {/* ACCENT */}
+      <div
+        aria-hidden="true"
         className="
-          mx-auto
+          mt-4 h-px w-14
+          bg-gradient-to-r
+          from-transparent via-red-500
+          to-transparent
+        "
+      />
 
-          mt-6
-
-          max-w-2xl
-
-          text-[13px]
-          sm:text-[15px]
-
-          leading-7
-
-          text-zinc-300/90
+      {/* DESCRIPTION */}
+      <p
+        className="
+          mx-auto mt-4 max-w-[510px]
+          font-satoshi text-[11px]
+          leading-[1.85] text-zinc-300/80
+          sm:text-[12px]
         "
       >
-        Every project begins with a vision.
-        We transform premium materials into timeless creations,
-        combining luxury craftsmanship, modern engineering and
-        exceptional attention to every detail.
-      </motion.p>
+        From your first idea to the final detail,
+        we bring extraordinary spaces to life
+        through bespoke metalwork, premium materials
+        and precision craftsmanship.
+      </p>
 
-      {/* Stats */}
-
-      <motion.div
-        initial={{
-          opacity: 0,
-          y: 20,
-        }}
-        whileInView={{
-          opacity: 1,
-          y: 0,
-        }}
-        viewport={{
-          once: false,
-        }}
-        transition={{
-          delay: 0.35,
-          duration: 0.7,
-        }}
+      {/* STATS */}
+      <div
         className="
-          mt-8
-
-          flex
-          flex-wrap
-          items-center
-          justify-center
-
-          gap-6
-          sm:gap-10
+          mt-6 grid w-full max-w-[440px]
+          grid-cols-3 gap-2
+          border-y border-white/[0.10]
+          py-4
+          sm:mt-7
         "
       >
-        {[
-          {
-            number: "250+",
-            label: "Projects",
-          },
-          {
-            number: "100%",
-            label: "Custom Built",
-          },
-          {
-            number: "6+",
-            label: "Years Experience",
-          },
-        ].map((item) => (
+        {STATS.map((item, index) => (
           <div
             key={item.label}
-            className="
-              min-w-[90px]
-
+            className={`
               text-center
-            "
+              ${index > 0
+                ? "border-l border-white/[0.10]"
+                : ""}
+            `}
           >
-            <h3
+            <div
               className="
-                font-bebas
-
-                text-[27px]
-                sm:text-[30px]
-
-                leading-none
-
-                text-white
+                font-bebas text-[23px]
+                leading-none tracking-[0.04em]
+                text-white sm:text-[26px]
               "
             >
-              {item.number}
-            </h3>
+              {item.value}
+            </div>
 
             <p
               className="
-                mt-1.5
-
-                text-[9px]
-                sm:text-[10px]
-
-                uppercase
-
-                tracking-[0.22em]
-
+                mt-1.5 font-satoshi
+                text-[8px] uppercase
+                tracking-[0.10em]
                 text-zinc-400
+                sm:text-[9px]
               "
             >
               {item.label}
             </p>
           </div>
         ))}
-      </motion.div>
+      </div>
     </>
   );
 }
-

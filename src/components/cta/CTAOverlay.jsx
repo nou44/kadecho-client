@@ -1,114 +1,48 @@
 
-import { motion } from "framer-motion";
-
 export default function CTAOverlay() {
   return (
-    <>
-      {/* Main Overlay */}
-
+    <div
+      aria-hidden="true"
+      className="
+        pointer-events-none
+        absolute inset-0 z-10
+        overflow-hidden
+      "
+    >
+      {/* READABILITY */}
       <div
         className="
-          absolute
-          inset-0
-          z-10
-
-          bg-black/50
+          absolute inset-0
+          bg-black/45
         "
       />
 
-      {/* Cinematic Gradient */}
-
+      {/* CINEMATIC GRADIENT */}
       <div
         className="
-          absolute
-          inset-0
-          z-10
-
+          absolute inset-0
           bg-gradient-to-b
-          from-black/65
-          via-black/35
-          to-[#050505]
+          from-[#050505]/75
+          via-black/30
+          to-[#050505]/95
         "
       />
 
-      {/* Top Red Glow */}
-
-      <motion.div
-        animate={{
-          opacity: [0.18, 0.32, 0.18],
-          scale: [1, 1.06, 1],
-        }}
-        transition={{
-          duration: 9,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="
-          absolute
-
-          left-1/2
-          top-[-260px]
-
-          z-10
-
-          h-[480px]
-          w-[480px]
-
-          -translate-x-1/2
-
-          rounded-full
-
-          bg-red-600/15
-
-          blur-[150px]
-        "
-      />
-
-      {/* Bottom Red Glow */}
-
-      <motion.div
-        animate={{
-          opacity: [0.10, 0.22, 0.10],
-          y: [0, -15, 0],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="
-          absolute
-
-          -bottom-32
-          left-1/2
-
-          z-10
-
-          h-[300px]
-          w-[520px]
-
-          -translate-x-1/2
-
-          rounded-full
-
-          bg-red-600/10
-
-          blur-[130px]
-        "
-      />
-
-      {/* Vignette */}
-
+      {/* SUBTLE RED AMBIENCE */}
       <div
         className="
-          absolute
-          inset-0
-
-          z-10
-
-          shadow-[inset_0_0_140px_rgba(0,0,0,.85)]
+          absolute inset-0
+          bg-[radial-gradient(ellipse_at_50%_45%,rgba(185,28,28,0.12),transparent_65%)]
         "
       />
-    </>
+
+      {/* SIDE VIGNETTE */}
+      <div
+        className="
+          absolute inset-0
+          bg-[linear-gradient(90deg,rgba(5,5,5,0.45),transparent_25%,transparent_75%,rgba(5,5,5,0.45))]
+        "
+      />
+    </div>
   );
 }
