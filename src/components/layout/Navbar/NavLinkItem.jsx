@@ -1,5 +1,5 @@
+
 import { NavLink } from "react-router-dom";
-import { motion } from "framer-motion";
 
 export default function NavLinkItem({
   to,
@@ -9,76 +9,108 @@ export default function NavLinkItem({
   onClick,
 }) {
   return (
-    <NavLink to={to} onClick={onClick}>
+    <NavLink
+      to={to}
+      onClick={onClick}
+      className={({ isActive }) => `
+        group relative flex items-center
+        transition-colors duration-200
+        focus-visible:outline-none
+        focus-visible:ring-2
+        focus-visible:ring-red-500/70
+
+        ${
+          mobile
+            ? `
+              min-h-11 w-full gap-3
+              rounded-lg px-3.5 py-3
+              ${
+                isActive
+                  ? "bg-red-500/[0.09] text-white"
+                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
+              }
+            `
+            : `
+              h-10 shrink-0
+              justify-center px-0.5
+              ${
+                isActive
+                  ? "text-white"
+                  : "text-zinc-400 hover:text-zinc-100"
+              }
+            `
+        }
+      `}
+    >
       {({ isActive }) => (
-        <motion.div
-          whileHover={{ y: -2 }}
-          transition={{ duration: 0.2 }}
-          className={`
-            group
-            relative
-            flex
-            items-center
-            gap-3
-            transition-all
-            duration-300
-
-            ${
-              mobile
-                ? "w-full rounded-xl px-4 py-3 hover:bg-zinc-900"
-                : "py-2"
-            }
-
-            ${
-              isActive
-                ? "text-white"
-                : "text-zinc-400 hover:text-white"
-            }
-          `}
-        >
+        <>
           {mobile && Icon && (
-            <Icon
-              size={18}
-              className="text-red-500"
-            />
+            <span
+              className={`
+                flex h-8 w-8 shrink-0
+                items-center justify-center
+                rounded-md
+                ${
+                  isActive
+                    ? "bg-red-500/15"
+                    : "bg-white/[0.04]"
+                }
+              `}
+            >
+              <Icon
+                size={16}
+                strokeWidth={1.8}
+                className="text-red-400"
+              />
+            </span>
           )}
 
           <span
-  className={`
-    relative
-    text-[13px]
-    xl:text-[13.5px]
-    font-semibold
-    uppercase
-    tracking-[0.14em]
-    transition-colors
-    duration-300
-  `}
->
+            className={`
+              relative whitespace-nowrap
+              font-semibold uppercase
+              transition-colors duration-200
+
+              ${
+                mobile
+                  ? "text-[12px] tracking-[0.1em]"
+                  : "text-[11px] tracking-[0.13em] xl:text-[11.5px]"
+              }
+            `}
+          >
             {label}
 
             {!mobile && (
               <span
+                aria-hidden="true"
                 className={`
-                  absolute
-                  -bottom-2
-                  left-0
-                  h-[2px]
-                  rounded-full
-                  bg-red-500
-                  transition-all
-                  duration-300
+                  absolute -bottom-[9px]
+                  left-1/2 h-[2px]
+                  -translate-x-1/2
+                  rounded-full bg-red-500
+                  transition-[width,opacity]
+                  duration-200
 
                   ${
                     isActive
-                      ? "w-full"
-                      : "w-0 group-hover:w-full"
+                      ? "w-5 opacity-100"
+                      : "w-0 opacity-0 group-hover:w-5 group-hover:opacity-100"
                   }
                 `}
               />
             )}
           </span>
-        </motion.div>
+
+          {mobile && isActive && (
+            <span
+              aria-hidden="true"
+              className="
+                ml-auto h-1.5 w-1.5
+                rounded-full bg-red-500
+              "
+            />
+          )}
+        </>
       )}
     </NavLink>
   );

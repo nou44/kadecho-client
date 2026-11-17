@@ -1,901 +1,562 @@
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { Menu, X, Search, ArrowRight, MapPin, Mail, Phone } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { NavLink, useLocation } from "react-router-dom";
+import {
+  Menu,
+  X,
+  Search,
+  ArrowUpRight,
+  MapPin,
+  Mail,
+  Phone,
+} from "lucide-react";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+} from "framer-motion";
 
 import { navigation } from "../../../constants/navigation";
-import NavLinkItem from "./NavLinkItem";
 import SearchButton from "./SearchButton";
 
+const EASE = [0.22, 1, 0.36, 1];
+
+const menuVariants = {
+  hidden: {
+    opacity: 0,
+    x: 18,
+  },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      staggerChildren: 0.055,
+      delayChildren: 0.14,
+    },
+  },
+};
+
+const linkVariants = {
+  hidden: {
+    opacity: 0,
+    x: 15,
+  },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.38,
+      ease: EASE,
+    },
+  },
+};
+
 export default function MobileNav() {
-   const [open, setOpen] = useState(false);
-
+  const [open, setOpen] = useState(false);
   const location = useLocation();
+  const reduceMotion = useReducedMotion();
+  const triggerRef = useRef(null);
+  const drawerRef = useRef(null);
 
-  const closeMenu = () => {
-    setOpen(false);
-  };
-
-  // Close mobile drawer whenever route changes
   useEffect(() => {
-    closeMenu();
+    setOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const drawer = drawerRef.current;
+      if (!drawer) return;
+
+      const focusable = Array.from(
+        drawer.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((element) => element.getClientRects().length > 0);
+
+      if (!focusable.length) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (
+        !event.shiftKey &&
+        document.activeElement === last
+      ) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+      triggerRef.current?.focus();
+    };
+  }, [open]);
+
+  const closeMenu = () => setOpen(false);
+
+  const drawer = (
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* BACKDROP */}
+          <motion.div
+            key="mobile-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: reduceMotion ? 0 : 0.25,
+            }}
+            onClick={closeMenu}
+            className="fixed inset-0 z-[1000] bg-black/75 backdrop-blur-[3px]"
+          />
+
+          {/* DRAWER */}
+          <motion.aside
+            key="mobile-drawer"
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu de navigation"
+            initial={
+              reduceMotion
+                ? { opacity: 0 }
+                : { x: "100%", opacity: 0.9 }
+            }
+            animate={{
+              x: 0,
+              opacity: 1,
+            }}
+            exit={
+              reduceMotion
+                ? { opacity: 0 }
+                : { x: "100%", opacity: 0.9 }
+            }
+            transition={{
+              duration: reduceMotion ? 0.01 : 0.46,
+              ease: EASE,
+            }}
+            className="
+              fixed inset-y-0 right-0 z-[1001]
+              flex h-[100dvh] w-full max-w-[360px]
+              flex-col overflow-hidden
+              border-l border-white/10
+              bg-[#090909] text-white
+              shadow-[-25px_0_80px_rgba(0,0,0,.6)]
+              will-change-transform
+            "
+          >
+            {/* BACKGROUND DECORATION */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 overflow-hidden"
+            >
+              <div
+                className="
+                  absolute -right-24 -top-28
+                  h-64 w-64 rounded-full
+                  bg-red-600/[0.12] blur-[80px]
+                "
+              />
+
+              <div
+                className="
+                  absolute -bottom-32 -left-32
+                  h-72 w-72 rounded-full
+                  bg-red-700/[0.06] blur-[90px]
+                "
+              />
+
+              <div
+                className="
+                  absolute inset-0 opacity-[0.025]
+                  bg-[linear-gradient(rgba(255,255,255,.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.5)_1px,transparent_1px)]
+                  bg-[size:34px_34px]
+                "
+              />
+            </div>
+
+            {/* ANIMATED TOP ACCENT */}
+            <div className="absolute inset-x-0 top-0 z-20 h-[2px] overflow-hidden">
+              <motion.span
+                aria-hidden="true"
+                initial={{ x: "-100%" }}
+                animate={{ x: "100%" }}
+                transition={{
+                  duration: reduceMotion ? 0 : 2.8,
+                  repeat: reduceMotion ? 0 : Infinity,
+                  ease: "linear",
+                }}
+                className="
+                  block h-full w-full
+                  bg-gradient-to-r
+                  from-transparent via-red-500 to-transparent
+                "
+              />
+            </div>
+
+            {/* HEADER */}
+            <div
+              className="
+                relative z-10 flex h-[70px] shrink-0
+                items-center justify-between
+                border-b border-white/[0.07] px-5
+              "
+            >
+              <motion.div
+                initial={
+                  reduceMotion ? false : { opacity: 0, x: -12 }
+                }
+                animate={{ opacity: 1, x: 0 }}
+                transition={{
+                  duration: 0.4,
+                  delay: 0.12,
+                }}
+                className="flex items-center gap-3"
+              >
+                <div
+                  className="
+                    relative flex h-11 w-11
+                    items-center justify-center
+                    rounded-xl border border-red-500/15
+                    bg-white/[0.035]
+                  "
+                >
+                  <img
+                    src="/kadecho-logo-64.webp"
+                    alt="KADECHO"
+                    width="40"
+                    height="40"
+                    className="relative z-10 h-10 w-10 object-contain"
+                  />
+
+                  <span className="pointer-events-none absolute inset-0 rounded-xl bg-red-500/[0.05]" />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="font-bebas text-[17px] leading-none tracking-[0.12em]">
+                    KADECHO
+                  </span>
+
+                  <span className="text-[9px] font-medium uppercase tracking-[0.14em] text-red-400">
+                    Luxury Metal Studio
+                  </span>
+                </div>
+              </motion.div>
+
+              <motion.button
+                type="button"
+                onClick={closeMenu}
+                aria-label="Fermer le menu"
+                whileHover={reduceMotion ? undefined : { rotate: 90 }}
+                whileTap={reduceMotion ? undefined : { scale: 0.9 }}
+                className="
+                  flex h-9 w-9 items-center justify-center
+                  rounded-xl border border-white/10
+                  bg-white/[0.04] text-zinc-400
+                  transition-colors duration-200
+                  hover:border-red-500/30
+                  hover:bg-red-500/[0.08]
+                  hover:text-white
+                "
+              >
+                <X size={18} />
+              </motion.button>
+            </div>
+
+            {/* CONTENT */}
+            <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 py-5">
+              <motion.div
+                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.15 }}
+                className="mb-3 flex items-center gap-3"
+              >
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+                  Navigation
+                </span>
+
+                <span className="h-px flex-1 bg-gradient-to-r from-red-500/30 to-transparent" />
+              </motion.div>
+
+              {/* ANIMATED LINKS */}
+              <motion.nav
+                aria-label="Navigation mobile"
+                variants={reduceMotion ? undefined : menuVariants}
+                initial={reduceMotion ? false : "hidden"}
+                animate={reduceMotion ? undefined : "visible"}
+              >
+                <ul className="space-y-1">
+                  {navigation.map((item, index) => (
+                    <motion.li
+                      key={item.id}
+                      variants={reduceMotion ? undefined : linkVariants}
+                    >
+                      <NavLink
+                        to={item.path}
+                        onClick={closeMenu}
+                        className={({ isActive }) => `
+                          group relative flex min-h-[47px]
+                          items-center justify-between
+                          overflow-hidden rounded-xl border px-3.5
+                          transition-[background-color,border-color,color]
+                          duration-200
+                          ${
+                            isActive
+                              ? "border-red-500/25 bg-red-500/[0.09] text-white"
+                              : "border-transparent text-zinc-400 hover:border-white/[0.08] hover:bg-white/[0.045] hover:text-white"
+                          }
+                        `}
+                      >
+                        {({ isActive }) => (
+                          <>
+                            {isActive && (
+                              <motion.span
+                                layoutId="mobile-nav-active"
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 320,
+                                  damping: 30,
+                                }}
+                                className="absolute bottom-2 left-0 top-2 w-[2px] rounded-full bg-red-500"
+                              />
+                            )}
+
+                            <div className="relative flex items-center gap-3">
+                              <span
+                                className={`
+                                  font-bebas text-[11px]
+                                  tracking-[0.12em]
+                                  ${
+                                    isActive
+                                      ? "text-red-400"
+                                      : "text-zinc-600"
+                                  }
+                                `}
+                              >
+                                {String(index + 1).padStart(2, "0")}
+                              </span>
+
+                              <span className="text-[12px] font-semibold uppercase tracking-[0.1em]">
+                                {item.label}
+                              </span>
+                            </div>
+
+                            <ArrowUpRight
+                              size={15}
+                              className={
+                                isActive
+                                  ? "relative text-red-400"
+                                  : "relative text-zinc-600 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-red-400"
+                              }
+                            />
+                          </>
+                        )}
+                      </NavLink>
+                    </motion.li>
+                  ))}
+                </ul>
+              </motion.nav>
+
+              {/* SEARCH */}
+              <motion.div
+                initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.4,
+                  delay: 0.42,
+                }}
+                className="
+                  mt-6 rounded-xl
+                  border border-white/[0.07]
+                  bg-white/[0.025] p-3.5
+                "
+              >
+                <div className="mb-3 flex items-center gap-2">
+                  <Search size={14} className="text-red-400" />
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+                    Quick Search
+                  </span>
+                </div>
+
+                <SearchButton />
+              </motion.div>
+
+              {/* CONTACT */}
+              <motion.div
+                initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.4,
+                  delay: 0.5,
+                }}
+                className="mt-6 border-t border-white/[0.07] pt-5"
+              >
+                <div className="mb-3 flex items-center gap-3">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                    Contact
+                  </span>
+                  <span className="h-px flex-1 bg-white/[0.07]" />
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-[11px] text-zinc-400">
+                    <MapPin size={15} className="shrink-0 text-red-400" />
+                    <span>Meknas, Agourai, Morocco</span>
+                  </div>
+
+                  <a
+                    href="mailto:contact@kadecho.com"
+                    className="group flex items-center gap-3 text-[11px] text-zinc-400 transition-colors hover:text-white"
+                  >
+                    <Mail
+                      size={15}
+                      className="shrink-0 text-red-400 transition-transform group-hover:scale-110"
+                    />
+                    <span>contact@kadecho.com</span>
+                  </a>
+
+                  <a
+                    href="tel:+212658551365"
+                    className="group flex items-center gap-3 text-[11px] text-zinc-400 transition-colors hover:text-white"
+                  >
+                    <Phone
+                      size={15}
+                      className="shrink-0 text-red-400 transition-transform group-hover:scale-110"
+                    />
+                    <span>+212 6 58 55 13 65</span>
+                  </a>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* FOOTER CTA */}
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.4,
+                delay: 0.48,
+              }}
+              className="
+                relative z-10 shrink-0
+                border-t border-white/[0.07]
+                bg-[#0b0b0b] p-4
+              "
+            >
+              <NavLink
+                to="/contact"
+                onClick={closeMenu}
+                className="
+                  group relative flex min-h-[45px] w-full
+                  items-center justify-center gap-2
+                  overflow-hidden rounded-xl
+                  bg-red-600
+                  text-[11px] font-semibold
+                  uppercase tracking-[0.12em]
+                  text-white
+                  shadow-[0_8px_24px_rgba(220,38,38,0.18)]
+                  transition-[background-color,box-shadow]
+                  duration-300
+                  hover:bg-red-500
+                  hover:shadow-[0_10px_30px_rgba(220,38,38,0.28)]
+                "
+              >
+                <span
+                  aria-hidden="true"
+                  className="
+                    pointer-events-none absolute inset-y-0
+                    -left-16 w-16 skew-x-[-20deg]
+                    bg-gradient-to-r
+                    from-transparent via-white/20 to-transparent
+                    transition-transform duration-700
+                    group-hover:translate-x-[450px]
+                  "
+                />
+
+                <span className="relative z-10">
+                  Start Your Project
+                </span>
+
+                <ArrowUpRight
+                  size={16}
+                  className="relative z-10 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                />
+              </NavLink>
+
+              <p className="mt-2 text-center text-[9px] uppercase tracking-[0.12em] text-zinc-600">
+                Custom Metal • Premium Craftsmanship
+              </p>
+            </motion.div>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+  );
 
   return (
     <>
-      {/* ================= MENU BUTTON ================= */}
-
+      {/* MENU TRIGGER */}
       <motion.button
-        whileTap={{ scale: 0.92 }}
+        ref={triggerRef}
+        type="button"
         onClick={() => setOpen(true)}
-        aria-label="Open menu"
+        aria-label="Ouvrir le menu"
+        aria-expanded={open}
+        whileTap={reduceMotion ? undefined : { scale: 0.93 }}
         className="
-          relative
-          lg:hidden
-
-          flex
-          h-11
-          w-11
-
-          items-center
-          justify-center
-
-          overflow-hidden
-          rounded-xl
-
-          border
-          border-white/10
-
-          bg-white/[0.035]
-
-          text-zinc-300
-
-          backdrop-blur-xl
-
-          transition-all
-          duration-300
-
-          hover:border-red-500/40
-          hover:bg-red-500/10
+          group relative flex h-10 w-10
+          items-center justify-center
+          overflow-hidden rounded-xl
+          border border-white/10
+          bg-white/[0.035] text-zinc-300
+          transition-colors duration-200
+          hover:border-red-500/35
+          hover:bg-red-500/[0.08]
           hover:text-white
-
-          hover:shadow-[0_0_30px_rgba(239,68,68,.20)]
+          lg:hidden
         "
       >
         <span
+          aria-hidden="true"
           className="
-            absolute
-            inset-0
-
+            pointer-events-none absolute inset-0
             bg-gradient-to-br
-            from-red-500/10
-            via-transparent
-            to-transparent
-
-            opacity-0
-            transition-opacity
-            duration-300
-
-            hover:opacity-100
+            from-red-500/[0.12] to-transparent
+            opacity-0 transition-opacity duration-200
+            group-hover:opacity-100
           "
         />
 
         <Menu
-          size={20}
+          size={19}
           strokeWidth={1.8}
           className="relative z-10"
         />
       </motion.button>
 
-      {/* ================= DRAWER ================= */}
-
-      <AnimatePresence>
-        {open && (
-          <>
-            {/* Backdrop */}
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              onClick={closeMenu}
-              className="
-                fixed
-                inset-0
-                z-[60]
-
-                bg-black/80
-
-                backdrop-blur-md
-              "
-            />
-
-            {/* Drawer */}
-
-            <motion.aside
-              initial={{
-                x: "100%",
-                opacity: 0.7,
-              }}
-              animate={{
-                x: 0,
-                opacity: 1,
-              }}
-              exit={{
-                x: "100%",
-                opacity: 0.7,
-              }}
-              transition={{
-                duration: 0.5,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="
-                fixed
-
-                right-0
-                top-0
-
-                z-[70]
-
-                flex
-                h-[100dvh]
-
-                w-full
-                max-w-[390px]
-
-                flex-col
-
-                overflow-hidden
-
-                border-l
-                border-white/10
-
-                bg-[#070707]
-
-                shadow-[-30px_0_100px_rgba(0,0,0,.65)]
-              "
-            >
-
-              {/* ================= AMBIENT BACKGROUND ================= */}
-
-              <div className="pointer-events-none absolute inset-0 overflow-hidden">
-
-                {/* Top glow */}
-
-                <motion.div
-                  animate={{
-                    scale: [1, 1.08, 1],
-                    opacity: [0.12, 0.2, 0.12],
-                  }}
-                  transition={{
-                    duration: 7,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="
-                    absolute
-                    -right-28
-                    -top-24
-
-                    h-72
-                    w-72
-
-                    rounded-full
-
-                    bg-red-600/20
-
-                    blur-[110px]
-                  "
-                />
-
-                {/* Bottom glow */}
-
-                <div
-                  className="
-                    absolute
-                    -bottom-32
-                    -left-32
-
-                    h-80
-                    w-80
-
-                    rounded-full
-
-                    bg-red-700/10
-
-                    blur-[120px]
-                  "
-                />
-
-                {/* Grid */}
-
-                <div
-                  className="
-                    absolute
-                    inset-0
-
-                    opacity-[0.025]
-
-                    bg-[linear-gradient(rgba(255,255,255,.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.5)_1px,transparent_1px)]
-
-                    bg-[size:32px_32px]
-                  "
-                />
-              </div>
-
-              {/* ================= TOP LINE ================= */}
-
-              <motion.div
-                animate={{
-                  backgroundPosition: [
-                    "0% 50%",
-                    "100% 50%",
-                    "0% 50%",
-                  ],
-                }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-                className="
-                  absolute
-                  left-0
-                  top-0
-
-                  z-20
-
-                  h-[2px]
-                  w-full
-
-                  bg-gradient-to-r
-                  from-transparent
-                  via-red-500
-                  to-transparent
-
-                  bg-[length:200%_100%]
-                "
-              />
-
-              {/* ================= HEADER ================= */}
-
-              <div
-                className="
-                  relative
-                  z-10
-
-                  flex
-                  h-[82px]
-
-                  shrink-0
-
-                  items-center
-                  justify-between
-
-                  border-b
-                  border-white/[0.07]
-
-                  px-5
-                "
-              >
-
-                {/* Brand */}
-
-                <motion.div
-                  initial={{
-                    opacity: 0,
-                    x: -15,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    x: 0,
-                  }}
-                  transition={{
-                    delay: 0.15,
-                    duration: 0.4,
-                  }}
-                  className="flex items-center gap-3"
-                >
-
-                  {/* Logo */}
-
-                  <div
-                    className="
-                      relative
-
-                      flex
-                      h-12
-                      w-12
-
-                      items-center
-                      justify-center
-
-                      overflow-hidden
-
-                      rounded-xl
-
-                      border
-                      border-white/10
-
-                      bg-white/[0.035]
-
-                      shadow-[0_8px_30px_rgba(0,0,0,.35)]
-                    "
-                  >
-                    <div
-                      className="
-                        absolute
-                        inset-0
-
-                        bg-red-500/10
-
-                        blur-xl
-                      "
-                    />
-
-                    <img
-                      src="/kadecho-logo-64.webp"
-                      alt="KADECHO"
-                      className="
-                        relative
-                        z-10
-
-                        h-10
-                        w-10
-
-                        object-contain
-                      "
-                    />
-                  </div>
-
-                  {/* Brand text */}
-
-                  <div className="flex flex-col">
-
-                    <span
-                      className="
-                        font-bebas
-
-                        text-[16px]
-
-                        leading-none
-
-                        tracking-[.12em]
-
-                        text-white
-                      "
-                    >
-                      KADECHO
-                    </span>
-
-                    <div className="mt-1.5 flex items-center gap-1.5">
-
-                      <span
-                        className="
-                          h-1.5
-                          w-1.5
-
-                          rounded-full
-
-                          bg-red-500
-
-                          shadow-[0_0_8px_rgba(239,68,68,.8)]
-
-                          animate-pulse
-                        "
-                      />
-
-                      <span
-                        className="
-                          font-bebas
-
-                          text-[8px]
-
-                          uppercase
-
-                          tracking-[.22em]
-
-                          text-zinc-500
-                        "
-                      >
-                        Luxury Metal Studio
-                      </span>
-
-                    </div>
-
-                  </div>
-
-                </motion.div>
-
-                {/* Close */}
-
-                <motion.button
-                  whileHover={{
-                    rotate: 90,
-                  }}
-                  whileTap={{
-                    scale: 0.9,
-                  }}
-                  onClick={closeMenu}
-                  aria-label="Close menu"
-                  className="
-                    flex
-                    h-10
-                    w-10
-
-                    items-center
-                    justify-center
-
-                    rounded-xl
-
-                    border
-                    border-white/10
-
-                    bg-white/[0.03]
-
-                    text-zinc-400
-
-                    transition-all
-                    duration-300
-
-                    hover:border-red-500/40
-                    hover:bg-red-500/10
-                    hover:text-white
-                  "
-                >
-                  <X size={19} strokeWidth={1.8} />
-                </motion.button>
-
-              </div>
-
-              {/* ================= CONTENT ================= */}
-
-              <div
-                className="
-                  relative
-                  z-10
-
-                  flex-1
-
-                  overflow-y-auto
-
-                  px-5
-                  py-6
-
-                  scrollbar-thin
-                  scrollbar-track-transparent
-                  scrollbar-thumb-white/10
-                "
-              >
-
-                {/* Navigation label */}
-
-                <motion.div
-                  initial={{
-                    opacity: 0,
-                    y: 10,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  transition={{
-                    delay: 0.25,
-                  }}
-                  className="
-                    mb-3
-
-                    flex
-                    items-center
-                    justify-between
-                  "
-                >
-
-                  <span
-                    className="
-                      font-bebas
-
-                      text-[10px]
-
-                      uppercase
-
-                      tracking-[.30em]
-
-                      text-zinc-500
-                    "
-                  >
-                    Navigation
-                  </span>
-
-                  <span
-                    className="
-                      h-px
-                      w-16
-
-                      bg-gradient-to-r
-                      from-red-500/50
-                      to-transparent
-                    "
-                  />
-
-                </motion.div>
-
-                {/* ================= NAV ================= */}
-
-                <nav className="flex flex-col gap-1.5">
-
-                  {navigation.map((item, index) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{
-                        opacity: 0,
-                        x: 20,
-                      }}
-                      animate={{
-                        opacity: 1,
-                        x: 0,
-                      }}
-                      transition={{
-                        delay: 0.3 + index * 0.06,
-                        duration: 0.4,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                    >
-                      <NavLinkItem
-                        to={item.path}
-                        label={item.label}
-                        mobile
-                        onClick={closeMenu}
-                      />
-                    </motion.div>
-                  ))}
-
-                </nav>
-
-                {/* ================= QUICK ACTION ================= */}
-
-                <motion.div
-                  initial={{
-                    opacity: 0,
-                    y: 20,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  transition={{
-                    delay: 0.55,
-                    duration: 0.45,
-                  }}
-                  className="
-                    mt-7
-
-                    rounded-2xl
-
-                    border
-                    border-white/[0.07]
-
-                    bg-white/[0.025]
-
-                    p-4
-                  "
-                >
-
-                  <div className="mb-3 flex items-center justify-between">
-
-                    <span
-                      className="
-                        font-bebas
-
-                        text-[10px]
-
-                        uppercase
-
-                        tracking-[.28em]
-
-                        text-zinc-500
-                      "
-                    >
-                      Quick Actions
-                    </span>
-
-                    <Search
-                      size={14}
-                      className="text-red-500"
-                    />
-
-                  </div>
-
-                  <SearchButton />
-
-                </motion.div>
-
-                {/* ================= CONTACT ================= */}
-
-                <motion.div
-                  initial={{
-                    opacity: 0,
-                    y: 20,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  transition={{
-                    delay: 0.65,
-                    duration: 0.45,
-                  }}
-                  className="
-                    mt-6
-
-                    border-t
-                    border-white/[0.07]
-
-                    pt-6
-                  "
-                >
-
-                  <div className="mb-4 flex items-center justify-between">
-
-                    <span
-                      className="
-                        font-bebas
-
-                        text-[10px]
-
-                        uppercase
-
-                        tracking-[.30em]
-
-                        text-zinc-500
-                      "
-                    >
-                      Contact
-                    </span>
-
-                    <span className="h-px w-14 bg-white/10" />
-
-                  </div>
-
-                  <div className="space-y-3">
-
-                    {/* Location */}
-
-                    <div className="flex items-center gap-3">
-
-                      <div
-                        className="
-                          flex
-                          h-8
-                          w-8
-
-                          shrink-0
-
-                          items-center
-                          justify-center
-
-                          rounded-lg
-
-                          bg-red-500/10
-
-                          text-red-400
-                        "
-                      >
-                        <MapPin size={14} />
-                      </div>
-
-                      <span className="text-xs text-zinc-400">
-                        Meknas,agourai, Morocco
-                      </span>
-
-                    </div>
-
-                    {/* Email */}
-
-                    <div className="flex items-center gap-3">
-
-                      <div
-                        className="
-                          flex
-                          h-8
-                          w-8
-
-                          shrink-0
-
-                          items-center
-                          justify-center
-
-                          rounded-lg
-
-                          bg-red-500/10
-
-                          text-red-400
-                        "
-                      >
-                        <Mail size={14} />
-                      </div>
-
-                      <span className="text-xs text-zinc-400">
-                        contact@kadecho.com
-                      </span>
-
-                    </div>
-
-                    {/* Phone */}
-
-                    <div className="flex items-center gap-3">
-
-                      <div
-                        className="
-                          flex
-                          h-8
-                          w-8
-
-                          shrink-0
-
-                          items-center
-                          justify-center
-
-                          rounded-lg
-
-                          bg-red-500/10
-
-                          text-red-400
-                        "
-                      >
-                        <Phone size={14} />
-                      </div>
-
-                      <span className="text-xs text-zinc-400">
-                        +212 6 XX XX XX XX
-                      </span>
-
-                    </div>
-
-                  </div>
-
-                </motion.div>
-
-              </div>
-
-              {/* ================= FOOTER CTA ================= */}
-
-              <div
-                className="
-                  relative
-                  z-10
-
-                  shrink-0
-
-                  border-t
-                  border-white/[0.07]
-
-                  bg-[#070707]/90
-
-                  p-5
-
-                  backdrop-blur-xl
-                "
-              >
-
-                <motion.button
-                  whileHover={{
-                    y: -2,
-                  }}
-                  whileTap={{
-                    scale: 0.98,
-                  }}
-                  onClick={closeMenu}
-                  className="
-                    group
-
-                    relative
-
-                    flex
-                    w-full
-
-                    items-center
-                    justify-center
-
-                    gap-3
-
-                    overflow-hidden
-
-                    rounded-xl
-
-                    bg-red-600
-
-                    py-3.5
-
-                    font-bebas
-
-                    text-[13px]
-
-                    uppercase
-
-                    tracking-[.22em]
-
-                    text-white
-
-                    shadow-[0_10px_35px_rgba(239,68,68,.20)]
-
-                    transition-all
-                    duration-300
-
-                    hover:bg-red-500
-                    hover:shadow-[0_15px_45px_rgba(239,68,68,.32)]
-                  "
-                >
-
-                  {/* Shine */}
-
-                  <span
-                    className="
-                      absolute
-                      inset-y-0
-                      left-0
-
-                      w-20
-
-                      -translate-x-full
-
-                      skew-x-[-20deg]
-
-                      bg-white/20
-
-                      transition-transform
-                      duration-700
-
-                      group-hover:translate-x-[500%]
-                    "
-                  />
-
-                  <span className="relative z-10">
-                    Start Your Project
-                  </span>
-
-                  <ArrowRight
-                    size={16}
-                    className="
-                      relative
-                      z-10
-
-                      transition-transform
-                      duration-300
-
-                      group-hover:translate-x-1
-                    "
-                  />
-
-                </motion.button>
-
-                <p
-                  className="
-                    mt-2
-
-                    text-center
-
-                    font-bebas
-
-                    text-[8px]
-
-                    uppercase
-
-                    tracking-[.25em]
-
-                    text-zinc-600
-                  "
-                >
-                  Custom Metal • Premium Craftsmanship
-                </p>
-
-              </div>
-
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+      {typeof document !== "undefined" &&
+        createPortal(drawer, document.body)}
     </>
   );
 }

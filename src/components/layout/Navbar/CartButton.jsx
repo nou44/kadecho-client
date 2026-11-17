@@ -1,199 +1,130 @@
+
+import { memo } from "react";
 import { ShoppingBag } from "lucide-react";
 import {
   AnimatePresence,
   motion,
+  useReducedMotion,
 } from "framer-motion";
-
-import IconButton from "../../ui/IconButton";
 
 import { useCart } from "../../../context/CartContext";
 import { useFlyToCart } from "../../../context/FlyToCartContext";
 
-export default function CartButton({ onClick }) {
+function CartButton({ onClick }) {
   const { totalItems } = useCart();
   const { cartRef } = useFlyToCart();
+  const reduceMotion = useReducedMotion();
+
+  const count = Math.max(0, Number(totalItems) || 0);
 
   return (
-    <motion.div
+    <div
       ref={cartRef}
+      id="cart-icon"
       data-cart-target="true"
-      className="relative"
-      whileHover={{ y: -1 }}
-      whileTap={{ scale: 0.94 }}
-      transition={{
-        type: "spring",
-        stiffness: 350,
-        damping: 20,
-      }}
+      className="relative shrink-0"
     >
-
-      {/* Button */}
-
       <button
         type="button"
         onClick={onClick}
-        aria-label="Shopping Cart"
+        aria-label={`Open shopping cart, ${count} items`}
         className="
-          group
-          relative
-          flex
-          h-11
-          w-11
-          items-center
-          justify-center
+          group relative flex
+          h-10 w-10
+          items-center justify-center
+          overflow-visible rounded-xl
 
-          overflow-hidden
-          rounded-xl
-
-          border
-          border-white/10
-
-          bg-white/[0.03]
-
+          border border-white/10
+          bg-white/[0.035]
           text-zinc-300
 
-          transition-all
-          duration-300
+          transition-[background-color,border-color,color,transform]
+          duration-200
 
-          hover:border-red-500/30
-          hover:bg-red-500/[0.07]
+          hover:border-red-500/35
+          hover:bg-red-500/[0.08]
           hover:text-white
 
-          hover:shadow-[0_8px_25px_rgba(239,68,68,.12)]
+          active:scale-[0.96]
+
+          focus-visible:outline-none
+          focus-visible:ring-2
+          focus-visible:ring-red-500/60
+          focus-visible:ring-offset-2
+          focus-visible:ring-offset-[#090909]
         "
       >
-
-        {/* Hover Glow */}
-
+        {/* SUBTLE HOVER ACCENT */}
         <span
+          aria-hidden="true"
           className="
-            absolute
-            inset-0
-
-            bg-gradient-to-br
-            from-red-500/10
-            via-transparent
-            to-transparent
-
+            pointer-events-none absolute
+            inset-x-2 bottom-0 h-px
+            bg-gradient-to-r
+            from-transparent via-red-500/70 to-transparent
             opacity-0
-
-            transition-opacity
-            duration-300
-
+            transition-opacity duration-200
             group-hover:opacity-100
           "
         />
 
-        {/* Shine */}
-
-        <motion.span
-          initial={{ x: "-140%" }}
-          animate={{ x: "140%" }}
-          transition={{
-            duration: 3.5,
-            repeat: Infinity,
-            repeatDelay: 6,
-            ease: "easeInOut",
-          }}
-          className="
-            absolute
-            inset-y-0
-            w-5
-
-            skew-x-[-20deg]
-
-            bg-gradient-to-r
-            from-transparent
-            via-white/10
-            to-transparent
-
-            pointer-events-none
-          "
-        />
-
-        {/* Icon */}
-
+        {/* ICON */}
         <ShoppingBag
-          size={19}
-          strokeWidth={2}
+          size={18}
+          strokeWidth={1.8}
+          aria-hidden="true"
           className="
-            relative
-            z-10
-
-            transition-transform
-            duration-300
-
-            group-hover:scale-105
+            relative z-10
+            transition-transform duration-200
+            group-hover:-translate-y-[1px]
           "
         />
 
+        {/* CART COUNT */}
+        <AnimatePresence initial={false} mode="popLayout">
+          {count > 0 && (
+            <motion.span
+              key={count}
+              initial={
+                reduceMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, scale: 0.65, y: -3 }
+              }
+              animate={{
+                opacity: 1,
+                scale: 1,
+                y: 0,
+              }}
+              exit={
+                reduceMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, scale: 0.65 }
+              }
+              transition={{
+                type: "spring",
+                stiffness: 500,
+                damping: 28,
+                duration: reduceMotion ? 0.01 : undefined,
+              }}
+              className="
+                absolute -right-1.5 -top-1.5 z-20
+                flex h-[18px] min-w-[18px]
+                items-center justify-center
+                rounded-full border-2
+                border-[#090909] bg-red-600
+                px-0.5
+                text-[9px] font-bold
+                leading-none text-white
+                shadow-[0_3px_10px_rgba(220,38,38,0.25)]
+              "
+            >
+              {count > 99 ? "99+" : count}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </button>
-
-
-      {/* Cart Count */}
-
-      <AnimatePresence mode="popLayout">
-        {totalItems > 0 && (
-          <motion.span
-            key={totalItems}
-            initial={{
-              scale: 0,
-              opacity: 0,
-              y: -4,
-            }}
-            animate={{
-              scale: [0, 1.18, 1],
-              opacity: 1,
-              y: 0,
-            }}
-            exit={{
-              scale: 0,
-              opacity: 0,
-              y: -4,
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 500,
-              damping: 24,
-            }}
-            className="
-              absolute
-
-              -right-1
-              -top-1
-
-              z-20
-
-              flex
-              h-[19px]
-              min-w-[19px]
-
-              items-center
-              justify-center
-
-              rounded-full
-
-              border
-              border-[#0b0b0b]
-
-              bg-red-600
-
-              px-1
-
-              text-[9px]
-              font-bold
-
-              leading-none
-              text-white
-
-              shadow-[0_4px_14px_rgba(239,68,68,.45)]
-            "
-          >
-            {totalItems > 99 ? "99+" : totalItems}
-          </motion.span>
-        )}
-      </AnimatePresence>
-
-    </motion.div>
+    </div>
   );
 }
+
+export default memo(CartButton);

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 
 import Container from "../../ui/Container";
@@ -20,7 +21,11 @@ export default function Navbar() {
       setScrolled(window.scrollY > 20);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
@@ -31,65 +36,51 @@ export default function Navbar() {
     <>
       <header
         className={`
-          sticky
-          top-0
-          z-50
-          w-full
-
+          sticky top-0 z-50 w-full
           border-b
-          border-white/10
-
-          bg-[#0b0b0b]
-
-          transition-all
+          transition-[background-color,border-color,box-shadow]
           duration-300
-
           ${
             scrolled
-              ? "shadow-[0_10px_35px_rgba(0,0,0,.35)]"
-              : "shadow-none"
+              ? "border-white/10 bg-[#090909] shadow-[0_12px_32px_rgba(0,0,0,0.35)]"
+              : "border-white/[0.06] bg-[#0b0b0b]"
           }
         `}
       >
         <Container>
           <div
             className="
-              flex
-              h-[72px]
-              sm:h-[78px]
-              lg:h-[84px]
-
-              items-center
-              justify-between
-
-              transition-all
-              duration-300
+              relative flex h-[64px] w-full
+              items-center justify-between
+              sm:h-[68px]
+              lg:h-[72px]
             "
           >
-
             {/* LOGO */}
-
-            <Logo />
-
+            <div className="relative z-10 shrink-0">
+              <Logo />
+            </div>
 
             {/* DESKTOP NAV */}
-
-            <div className="hidden lg:flex flex-1 justify-center">
+            <div
+              className="
+                absolute left-1/2
+                hidden w-[445px]
+                -translate-x-1/2
+                items-center justify-center
+                lg:flex
+              "
+            >
               <DesktopNav />
             </div>
 
-
             {/* DESKTOP ACTIONS */}
-
             <div
               className="
-                hidden
+                relative z-10 ml-auto
+                hidden shrink-0
+                items-center gap-2
                 lg:flex
-
-                items-center
-                gap-2
-
-                xl:gap-3
               "
             >
               <SearchButton />
@@ -101,18 +92,11 @@ export default function Navbar() {
               <UserButton />
             </div>
 
-
-            {/* MOBILE */}
-
+            {/* MOBILE ACTIONS */}
             <div
               className="
-                flex
-                items-center
-                gap-1.5
-
-                sm:gap-2
-
-                lg:hidden
+                ml-auto flex items-center
+                gap-1.5 lg:hidden
               "
             >
               <CartButton
@@ -123,11 +107,9 @@ export default function Navbar() {
 
               <MobileNav />
             </div>
-
           </div>
         </Container>
       </header>
-
 
       <CartDrawer
         open={cartOpen}

@@ -1,3 +1,4 @@
+
 import { announcements } from "../../../constants/announcementData";
 import AnnouncementItem from "./AnnouncementItem";
 import AnnouncementSlider from "./AnnouncementSlider";
@@ -5,73 +6,51 @@ import AnnouncementSlider from "./AnnouncementSlider";
 export default function AnnouncementBar() {
   return (
     <section
+      aria-label="Informations et avantages KadeCho"
       className="
-        relative
-        w-full
-        overflow-hidden
-
-        border-b
-        border-white/[0.06]
-
-        bg-[#070707]
+        relative isolate w-full overflow-hidden
+        border-b border-white/[0.07]
+        bg-[#080808] text-white
       "
     >
-      {/* =====================================================
-          TOP RED LINE
-      ===================================================== */}
-
+      {/* TOP ACCENT */}
       <div
+        aria-hidden="true"
         className="
-          pointer-events-none
-          absolute
-
-          left-1/2
-          top-0
-
+          pointer-events-none absolute inset-x-0 top-0
           h-px
-          w-[55%]
-
-          -translate-x-1/2
-
           bg-gradient-to-r
           from-transparent
-          via-red-500/60
+          via-red-600/55
           to-transparent
         "
       />
 
-      {/* =====================================================
-          DESKTOP
-      ===================================================== */}
+      {/* SUBTLE BACKGROUND DETAIL */}
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none absolute inset-0
+          bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.025)_50%,transparent_75%)]
+        "
+      />
 
+      {/* DESKTOP */}
       <div
         className="
-          relative
-          z-10
-
-          mx-auto
-
-          hidden
-
-          h-12
-
-          max-w-7xl
-
-          items-center
-          justify-between
-
-          px-6
-
-          lg:flex
-          xl:px-8
+          relative z-10 mx-auto
+          hidden h-10 max-w-7xl
+          items-center justify-between
+          gap-4 px-6
+          lg:flex xl:px-8
         "
       >
         {announcements.map((item, index) => (
           <div
             key={item.id}
             className="
-              flex
-              items-center
+              flex min-w-0 flex-1
+              items-center justify-center
             "
           >
             <AnnouncementItem
@@ -79,22 +58,13 @@ export default function AnnouncementBar() {
               text={item.text}
             />
 
-            {/* DIVIDER */}
-
             {index < announcements.length - 1 && (
               <span
+                aria-hidden="true"
                 className="
-                  ml-8
-
-                  h-4
-                  w-px
-
-                  bg-gradient-to-b
-                  from-transparent
-                  via-white/10
-                  to-transparent
-
-                  xl:ml-12
+                  absolute right-0
+                  h-3.5 w-px
+                  bg-white/10
                 "
               />
             )}
@@ -102,25 +72,12 @@ export default function AnnouncementBar() {
         ))}
       </div>
 
-      {/* =====================================================
-          MOBILE
-      ===================================================== */}
-
+      {/* MOBILE / TABLET */}
       <div
         className="
-          relative
-          z-10
-
-          flex
-
-          h-11
-
-          items-center
-          justify-center
-
-          px-4
-
-          lg:hidden
+          relative z-10 flex h-10
+          items-center justify-center
+          px-4 lg:hidden
         "
       >
         <AnnouncementSlider />
