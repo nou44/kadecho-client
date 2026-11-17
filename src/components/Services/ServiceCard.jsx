@@ -1,132 +1,75 @@
+
 import { ArrowUpRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
-export default function ServiceCard({ service }) {
+export default function ServiceCard({ service, index = 0 }) {
   return (
-    <motion.article
-      whileHover={{ y: -5 }}
-      transition={{
-        duration: 0.25,
-        ease: [0.22, 1, 0.36, 1],
-      }}
+    <Link
+      to={`/services/${service.id}`}
+      aria-label={`Explore ${service.title}`}
       className="
-        group
-        relative
-        w-[230px]
-        sm:w-[255px]
-        lg:w-[275px]
-
-        shrink-0
-        overflow-hidden
-
-        rounded-[22px]
-
-        border
-        border-white/10
-
-        bg-[#090909]
-
+        group relative block h-full w-full
+        overflow-hidden rounded-[16px]
+        border border-white/[0.09]
+        bg-[#101010]
+        outline-none
         transition-[border-color,box-shadow]
         duration-300
-
-        hover:border-red-500/40
-        hover:shadow-[0_20px_55px_rgba(239,68,68,.12)]
+        hover:border-red-500/35
+        hover:shadow-[0_12px_35px_rgba(0,0,0,.24)]
+        focus-visible:ring-2
+        focus-visible:ring-red-500
       "
     >
-      {/* IMAGE */}
-
-      <div
-        className="
-          relative
-          h-[330px]
-          sm:h-[350px]
-          lg:h-[370px]
-
-          overflow-hidden
-        "
-      >
+      <article className="relative h-[292px] w-full sm:h-[310px] lg:h-[326px]">
+        {/* IMAGE */}
         <img
           src={service.image}
           alt={service.title}
           loading="lazy"
           decoding="async"
+          draggable={false}
           className="
-            absolute
-            inset-0
-
-            h-full
-            w-full
-
-            object-cover
-            object-center
-
-            transition-transform
-            duration-700
-            ease-out
-
-            group-hover:scale-[1.04]
+            absolute inset-0 h-full w-full
+            object-cover object-center
+            transition-transform duration-700
+            ease-[cubic-bezier(.22,1,.36,1)]
+            motion-safe:group-hover:scale-[1.045]
           "
         />
 
-        {/* Dark overlay */}
-
+        {/* LIGHT TOP OVERLAY */}
         <div
+          aria-hidden="true"
           className="
-            pointer-events-none
-            absolute
-            inset-0
+            pointer-events-none absolute inset-0
+            bg-gradient-to-b
+            from-black/30 via-transparent to-transparent
+          "
+        />
 
+        {/* TEXT READABILITY */}
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none absolute inset-0
             bg-gradient-to-t
-            from-[#050505]
-            via-black/20
-            to-black/10
+            from-[#050505]/95
+            via-[#050505]/40
+            via-[38%]
+            to-transparent
           "
         />
 
-        {/* Hover tint */}
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            inset-0
-
-            bg-red-500/0
-
-            transition-colors
-            duration-300
-
-            group-hover:bg-red-500/[0.035]
-          "
-        />
-
-        {/* Category */}
-
-        <div
-          className="
-            absolute
-            left-4
-            top-4
-
-            rounded-full
-
-            border
-            border-white/10
-
-            bg-black/55
-
-            px-3
-            py-1.5
-
-            backdrop-blur-md
-          "
-        >
+        {/* CATEGORY */}
+        <div className="absolute left-3 top-3 z-10">
           <span
             className="
-              font-bebas
-              text-[9px]
-              uppercase
-              tracking-[0.28em]
+              inline-flex items-center
+              rounded-full border border-white/15
+              bg-black/55 px-2.5 py-1
+              font-bebas text-[9px]
+              uppercase tracking-[0.16em]
               text-zinc-200
             "
           >
@@ -134,175 +77,89 @@ export default function ServiceCard({ service }) {
           </span>
         </div>
 
-        {/* Arrow */}
-
-        <div
+        {/* NUMBER */}
+        <span
           className="
-            absolute
-            right-4
-            top-4
-
-            flex
-            h-8
-            w-8
-
-            items-center
-            justify-center
-
-            rounded-full
-
-            border
-            border-white/10
-
-            bg-black/40
-
-            text-zinc-400
-
-            transition-all
-            duration-300
-
-            group-hover:border-red-500/40
-            group-hover:text-red-400
+            absolute right-3 top-3
+            font-bebas text-[11px]
+            tracking-[0.12em] text-white/65
           "
         >
-          <ArrowUpRight size={14} />
+          {String(index + 1).padStart(2, "0")}
+        </span>
+
+        {/* CONTENT */}
+        <div className="absolute inset-x-0 bottom-0 z-10 p-4">
+          <div
+            aria-hidden="true"
+            className="
+              mb-3 h-px w-8 bg-red-500
+              transition-[width] duration-300
+              group-hover:w-14
+            "
+          />
+
+          <h3
+            className="
+              font-bebas text-[22px]
+              uppercase leading-none
+              tracking-[0.055em] text-white
+              sm:text-[24px]
+            "
+          >
+            {service.title}
+          </h3>
+
+          <p
+            className="
+              mt-1.5 line-clamp-2
+              min-h-[34px]
+              font-satoshi text-[11px]
+              leading-[17px] text-zinc-300/80
+            "
+          >
+            {service.description}
+          </p>
+
+          <div
+            className="
+              mt-3 flex items-center
+              justify-between border-t
+              border-white/[0.12] pt-2.5
+            "
+          >
+            <span
+              className="
+                font-bebas text-[10px]
+                uppercase tracking-[0.16em]
+                text-zinc-300
+                transition-colors duration-300
+                group-hover:text-red-400
+              "
+            >
+              Discover Service
+            </span>
+
+            <span
+              className="
+                flex h-7 w-7 items-center
+                justify-center rounded-full
+                border border-white/15
+                bg-white/[0.06]
+                text-white
+                transition-[background-color,border-color,transform]
+                duration-300
+                group-hover:-translate-y-0.5
+                group-hover:translate-x-0.5
+                group-hover:border-red-500/40
+                group-hover:bg-red-500/15
+              "
+            >
+              <ArrowUpRight size={14} />
+            </span>
+          </div>
         </div>
-      </div>
-
-      {/* CONTENT */}
-
-      <div
-        className="
-          absolute
-          inset-x-0
-          bottom-0
-
-          bg-gradient-to-t
-          from-[#050505]
-          via-[#050505]/95
-          to-transparent
-
-          px-4
-          pb-4
-          pt-16
-        "
-      >
-        <h3
-          className="
-            font-bebas
-
-            text-[21px]
-            sm:text-[23px]
-            lg:text-[25px]
-
-            uppercase
-            leading-none
-            tracking-[0.06em]
-
-            text-white
-
-            transition-colors
-            duration-300
-
-            group-hover:text-red-400
-          "
-        >
-          {service.title}
-        </h3>
-
-        <p
-          className="
-            mt-2
-
-            line-clamp-2
-
-            text-[11px]
-            sm:text-[12px]
-
-            leading-5
-
-            text-zinc-400
-          "
-        >
-          {service.description}
-        </p>
-
-        <div
-          className="
-            mt-3
-
-            inline-flex
-            items-center
-            gap-1.5
-
-            font-bebas
-
-            text-[10px]
-            uppercase
-            tracking-[0.24em]
-
-            text-zinc-300
-
-            transition-all
-            duration-300
-
-            group-hover:translate-x-1
-            group-hover:text-red-400
-          "
-        >
-          Explore
-          <ArrowUpRight size={13} />
-        </div>
-      </div>
-
-      {/* BORDER */}
-
-      <div
-        className="
-          pointer-events-none
-          absolute
-          inset-0
-
-          rounded-[22px]
-
-          ring-1
-          ring-red-500/0
-
-          transition-all
-          duration-300
-
-          group-hover:ring-red-500/25
-        "
-      />
-
-      {/* TOP ACCENT */}
-
-      <div
-        className="
-          pointer-events-none
-          absolute
-          left-1/2
-          top-0
-
-          h-px
-          w-20
-
-          -translate-x-1/2
-
-          bg-gradient-to-r
-          from-transparent
-          via-red-500
-          to-transparent
-
-          opacity-60
-
-          transition-all
-          duration-300
-
-          group-hover:w-28
-          group-hover:opacity-100
-        "
-      />
-    </motion.article>
+      </article>
+    </Link>
   );
 }

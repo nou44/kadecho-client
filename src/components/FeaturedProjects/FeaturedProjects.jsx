@@ -1,177 +1,109 @@
 
+import { motion, useReducedMotion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ArrowUpRight, ArrowRight } from "lucide-react";
 
-import { motion } from "framer-motion";
 import FeaturedSlider from "./FeaturedSlider";
 
+const EASE = [0.22, 1, 0.36, 1];
+
 export default function FeaturedProjects() {
+  const reduceMotion = useReducedMotion();
+
+  const reveal = (delay = 0, y = 14) => ({
+    initial: reduceMotion
+      ? false
+      : { opacity: 0, y },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: {
+      once: true,
+      amount: 0.2,
+    },
+    transition: {
+      duration: reduceMotion ? 0 : 0.55,
+      delay: reduceMotion ? 0 : delay,
+      ease: EASE,
+    },
+  });
+
   return (
     <section
+      id="featured-projects"
       className="
-        relative
-        overflow-hidden
-
+        relative isolate overflow-hidden
         bg-[#050505]
-
-        pt-10
-        pb-12
-
-        sm:pt-12
-        sm:pb-14
-
-        lg:pt-14
-        lg:pb-16
+        py-9
+        sm:py-11
+        lg:py-12
       "
     >
-      {/* =========================
-          BACKGROUND
-      ========================= */}
-
-      <div className="pointer-events-none absolute inset-0">
+      {/* STATIC BACKGROUND — NO INFINITE ANIMATION */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 overflow-hidden"
+      >
         <div
           className="
-            absolute
-
-            left-1/2
-            top-[-180px]
-
-            h-[420px]
-            w-[420px]
-
-            -translate-x-1/2
-
-            rounded-full
-
-            bg-red-600/[0.07]
-
-            blur-[150px]
+            absolute left-1/2 top-[-155px]
+            h-[300px] w-[460px]
+            -translate-x-1/2 rounded-full
+            bg-red-600/[0.045]
+            blur-[95px]
           "
         />
 
         <div
           className="
-            absolute
-
-            right-[-120px]
-            bottom-[-120px]
-
-            h-[260px]
-            w-[260px]
-
+            absolute -bottom-24 -right-20
+            h-[210px] w-[210px]
             rounded-full
+            bg-red-700/[0.035]
+            blur-[85px]
+          "
+        />
 
-            bg-red-600/[0.05]
-
-            blur-[120px]
+        {/* Subtle top separator */}
+        <div
+          className="
+            absolute inset-x-0 top-0 h-px
+            bg-gradient-to-r
+            from-transparent
+            via-white/[0.075]
+            to-transparent
           "
         />
       </div>
 
-      {/* =========================
-          CONTENT
-      ========================= */}
-
       <div
         className="
-          relative
-          z-10
-
-          mx-auto
-
+          relative z-10 mx-auto
           max-w-7xl
-
-          px-4
-          sm:px-6
-          lg:px-8
+          px-4 sm:px-6 lg:px-8
         "
       >
-        {/* =========================
-            COMPACT HEADER
-        ========================= */}
-
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 25,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
-          viewport={{
-            once: true,
-            amount: 0.25,
-          }}
-          transition={{
-            duration: 0.6,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          className="
-            mx-auto
-
-            mb-7
-
-            max-w-2xl
-
-            text-center
-          "
-        >
-          {/* Badge */}
-
+        {/* HEADER */}
+        <div className="relative mx-auto mb-5 max-w-2xl text-center sm:mb-6">
           <motion.div
-            initial={{
-              opacity: 0,
-              scale: 0.92,
-            }}
-            whileInView={{
-              opacity: 1,
-              scale: 1,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              duration: 0.45,
-            }}
+            {...reveal(0, 10)}
             className="
-              inline-flex
-              items-center
-              gap-2
-
-              rounded-full
-
-              border
-              border-red-500/20
-
-              bg-red-500/[0.06]
-
-              px-3
-              py-1.5
-
-              backdrop-blur-xl
+              inline-flex items-center gap-2
+              rounded-full border border-red-500/20
+              bg-red-500/[0.045]
+              px-3 py-1
             "
           >
             <span
               className="
-                h-1.5
-                w-1.5
-
-                rounded-full
-
+                h-[5px] w-[5px] rounded-full
                 bg-red-500
-
-                shadow-[0_0_10px_rgba(239,68,68,.7)]
+                shadow-[0_0_8px_rgba(239,68,68,.45)]
               "
             />
 
             <span
               className="
-                font-bebas
-
-                text-[10px]
-
-                uppercase
-                tracking-[0.24em]
-
+                font-bebas text-[9px]
+                uppercase tracking-[0.22em]
                 text-red-400
               "
             >
@@ -179,160 +111,160 @@ export default function FeaturedProjects() {
             </span>
           </motion.div>
 
-          {/* Title */}
-
           <motion.h2
-            initial={{
-              opacity: 0,
-              y: 18,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              delay: 0.08,
-              duration: 0.6,
-            }}
+            {...reveal(0.06, 13)}
             className="
-              mt-3
-
+              mt-2.5
               font-bebas
-
-              text-[34px]
-
-              uppercase
-
-              leading-[0.92]
-
-              tracking-[0.07em]
-
-              sm:text-[42px]
-
-              lg:text-[50px]
-
-              bg-[linear-gradient(90deg,#ffffff_0%,#f5f5f5_22%,#ef4444_45%,#991b1b_55%,#ef4444_70%,#ffffff_100%)]
-
-              bg-[length:300%_100%]
-
-              bg-clip-text
-
-              text-transparent
-
-              animate-gradient-x
-
-              drop-shadow-[0_0_12px_rgba(239,68,68,.14)]
+              text-[31px] leading-[0.95]
+              tracking-[0.065em] uppercase
+              sm:text-[38px]
+              lg:text-[43px]
             "
           >
-            Crafted To Inspire
+            <span className="text-white">
+              Crafted To{" "}
+            </span>
+            <span
+              className="
+                bg-gradient-to-r
+                from-white via-red-400 to-red-600
+                bg-clip-text text-transparent
+              "
+            >
+              Inspire
+            </span>
           </motion.h2>
 
-          {/* Minimal Accent */}
-
+          {/* ACCENT */}
           <motion.div
-            initial={{
-              width: 0,
-              opacity: 0,
-            }}
-            whileInView={{
-              width: 55,
-              opacity: 1,
-            }}
-            viewport={{
-              once: true,
-            }}
+            initial={reduceMotion ? false : { scaleX: 0, opacity: 0 }}
+            whileInView={{ scaleX: 1, opacity: 1 }}
+            viewport={{ once: true }}
             transition={{
-              delay: 0.18,
-              duration: 0.5,
+              duration: reduceMotion ? 0 : 0.55,
+              delay: reduceMotion ? 0 : 0.13,
+              ease: EASE,
             }}
             className="
-              mx-auto
-
-              mt-3
-
-              h-[2px]
-
-              rounded-full
-
+              mx-auto mt-2.5
+              h-px w-12 origin-center
               bg-gradient-to-r
-
-              from-transparent
-              via-red-500
-              to-transparent
+              from-transparent via-red-500 to-transparent
             "
           />
 
-          {/* Description */}
-
           <motion.p
-            initial={{
-              opacity: 0,
-              y: 12,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              delay: 0.24,
-              duration: 0.55,
-            }}
+            {...reveal(0.12, 10)}
             className="
-              mx-auto
-
-              mt-3
-
-              max-w-xl
-
+              mx-auto mt-2.5 max-w-lg
               font-satoshi
-
-              text-[12px]
-
-              leading-6
-
+              text-[11px] leading-[1.8]
               text-zinc-500
-
-              sm:text-[13px]
+              sm:text-[12px]
             "
           >
-            A selection of handcrafted metal creations built
-            for distinctive spaces and timeless interiors.
+            A curated selection of custom metalwork,
+            designed with precision and crafted to last.
           </motion.p>
-        </motion.div>
+        </div>
 
-        {/* =========================
-            FEATURED PROJECTS
-        ========================= */}
-
+        {/* FEATURED SLIDER — UNCHANGED */}
         <motion.div
-          initial={{
-            opacity: 0,
-            y: 20,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
-          viewport={{
-            once: true,
-            amount: 0.15,
-          }}
-          transition={{
-            delay: 0.15,
-            duration: 0.65,
-            ease: [0.22, 1, 0.36, 1],
-          }}
+          {...reveal(0.14, 15)}
+          className="relative min-w-0"
         >
           <FeaturedSlider />
+        </motion.div>
+
+        {/* BOTTOM CTA */}
+        <motion.div
+          {...reveal(0.1, 10)}
+          className="
+            relative mt-6
+            flex flex-col items-center justify-center
+            gap-3 text-center
+            sm:mt-7
+          "
+        >
+          <div
+            aria-hidden="true"
+            className="
+              h-px w-20
+              bg-gradient-to-r
+              from-transparent via-white/15 to-transparent
+            "
+          />
+
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <span
+              className="
+                font-satoshi text-[11px]
+                text-zinc-500
+              "
+            >
+              Have a project in mind?
+            </span>
+
+            <Link
+              to="/contact"
+              className="
+                group relative inline-flex
+                items-center justify-center gap-2
+                overflow-hidden rounded-full
+                border border-red-500/25
+                bg-red-500/[0.09]
+                px-4 py-2
+                font-bebas text-[11px]
+                uppercase tracking-[0.13em]
+                text-red-300
+                transition-[background-color,border-color,color,box-shadow]
+                duration-300
+                hover:border-red-500/50
+                hover:bg-red-500/[0.15]
+                hover:text-white
+                hover:shadow-[0_0_22px_rgba(239,68,68,.10)]
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-red-500/60
+              "
+            >
+              <span>Start Your Project</span>
+
+              <ArrowUpRight
+                size={14}
+                className="
+                  transition-transform duration-300
+                  group-hover:-translate-y-0.5
+                  group-hover:translate-x-0.5
+                "
+              />
+            </Link>
+          </div>
+
+          <Link
+            to="/projects"
+            className="
+              group inline-flex items-center gap-1.5
+              font-bebas text-[10px]
+              uppercase tracking-[0.16em]
+              text-zinc-600
+              transition-colors duration-300
+              hover:text-zinc-300
+            "
+          >
+            Explore All Projects
+
+            <ArrowRight
+              size={12}
+              className="
+                transition-transform duration-300
+                group-hover:translate-x-1
+              "
+            />
+          </Link>
         </motion.div>
       </div>
     </section>
   );
 }
-

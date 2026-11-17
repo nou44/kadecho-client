@@ -1,10 +1,6 @@
 
-import { useRef } from "react";
-import { motion } from "framer-motion";
-import {
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import ServiceCard from "./ServiceCard";
 import { services } from "./servicesData";
@@ -12,155 +8,232 @@ import { services } from "./servicesData";
 export default function ServiceSlider() {
   const sliderRef = useRef(null);
 
-  const scroll = (direction) => {
-    if (!sliderRef.current) return;
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(true);
 
-    const width =
-      window.innerWidth < 640
-        ? 275
-        : window.innerWidth < 1024
-        ? 320
-        : 350;
+  const updatePosition = useCallback(() => {
+    const slider = sliderRef.current;
+    if (!slider) return;
 
-    sliderRef.current.scrollBy({
-      left: direction === "left" ? -width : width,
-      behavior: "smooth",
+    const slides = Array.from(slider.children);
+    if (!slides.length) return;
+
+    const currentLeft = slider.scrollLeft;
+    const maxScroll = Math.max(
+      0,
+      slider.scrollWidth - slider.clientWidth
+    );
+
+    let nearest = 0;
+    let distance = Infinity;
+
+    slides.forEach((slide, index) => {
+      const diff = Math.abs(
+        slide.offsetLeft - slides[0].offsetLeft - currentLeft
+      );
+
+      if (diff < distance) {
+        distance = diff;
+        nearest = index;
+      }
+    });
+
+    setActiveIndex(nearest);
+    setCanPrev(currentLeft > 3);
+    setCanNext(currentLeft < maxScroll - 3);
+  }, []);
+
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+
+    updatePosition();
+
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(updatePosition)
+        : null;
+
+    observer?.observe(slider);
+
+    window.addEventListener("resize", updatePosition);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [updatePosition]);
+
+  const scrollToIndex = (index) => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+
+    const slides = Array.from(slider.children);
+    const target = slides[index];
+    if (!target) return;
+
+    const left =
+      target.offsetLeft - slides[0].offsetLeft;
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    slider.scrollTo({
+      left,
+      behavior: reduceMotion ? "instant" : "smooth",
     });
   };
 
+  const navigate = (direction) => {
+    const next = Math.max(
+      0,
+      Math.min(services.length - 1, activeIndex + direction)
+    );
+
+    scrollToIndex(next);
+  };
+
   return (
-    <div className="relative">
+    <div className="relative min-w-0">
+      {/* TOP CONTROLS */}
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="h-[5px] w-[5px] rounded-full bg-red-500" />
 
-      {/* CONTROLS */}
+          <span
+            className="
+              font-bebas text-[10px]
+              uppercase tracking-[0.18em]
+              text-zinc-500
+            "
+          >
+            Explore Our Expertise
+          </span>
+        </div>
 
-      <div
-        className="
-          mb-4
-          flex
-          justify-end
-          gap-2
-        "
-      >
-        <motion.button
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.94 }}
-          onClick={() => scroll("left")}
-          className="
-            flex
-            h-9
-            w-9
-            items-center
-            justify-center
-            rounded-xl
-            border
-            border-white/10
-            bg-white/[0.03]
-            text-zinc-400
-            backdrop-blur-xl
-            transition-all
-            hover:border-red-500/40
-            hover:text-white
-          "
-        >
-          <ChevronLeft size={16} />
-        </motion.button>
+        <div className="flex items-center gap-3">
+          <span
+            className="
+              font-bebas text-[12px]
+              tracking-[0.12em] text-zinc-500
+            "
+          >
+            <span className="text-white">
+              {String(activeIndex + 1).padStart(2, "0")}
+            </span>
+            {" / "}
+            {String(services.length).padStart(2, "0")}
+          </span>
 
-        <motion.button
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.94 }}
-          onClick={() => scroll("right")}
-          className="
-            flex
-            h-9
-            w-9
-            items-center
-            justify-center
-            rounded-xl
-            border
-            border-white/10
-            bg-white/[0.03]
-            text-zinc-400
-            backdrop-blur-xl
-            transition-all
-            hover:border-red-500/40
-            hover:text-white
-          "
-        >
-          <ChevronRight size={16} />
-        </motion.button>
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              disabled={!canPrev}
+              aria-label="Previous service"
+              className="
+                flex h-8 w-8 items-center
+                justify-center rounded-lg
+                border border-white/10
+                bg-white/[0.035]
+                text-zinc-300
+                transition-colors duration-200
+                hover:border-red-500/40
+                hover:bg-red-500/10
+                disabled:cursor-not-allowed
+                disabled:opacity-30
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-red-500
+              "
+            >
+              <ChevronLeft size={15} />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate(1)}
+              disabled={!canNext}
+              aria-label="Next service"
+              className="
+                flex h-8 w-8 items-center
+                justify-center rounded-lg
+                border border-white/10
+                bg-white/[0.035]
+                text-zinc-300
+                transition-colors duration-200
+                hover:border-red-500/40
+                hover:bg-red-500/10
+                disabled:cursor-not-allowed
+                disabled:opacity-30
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-red-500
+              "
+            >
+              <ChevronRight size={15} />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* LEFT FADE */}
-
-      <div
-        className="
-          pointer-events-none
-          absolute
-          bottom-0
-          left-0
-          top-0
-          z-20
-          hidden
-          w-16
-          bg-gradient-to-r
-          from-[#050505]
-          to-transparent
-          lg:block
-        "
-      />
-
-      {/* RIGHT FADE */}
-
-      <div
-        className="
-          pointer-events-none
-          absolute
-          bottom-0
-          right-0
-          top-0
-          z-20
-          hidden
-          w-16
-          bg-gradient-to-l
-          from-[#050505]
-          to-transparent
-          lg:block
-        "
-      />
-
       {/* SLIDER */}
-
       <div
         ref={sliderRef}
+        onScroll={updatePosition}
+        aria-label="Services gallery"
         className="
-          flex
-          gap-4
-          overflow-x-auto
+          flex min-w-0 gap-3
+          overflow-x-auto overflow-y-hidden
+          pb-2
+          snap-x snap-mandatory
+          overscroll-x-contain
           scroll-smooth
           scrollbar-hide
-          snap-x
-          snap-mandatory
-          pb-3
-          select-none
+          touch-pan-x
+          sm:gap-4
         "
       >
-        {services.map((service) => (
+        {services.map((service, index) => (
           <div
             key={service.id}
             className="
+              w-[218px] flex-none
               snap-start
-              shrink-0
-              w-[255px]
-              sm:w-[285px]
-              lg:w-[315px]
+              sm:w-[242px]
+              lg:w-[254px]
             "
           >
-            <ServiceCard service={service} />
+            <ServiceCard
+              service={service}
+              index={index}
+            />
           </div>
         ))}
       </div>
 
+      {/* BOTTOM PROGRESS */}
+      <div
+        aria-hidden="true"
+        className="
+          mt-3 h-px w-full
+          overflow-hidden bg-white/[0.08]
+        "
+      >
+        <div
+          className="
+            h-full bg-red-500/80
+            transition-[width] duration-300
+          "
+          style={{
+            width: `${
+              ((activeIndex + 1) / services.length) * 100
+            }%`,
+          }}
+        />
+      </div>
     </div>
   );
 }
-

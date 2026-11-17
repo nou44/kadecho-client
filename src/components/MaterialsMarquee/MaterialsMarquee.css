@@ -1,0 +1,222 @@
+
+.materials-section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #050505;
+  padding: 20px 0 24px;
+}
+
+/* Compact header */
+.materials-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: min(92%, 1180px);
+  margin: 0 auto 12px;
+}
+
+.materials-kicker,
+.materials-index {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: #777;
+}
+
+.materials-index {
+  color: #555;
+}
+
+/* Edge fade */
+.materials-viewport {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 7%,
+    #000 93%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 7%,
+    #000 93%,
+    transparent
+  );
+}
+
+/* Seamless infinite movement */
+.materials-track {
+  display: flex;
+  width: max-content;
+  animation: materials-scroll 38s linear infinite;
+  animation-play-state: paused;
+  will-change: auto;
+}
+
+.materials-track.is-running {
+  animation-play-state: running;
+  will-change: transform;
+}
+
+.materials-group {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 32px;
+  padding-right: 32px;
+}
+
+/* Identical visual boxes */
+.materials-item {
+  flex: 0 0 220px;
+  width: 220px;
+  height: 88px;
+}
+
+.materials-logo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.materials-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0.88;
+  user-select: none;
+  transition: opacity 250ms ease;
+}
+
+.materials-item:hover img {
+  opacity: 1;
+}
+
+/* Red shine clipped to the actual logo silhouette */
+.materials-logo-shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(239, 68, 68, 0.08) 44%,
+    rgba(248, 65, 65, 0.72) 50%,
+    rgba(239, 68, 68, 0.08) 56%,
+    transparent 65%
+  );
+
+  background-size: 250% 100%;
+  background-position: 100% center;
+
+  animation: materials-shine 11s ease-in-out infinite;
+  animation-play-state: paused;
+}
+
+.materials-track.is-running .materials-logo-shine {
+  animation-play-state: running;
+}
+
+.materials-item:nth-child(4n + 1) .materials-logo-shine {
+  animation-delay: -2s;
+}
+
+.materials-item:nth-child(4n + 2) .materials-logo-shine {
+  animation-delay: -5s;
+}
+
+.materials-item:nth-child(4n + 3) .materials-logo-shine {
+  animation-delay: -8s;
+}
+
+@keyframes materials-shine {
+  0%, 68% {
+    opacity: 0;
+    background-position: 100% center;
+  }
+
+  72% {
+    opacity: 0.75;
+  }
+
+  84% {
+    opacity: 0.85;
+  }
+
+  90%, 100% {
+    opacity: 0;
+    background-position: 0% center;
+  }
+}
+
+@keyframes materials-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .materials-section {
+    padding: 16px 0 20px;
+  }
+
+  .materials-header {
+    margin-bottom: 10px;
+  }
+
+  .materials-kicker,
+  .materials-index {
+    font-size: 9px;
+  }
+
+  .materials-group {
+    gap: 18px;
+    padding-right: 18px;
+  }
+
+  .materials-item {
+    flex-basis: 170px;
+    width: 170px;
+    height: 68px;
+  }
+
+  .materials-track {
+    animation-duration: 32s;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .materials-track,
+  .materials-logo-shine {
+    animation: none !important;
+    transform: none;
+    will-change: auto;
+  }
+
+  .materials-viewport {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}

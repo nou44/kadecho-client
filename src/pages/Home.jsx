@@ -6,6 +6,7 @@ import Services from "../components/Services/Services";
 import CTASection from "../components/cta/CTASection";
 import PromoSlider from "../components/PromoSlider";
 import WaveDivider from "../components/WaveDivider";
+import MaterialsMarquee from "../components/MaterialsMarquee/MaterialsMarquee";
 
 export default function Home() {
   return (
@@ -23,6 +24,8 @@ export default function Home() {
      <WaveDivider />
 
       <FeaturedProjects />
+
+      <MaterialsMarquee />
 
       <Services />
       <CTASection />
