@@ -1,79 +1,70 @@
 
-import { motion } from "framer-motion";
+import {
+  motion,
+  useReducedMotion,
+} from "framer-motion";
 
 import FeatureCard from "./FeatureCard";
 import { features } from "./whyChooseData";
 
-const container = {
-  hidden: {},
-  show: {
-    transition: {
-      staggerChildren: 0.08,
-    },
-  },
-};
+const EASE = [0.22, 1, 0.36, 1];
 
 export default function WhyChoose() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <section
       className="
         relative
-        overflow-hidden
         bg-[#050505]
-        py-12
-        sm:py-14
-        lg:py-16
+        py-10 sm:py-12 lg:py-14
       "
     >
-      {/* Background */}
-
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* BACKGROUND */}
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute inset-0
+          overflow-hidden
+        "
+      >
         <div
           className="
-            absolute
-            left-1/2
-            top-0
-            h-[360px]
-            w-[360px]
+            absolute left-1/2 top-0
+            h-[320px] w-[320px]
             -translate-x-1/2
             rounded-full
-            bg-red-600/8
-            blur-[130px]
+            bg-red-600/[0.055]
+            blur-[85px]
           "
         />
 
         <div
           className="
-            absolute
-            bottom-0
-            left-0
-            h-[220px]
-            w-[220px]
+            absolute bottom-0 left-0
+            h-[200px] w-[200px]
             rounded-full
-            bg-red-600/5
-            blur-[110px]
+            bg-red-600/[0.035]
+            blur-[65px]
           "
         />
       </div>
 
       <div
         className="
-          relative
-          z-10
-          mx-auto
+          relative z-10 mx-auto
           max-w-7xl
-          px-5
-          sm:px-6
-          lg:px-8
+          px-4 sm:px-6 lg:px-8
         "
       >
         {/* HEADER */}
-
         <motion.div
-          initial={{
-            opacity: 0,
-            y: 25,
-          }}
+          initial={
+            reduceMotion
+              ? false
+              : { opacity: 0, y: 20 }
+          }
           whileInView={{
             opacity: 1,
             y: 0,
@@ -83,57 +74,28 @@ export default function WhyChoose() {
             amount: 0.25,
           }}
           transition={{
-            duration: 0.6,
-            ease: "easeOut",
+            duration: 0.55,
+            ease: EASE,
           }}
           className="
-            mx-auto
-            mb-8
-            max-w-2xl
-            text-center
-            sm:mb-10
+            mx-auto mb-9
+            max-w-2xl text-center
+            sm:mb-11
           "
         >
-          {/* Badge */}
-
-          <motion.div
-            initial={{
-              opacity: 0,
-              scale: 0.9,
-            }}
-            whileInView={{
-              opacity: 1,
-              scale: 1,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              duration: 0.45,
-            }}
+          {/* BADGE */}
+          <div
             className="
-              inline-flex
-              items-center
-              gap-2
-
+              inline-flex items-center gap-2
               rounded-full
-
-              border
-              border-red-500/20
-
+              border border-red-500/20
               bg-red-500/[0.05]
-
-              px-3
-              py-1.5
-
-              backdrop-blur-xl
+              px-3 py-1.5
             "
           >
             <span
               className="
-                h-1.5
-                w-1.5
-                rounded-full
+                h-1.5 w-1.5 rounded-full
                 bg-red-500
                 shadow-[0_0_10px_rgba(239,68,68,.8)]
               "
@@ -142,8 +104,7 @@ export default function WhyChoose() {
             <span
               className="
                 font-bebas
-                text-[9px]
-                uppercase
+                text-[9px] uppercase
                 tracking-[0.28em]
                 text-red-400
                 sm:text-[10px]
@@ -151,36 +112,15 @@ export default function WhyChoose() {
             >
               Why Choose KADECHO
             </span>
-          </motion.div>
+          </div>
 
-          {/* Title */}
-
-          <motion.h2
-            initial={{
-              opacity: 0,
-              y: 15,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              delay: 0.08,
-              duration: 0.55,
-            }}
+          {/* TITLE */}
+          <h2
             className="
-              mt-4
-
-              font-bebas
-
+              mt-4 font-bebas
               text-[34px]
               leading-[0.92]
-
               tracking-[0.06em]
-
               text-white
 
               sm:text-[42px]
@@ -194,107 +134,124 @@ export default function WhyChoose() {
                 bg-[length:250%_100%]
                 bg-clip-text
                 text-transparent
-                animate-gradient-x
+                motion-safe:animate-gradient-x
               "
             >
               Precision
             </span>
-
             <span className="text-zinc-500">.</span>
-          </motion.h2>
+          </h2>
 
-          {/* Accent */}
-
+          {/* ACCENT */}
           <motion.div
-            initial={{
-              width: 0,
-              opacity: 0,
-            }}
-            whileInView={{
-              width: 55,
-              opacity: 1,
-            }}
-            viewport={{
-              once: true,
-            }}
+            initial={
+              reduceMotion
+                ? false
+                : { scaleX: 0 }
+            }
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true }}
             transition={{
-              delay: 0.2,
               duration: 0.5,
+              delay: 0.2,
+              ease: EASE,
             }}
+            style={{ transformOrigin: "center" }}
             className="
-              mx-auto
-              mt-4
-              h-[2px]
-              rounded-full
-              bg-red-500
+              mx-auto mt-4
+              h-[2px] w-[55px]
+              rounded-full bg-red-500
               shadow-[0_0_15px_rgba(239,68,68,.4)]
             "
           />
 
-          {/* Description */}
-
-          <motion.p
-            initial={{
-              opacity: 0,
-            }}
-            whileInView={{
-              opacity: 1,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              delay: 0.25,
-              duration: 0.5,
-            }}
+          {/* DESCRIPTION */}
+          <p
             className="
-              mx-auto
-              mt-4
-              max-w-xl
-
+              mx-auto mt-4 max-w-xl
               font-satoshi
-
-              text-[12px]
-              leading-6
-
+              text-[12px] leading-6
               text-zinc-500
-
               sm:text-[13px]
             "
           >
-            Premium metal craftsmanship, refined details and
-            custom creations built to last.
-          </motion.p>
+            Premium metal craftsmanship, refined details
+            and custom creations built to last.
+          </p>
         </motion.div>
 
-        {/* FEATURES */}
-
-        <motion.div
-          variants={container}
-          initial="hidden"
-          whileInView="show"
-          viewport={{
-            once: true,
-            amount: 0.15,
-          }}
+        {/* PUZZLE BOARD */}
+        <div
           className="
-            grid
-            gap-3
-
-            sm:grid-cols-2
-            lg:grid-cols-3
+            relative mx-auto
+            max-w-[1120px]
           "
         >
-          {features.map((feature, index) => (
-            <FeatureCard
-              key={feature.id}
-              feature={feature}
-              index={index}
-            />
-          ))}
-        </motion.div>
+          {/* BACKGROUND LIGHT */}
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute inset-8
+              rounded-[40px]
+              bg-red-600/[0.045]
+              blur-[50px]
+            "
+          />
+
+          {/* MOBILE + TABLET: 2 x 3 */}
+          <div
+            className="
+              relative grid grid-cols-2
+              gap-0
+              lg:hidden
+            "
+          >
+            {features.map((feature, index) => (
+              <div
+                key={feature.id}
+                className="
+                  relative min-w-0
+                  h-[255px]
+                  sm:h-[235px]
+                "
+              >
+                <FeatureCard
+                  feature={feature}
+                  index={index}
+                  columns={2}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* DESKTOP: 3 x 2 */}
+          <div
+            className="
+              relative hidden
+              grid-cols-3
+              gap-0
+              lg:grid
+            "
+          >
+            {features.map((feature, index) => (
+              <div
+                key={feature.id}
+                className="
+                  relative min-w-0
+                  h-[240px]
+                "
+              >
+                <FeatureCard
+                  feature={feature}
+                  index={index}
+                  columns={3}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
 }
-
