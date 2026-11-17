@@ -1,567 +1,146 @@
+import { memo, useId, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, Sparkles } from "lucide-react";
-import { useRef, useState } from "react";
 
-export default function FeaturedCard({ project }) {
-  const cardRef = useRef(null);
+// Keep the existing puzzle geometry: tab and socket stay inside the card bounds.
+const PUZZLE_PATH = `
+  M 16 0 H 100 V 39
+  C 91 39 89 43 89 50
+  C 89 57 91 61 100 61
+  V 100 H 16 Q 0 100 0 84
+  V 61 C 9 61 11 57 11 50
+  C 11 43 9 39 0 39
+  V 16 Q 0 0 16 0 Z
+`;
 
-  const [loaded, setLoaded] = useState(false);
-
-  const rotateX = useMotionValue(0);
-  const rotateY = useMotionValue(0);
-
-  const smoothRotateX = useSpring(rotateX, {
-    stiffness: 180,
-    damping: 18,
-  });
-
-  const smoothRotateY = useSpring(rotateY, {
-    stiffness: 180,
-    damping: 18,
-  });
-
-  function handleMove(e) {
-    if (!cardRef.current) return;
-
-    const rect =
-      cardRef.current.getBoundingClientRect();
-
-    const x =
-      e.clientX - rect.left;
-
-    const y =
-      e.clientY - rect.top;
-
-    const rotateXValue =
-      ((y / rect.height) - 0.5) * -12;
-
-    const rotateYValue =
-      ((x / rect.width) - 0.5) * 12;
-
-    rotateX.set(rotateXValue);
-    rotateY.set(rotateYValue);
-  }
-
-  function resetCard() {
-    rotateX.set(0);
-    rotateY.set(0);
-  }
+function FeaturedCard({ project, index = 0 }) {
+  const id = useId().replace(/:/g, "");
+  const clipId = `featured-puzzle-${id}`;
+  const reduceMotion = useReducedMotion();
+  const [loadedImage, setLoadedImage] = useState(null);
+  const [failedImage, setFailedImage] = useState(null);
+  const image = project.image;
+  const loaded = loadedImage === image;
+  const failed = failedImage === image;
 
   return (
-  <motion.div
-    ref={cardRef}
-    onMouseMove={handleMove}
-    onMouseLeave={resetCard}
-    initial={{
-      opacity: 0,
-      y: 40,
-    }}
-    whileInView={{
-      opacity: 1,
-      y: 0,
-    }}
-    viewport={{
-      once: false,
-      amount: 0.2,
-    }}
-    transition={{
-      duration: .7,
-    }}
-    style={{
-      rotateX: smoothRotateX,
-      rotateY: smoothRotateY,
-      transformPerspective: 1400,
-    }}
-    className="
-      group
-      h-full
-    "
-  >
-    <Link
-      to={`/projects/${project.slug}`}
-      className="
-        relative
-        block
-
-        overflow-hidden
-
-        rounded-[28px]
-
-        border
-        border-white/10
-
-        bg-[#080808]/80
-
-        backdrop-blur-2xl
-
-        transition-all
-        duration-500
-
-        hover:border-red-500/40
-        hover:shadow-[0_25px_70px_rgba(220,38,38,.22)]
-      "
+    <motion.div
+      initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.12 }}
+      transition={{ duration: reduceMotion ? 0 : 0.5, delay: Math.min(index, 3) * 0.06 }}
+      className="group relative h-full min-w-0"
     >
-{/* Image */}
+      <svg aria-hidden="true" width="0" height="0" className="pointer-events-none absolute">
+        <defs>
+          <clipPath id={clipId} clipPathUnits="objectBoundingBox">
+            <path d={PUZZLE_PATH} transform="scale(0.01)" />
+          </clipPath>
+        </defs>
+      </svg>
 
-<div
-  className="
-    relative
-    overflow-hidden
-
-    h-[190px]
-    sm:h-[220px]
-    lg:h-[250px]
-
-    bg-[#0b0b0b]
-  "
->
-  {!loaded && (
-    <div
-      className="
-        absolute
-        inset-0
-
-        animate-pulse
-
-        bg-zinc-800
-      "
-    />
-  )}
-
-  <motion.img
-    loading="lazy"
-    onLoad={() => setLoaded(true)}
-    src={project.image}
-    alt={project.title}
-    whileHover={{
-      scale: 1.08,
-    }}
-    transition={{
-      duration: 0.8,
-    }}
-    className="
-      h-full
-      w-full
-
-      object-cover
-      object-center
-
-      transition-transform
-      duration-700
-
-      group-hover:scale-110
-    "
-  />
-
-        {/* Reflection */}
-
-        <motion.div
-          animate={{
-            x: [
-              "-160%",
-              "220%",
-            ],
-          }}
-          transition={{
-            repeat: Infinity,
-            duration: 3.8,
-            ease: "linear",
-          }}
-          className="
-            absolute
-            inset-y-0
-
-            w-20
-
-            -skew-x-12
-
-            bg-gradient-to-r
-            from-transparent
-            via-white/20
-            to-transparent
-          "
-        />
-
-        {/* Overlay */}
-
-        <div
-          className="
-            absolute
-            inset-0
-
-            bg-gradient-to-t
-
-            from-[#050505]
-            via-black/10
-            to-transparent
-          "
-        />
-
-        {/* Hover Overlay */}
-
-        <motion.div
-          initial={{
-            opacity: 0,
-          }}
-          whileHover={{
-            opacity: 1,
-          }}
-          className="
-            absolute
-            inset-0
-
-            bg-red-600/10
-          "
-        />
-
-        {/* Category */}
-
-        <motion.div
-          whileHover={{
-            scale: 1.05,
-          }}
-         className="
-  absolute
-
-  left-3
-  top-3
-
-  sm:left-4
-  sm:top-4
-
-  flex
-  items-center
-  gap-1.5
-  sm:gap-2
-
-  rounded-full
-
-  border
-  border-white/10
-
-  bg-black/50
-
-  px-2.5
-  py-1.5
-
-  sm:px-3
-  sm:py-2
-
-  backdrop-blur-xl
-"
+      <motion.div initial="rest" animate="rest" whileHover="hover" whileFocus="hover" className="relative h-full">
+        <Link
+          to={`/projects/${project.slug}`}
+          aria-label={`View project: ${project.title}`}
+          className="relative block h-full min-w-0 outline-none focus-visible:ring-2 focus-visible:ring-red-500"
         >
-         <Sparkles
-  size={11}
-  className="text-red-500 sm:h-[13px] sm:w-[13px]"
-/>
-
-         <span
-  className="
-    font-bebas
-
-    text-[9px]
-    sm:text-[11px]
-
-    uppercase
-
-    tracking-[0.18em]
-    sm:tracking-[0.30em]
-
-    text-white
-  "
->
-  {project.category}
-</span>
-        </motion.div>
-      </div>
-
-
-
-      {/* Content */}
-
-      <div
-        className="
-          relative
-
-          p-5
-sm:p-6
-        "
-      >
-    <motion.h3
-  whileHover={{
-    x: 4,
-  }}
-  transition={{
-    duration: 0.3,
-  }}
-  className="
-    font-bebas
-
-    text-[20px]
-    sm:text-[24px]
-    lg:text-[28px]
-
-    leading-none
-
-    uppercase
-
-    tracking-[0.05em]
-    sm:tracking-[0.08em]
-
-    text-white
-
-    line-clamp-2
-
-    transition-colors
-    duration-300
-
-    group-hover:text-red-50
-  "
->
-  {project.title}
-</motion.h3>
-
-  <p
-  className="
-    mt-2
-
-    font-satoshi
-
-    text-[12px]
-    sm:text-[13px]
-    lg:text-[14px]
-
-    leading-5
-    sm:leading-6
-
-    text-zinc-400
-
-    line-clamp-2
-    sm:line-clamp-3
-  "
->
-  {project.description}
-</p>
-
-     <motion.div
-  whileHover={{
-    x: 4,
-  }}
-  transition={{
-    duration: 0.25,
-  }}
-  className="
-    mt-5
-
-    inline-flex
-    items-center
-    gap-2
-
-    rounded-full
-
-    border
-    border-red-500/20
-
-    bg-red-500/10
-
-    px-4
-    py-2
-
-    backdrop-blur-xl
-
-    transition-all
-    duration-300
-
-    group-hover:border-red-500/40
-    group-hover:bg-red-500/15
-  "
->
-  <span
-    className="
-      font-bebas
-
-      text-[10px]
-      sm:text-[12px]
-
-      uppercase
-
-      tracking-[0.22em]
-
-      text-red-400
-    "
-  >
-    View Project
-  </span>
-
-  <motion.div
-    animate={{
-      x: [0, 3, 0],
-    }}
-    transition={{
-      repeat: Infinity,
-      duration: 1.4,
-      ease: "easeInOut",
-    }}
-  >
-    <ArrowUpRight
-      size={16}
-      className="text-red-400"
-    />
-  </motion.div>
-</motion.div>
-      </div>
-              {/* Animated Bottom Line */}
-
-        <motion.div
-          initial={{
-            width: 0,
-          }}
-          whileHover={{
-            width: "100%",
-          }}
-          transition={{
-            duration: .45,
-          }}
-          className="
-            absolute
-
-            bottom-0
-            left-0
-
-            h-[2px]
-
-            bg-gradient-to-r
-
-            from-red-700
-            via-red-500
-            to-red-700
-          "
-        />
-
-        {/* Infinite Shine */}
-
-        <motion.div
-          animate={{
-            x: [
-              "-160%",
-              "220%",
-            ],
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          className="
-            pointer-events-none
-
-            absolute
-
-            inset-y-0
-
-            w-24
-
-            -skew-x-12
-
-            bg-gradient-to-r
-
-            from-transparent
-            via-white/5
-            to-transparent
-          "
-        />
-
-        {/* Border Glow */}
-
-        <div
-          className="
-            absolute
-
-            inset-0
-
-            rounded-[28px]
-
-            ring-1
-            ring-red-500/0
-
-            transition-all
-            duration-500
-
-            group-hover:ring-red-500/40
-          "
-        />
-
-        {/* Bottom Red Glow */}
-
-        <div
-          className="
-            absolute
-
-            -bottom-14
-            left-1/2
-
-            h-28
-            w-44
-
-            -translate-x-1/2
-
-            rounded-full
-
-            bg-red-600/25
-
-            opacity-0
-
-            blur-[70px]
-
-            transition-all
-            duration-500
-
-            group-hover:opacity-100
-          "
-        />
-
-        {/* Top Glow */}
-
-        <div
-          className="
-            absolute
-
-            left-0
-            top-0
-
-            h-px
-            w-full
-
-            bg-gradient-to-r
-
-            from-transparent
-            via-red-500/70
-            to-transparent
-          "
-        />
-
-        {/* Side Glow */}
-
-        <div
-          className="
-            absolute
-
-            right-0
-            top-0
-
-            h-full
-            w-px
-
-            bg-gradient-to-b
-
-            from-transparent
-            via-red-500/20
-            to-transparent
-          "
-        />
-
-      </Link>
+          {/* Entire piece stays puzzle-shaped; height follows its real content. */}
+          <div
+            className="relative flex h-full flex-col bg-gradient-to-br from-[#171317] via-[#0b0b0e] to-[#080809]"
+            style={{ clipPath: `url(#${clipId})` }}
+          >
+            {/* Image area retains object-contain: no cropping. */}
+            <div className="relative mx-4 mt-4 flex h-[195px] shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/[0.07] bg-[#0b0b0b] sm:mx-5 sm:mt-5 sm:h-[215px] lg:h-[225px]">
+              {!loaded && !failed && (
+                <div className="absolute inset-0 animate-pulse bg-zinc-900" aria-hidden="true" />
+              )}
+              {!failed ? (
+                <img
+                  src={image}
+                  alt={project.title || "Featured project"}
+                  loading="lazy"
+                  decoding="async"
+                  onLoad={() => setLoadedImage(image)}
+                  onError={() => setFailedImage(image)}
+                  className={`h-full w-full object-contain object-center transition-[opacity,transform] duration-500 ${loaded ? "opacity-100" : "opacity-0"} motion-safe:group-hover:scale-[1.02]`}
+                />
+              ) : (
+                <span className="px-4 text-center font-satoshi text-xs text-zinc-500">Image unavailable</span>
+              )}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+              <div className="absolute left-3 top-3 flex max-w-[85%] items-center gap-1.5 rounded-full border border-white/10 bg-black/70 px-3 py-1.5 backdrop-blur-md">
+                <Sparkles size={12} className="shrink-0 text-red-500" />
+                <span className="truncate font-bebas text-[10px] uppercase tracking-[0.18em] text-white">{project.category}</span>
+              </div>
+            </div>
+
+            {/* Compact content: backend does not provide descriptions. */}
+            <div className="relative flex flex-col px-6 pb-6 pt-4 sm:px-7 sm:pb-7">
+              <span className="mb-1.5 font-bebas text-[10px] tracking-[0.25em] text-red-500/70">
+                KADECHO / {String(index + 1).padStart(2, "0")}
+              </span>
+              <h3 className="line-clamp-2 font-bebas text-[23px] uppercase leading-[1.05] tracking-[0.06em] text-white transition-colors duration-300 group-hover:text-red-100 sm:text-[27px]">
+                {project.title}
+              </h3>
+              <div className="mt-4 flex items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3.5 py-2 font-bebas text-[11px] uppercase tracking-[0.18em] text-red-400 transition-colors duration-300 group-hover:border-red-500/50 group-hover:bg-red-500/15">
+                  View Project
+                  <ArrowUpRight size={15} className="transition-transform duration-300 motion-safe:group-hover:translate-x-0.5 motion-safe:group-hover:-translate-y-0.5" />
+                </span>
+                <span className="font-bebas text-xl text-white/10">{String(index + 1).padStart(2, "0")}</span>
+              </div>
+            </div>
+            <div className="pointer-events-none absolute inset-0 bg-red-600/[0.025] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          </div>
+
+          {/* Full puzzle outline, including the tab and socket. */}
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+          >
+            <motion.path
+              d={PUZZLE_PATH}
+              fill="none"
+              stroke="#ef4444"
+              strokeWidth="1.15"
+              vectorEffect="non-scaling-stroke"
+              variants={{ rest: { strokeOpacity: 0.35 }, hover: { strokeOpacity: 0.9 } }}
+              transition={{ duration: 0.3 }}
+            />
+            {/* Moving light trace follows the actual outline, not a rectangular border. */}
+            {!reduceMotion && (
+              <motion.path
+                d={PUZZLE_PATH}
+                fill="none"
+                stroke="#ff8585"
+                strokeWidth="2"
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+                pathLength={100}
+                strokeDasharray="13 87"
+                variants={{
+                  rest: { opacity: 0, strokeDashoffset: 100 },
+                  hover: {
+                    opacity: 1,
+                    strokeDashoffset: [100, 0],
+                    transition: {
+                      opacity: { duration: 0.2 },
+                      strokeDashoffset: { duration: 2.4, ease: "linear", repeat: Infinity },
+                    },
+                  },
+                }}
+                style={{ filter: "drop-shadow(0 0 4px rgba(239,68,68,.9))" }}
+              />
+            )}
+          </svg>
+        </Link>
+      </motion.div>
     </motion.div>
   );
 }
+
+export default memo(FeaturedCard);

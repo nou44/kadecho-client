@@ -1,21 +1,11 @@
-
 import { memo, useId } from "react";
-import {
-  motion,
-  useReducedMotion,
-} from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 const EASE = [0.22, 1, 0.36, 1];
 
 /*
-  Each piece uses the same 100 x 100 geometry.
-
-  RIGHT  = outward tab
-  LEFT   = matching inward socket
-  BOTTOM = outward tab
-  TOP    = matching inward socket
-
-  Adjacent pieces share exactly the same curves.
+  Same puzzle geometry as original.
+  Keep paths unchanged to preserve UI.
 */
 function getPuzzlePath(index, columns) {
   const row = Math.floor(index / columns);
@@ -29,7 +19,6 @@ function getPuzzlePath(index, columns) {
 
   let d = "M 0 0 ";
 
-  // TOP — inward socket
   if (top) {
     d += `
       L 40 0
@@ -41,7 +30,6 @@ function getPuzzlePath(index, columns) {
     d += "L 100 0 ";
   }
 
-  // RIGHT — outward tab
   if (right) {
     d += `
       L 100 40
@@ -53,7 +41,6 @@ function getPuzzlePath(index, columns) {
     d += "L 100 100 ";
   }
 
-  // BOTTOM — outward tab
   if (bottom) {
     d += `
       L 60 100
@@ -65,7 +52,6 @@ function getPuzzlePath(index, columns) {
     d += "L 0 100 ";
   }
 
-  // LEFT — inward socket
   if (left) {
     d += `
       L 0 60
@@ -81,19 +67,15 @@ function getPuzzlePath(index, columns) {
 }
 
 const directions = [
-  { x: -95, y: -45 },
-  { x: 95, y: -55 },
-  { x: 0, y: -95 },
-  { x: -95, y: 55 },
-  { x: 95, y: 65 },
-  { x: 0, y: 95 },
+  { x: -85, y: -45, rotate: -7 },
+  { x: 85, y: -50, rotate: 6 },
+  { x: 0, y: -85, rotate: -5 },
+  { x: -85, y: 50, rotate: 6 },
+  { x: 85, y: 60, rotate: -7 },
+  { x: 0, y: 85, rotate: 5 },
 ];
 
-function FeatureCard({
-  feature,
-  index,
-  columns = 3,
-}) {
+function FeatureCard({ feature, index, columns = 3 }) {
   const Icon = feature.icon;
   const reduceMotion = useReducedMotion();
 
@@ -101,35 +83,70 @@ function FeatureCard({
   const clipId = `kadecho-puzzle-${id}`;
 
   const path = getPuzzlePath(index, columns);
-  const direction = directions[index];
+  const direction = directions[index] ?? directions[0];
+
+  const delay = index * 0.14;
+  const instant = Boolean(reduceMotion);
 
   return (
     <motion.div
       initial={
-        reduceMotion
+        instant
           ? false
           : {
               opacity: 0,
               x: direction.x,
               y: direction.y,
-              scale: 0.88,
+              rotate: direction.rotate,
+              scale: 0.86,
             }
       }
       whileInView={{
         opacity: 1,
         x: 0,
         y: 0,
+        rotate: 0,
         scale: 1,
       }}
       viewport={{
         once: true,
         amount: 0.2,
       }}
-      transition={{
-        duration: reduceMotion ? 0 : 0.85,
-        delay: reduceMotion ? 0 : index * 0.13,
-        ease: EASE,
-      }}
+      transition={
+        instant
+          ? { duration: 0 }
+          : {
+              x: {
+                type: "spring",
+                stiffness: 125,
+                damping: 18,
+                mass: 0.9,
+                delay,
+              },
+              y: {
+                type: "spring",
+                stiffness: 125,
+                damping: 18,
+                mass: 0.9,
+                delay,
+              },
+              rotate: {
+                duration: 0.75,
+                delay,
+                ease: EASE,
+              },
+              scale: {
+                type: "spring",
+                stiffness: 150,
+                damping: 17,
+                delay,
+              },
+              opacity: {
+                duration: 0.45,
+                delay,
+              },
+            }
+      }
       className="
         group relative
         h-full w-full min-w-0
@@ -166,7 +183,6 @@ function FeatureCard({
           from-[#161316]
           via-[#0b0b0e]
           to-[#080809]
-
           transition-colors duration-500
         "
         style={{
@@ -178,13 +194,38 @@ function FeatureCard({
             pointer-events-none
             absolute inset-0
             bg-[radial-gradient(circle_at_50%_50%,rgba(239,68,68,.10),transparent_75%)]
-
             opacity-0
             transition-opacity duration-500
             group-hover:opacity-100
           "
         />
       </div>
+
+      {/* CONNECTION FLASH — runs once on assembly */}
+      {!instant && (
+        <motion.div
+          aria-hidden="true"
+          initial={{ opacity: 0 }}
+          whileInView={{
+            opacity: [0, 0.16, 0],
+          }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{
+            duration: 0.7,
+            delay: delay + 0.65,
+            ease: "easeOut",
+          }}
+          className="
+            pointer-events-none
+            absolute inset-0
+            rounded-xl
+            bg-red-500/10
+          "
+          style={{
+            clipPath: `url(#${clipId})`,
+          }}
+        />
+      )}
 
       {/* REAL PUZZLE BORDER */}
       <svg
@@ -198,25 +239,19 @@ function FeatureCard({
           overflow-visible
         "
       >
-        {/* Soft seam glow */}
+        {/* SOFT SEAM GLOW */}
         <motion.path
           d={path}
           fill="none"
           stroke="#ef4444"
           strokeWidth="1.3"
           vectorEffect="non-scaling-stroke"
-          initial={{
-            opacity: 0,
-          }}
-          whileInView={{
-            opacity: 0.24,
-          }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 0.24 }}
           viewport={{ once: true }}
           transition={{
-            duration: 0.7,
-            delay: reduceMotion
-              ? 0
-              : 0.7 + index * 0.13,
+            duration: instant ? 0 : 0.7,
+            delay: instant ? 0 : delay + 0.65,
           }}
           style={{
             filter:
@@ -224,7 +259,7 @@ function FeatureCard({
           }}
         />
 
-        {/* Precise edge */}
+        {/* PRECISE EDGE */}
         <motion.path
           d={path}
           fill="none"
@@ -232,8 +267,8 @@ function FeatureCard({
           strokeWidth="0.9"
           vectorEffect="non-scaling-stroke"
           initial={{
-            pathLength: reduceMotion ? 1 : 0,
-            opacity: 0,
+            pathLength: instant ? 1 : 0,
+            opacity: instant ? 0.75 : 0,
           }}
           whileInView={{
             pathLength: 1,
@@ -242,17 +277,13 @@ function FeatureCard({
           viewport={{ once: true }}
           transition={{
             pathLength: {
-              duration: reduceMotion ? 0 : 1.15,
-              delay: reduceMotion
-                ? 0
-                : 0.7 + index * 0.13,
+              duration: instant ? 0 : 1,
+              delay: instant ? 0 : delay + 0.55,
               ease: EASE,
             },
             opacity: {
-              duration: 0.5,
-              delay: reduceMotion
-                ? 0
-                : 0.7 + index * 0.13,
+              duration: instant ? 0 : 0.45,
+              delay: instant ? 0 : delay + 0.55,
             },
           }}
           style={{
@@ -279,25 +310,18 @@ function FeatureCard({
             className="
               flex h-9 w-9 shrink-0
               items-center justify-center
-
               rounded-xl
               border border-red-500/25
               bg-red-500/[0.09]
-
               text-red-400
               transition-all duration-300
-
               group-hover:border-red-400/50
               group-hover:bg-red-500/[0.15]
               group-hover:text-red-300
-
               sm:h-11 sm:w-11
             "
           >
-            <Icon
-              size={19}
-              strokeWidth={1.8}
-            />
+            <Icon size={19} strokeWidth={1.8} />
           </div>
 
           <span
@@ -306,7 +330,6 @@ function FeatureCard({
               text-[26px]
               leading-none
               text-white/[0.07]
-
               sm:text-[38px]
               lg:text-[45px]
             "
@@ -324,10 +347,8 @@ function FeatureCard({
               leading-[1.05]
               tracking-[0.025em]
               text-white
-
               transition-colors duration-300
               group-hover:text-red-300
-
               sm:text-[23px]
               lg:text-[26px]
             "
@@ -352,7 +373,6 @@ function FeatureCard({
               text-[10px]
               leading-[1.55]
               text-zinc-400
-
               sm:text-[12px]
               sm:leading-[1.65]
             "
@@ -374,7 +394,6 @@ function FeatureCard({
               text-[7px] uppercase
               tracking-[0.12em]
               text-zinc-600
-
               sm:text-[8px]
             "
           >

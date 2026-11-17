@@ -1,5 +1,6 @@
 
 import { memo } from "react";
+import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
 
 const EASE = [0.22, 1, 0.36, 1];
@@ -17,11 +18,9 @@ const containerVariants = {
 const itemVariants = {
   hidden: {
     opacity: 0,
-    y: 12,
   },
   visible: {
     opacity: 1,
-    y: 0,
     transition: {
       duration: 0.5,
       ease: EASE,
@@ -32,13 +31,13 @@ const itemVariants = {
 function LoadingScreen() {
   const reduceMotion = useReducedMotion();
 
-  return (
+  return createPortal(
     <div
       role="status"
       aria-live="polite"
       aria-label="Loading KadeCho"
       className="
-        fixed inset-0 z-[9999]
+        fixed left-0 top-0 h-[100dvh] w-[100dvw] z-[9999]
         isolate overflow-hidden
         bg-[#050505] text-white
       "
@@ -159,7 +158,7 @@ function LoadingScreen() {
       <div
         className="
           absolute inset-0 z-10
-          flex items-center justify-center
+          grid place-items-center
           px-5
           pb-12 pt-5
           sm:pb-14 sm:pt-6
@@ -521,7 +520,7 @@ function LoadingScreen() {
         KADECHO — Built for excellence
       </div>
     </div>
-  );
+  , document.body);
 }
 
 export default memo(LoadingScreen);

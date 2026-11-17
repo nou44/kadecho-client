@@ -89,14 +89,6 @@ const sliderVariants = {
 function Hero() {
   const reduceMotion = useReducedMotion();
 
-  const contentInitial = reduceMotion
-    ? false
-    : "hidden";
-
-  const sliderInitial = reduceMotion
-    ? false
-    : "hidden";
-
   const hoverLift = reduceMotion
     ? undefined
     : { y: -2, scale: 1.015 };
@@ -208,8 +200,8 @@ function Hero() {
 
         <motion.div
           variants={containerVariants}
-          initial={contentInitial}
-          whileInView="visible"
+          initial={false}
+          animate="visible"
           viewport={{
             once: true,
             amount: 0.15,
@@ -625,8 +617,8 @@ function Hero() {
 
         <motion.div
           variants={sliderVariants}
-          initial={sliderInitial}
-          whileInView="visible"
+          initial={false}
+          animate="visible"
           viewport={{
             once: true,
             amount: 0.1,

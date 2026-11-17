@@ -60,11 +60,8 @@ export default function WhyChoose() {
       >
         {/* HEADER */}
         <motion.div
-          initial={
-            reduceMotion
-              ? false
-              : { opacity: 0, y: 20 }
-          }
+      
+  initial={false}
           whileInView={{
             opacity: 1,
             y: 0,
@@ -180,13 +177,15 @@ export default function WhyChoose() {
           </p>
         </motion.div>
 
-        {/* PUZZLE BOARD */}
-        <div
-          className="
-            relative mx-auto
-            max-w-[1120px]
-          "
-        >
+       {/* PUZZLE BOARD */}
+<div
+  className="
+    relative mx-auto
+    w-full min-w-0
+    max-w-[1120px]
+    overflow-x-clip
+  "
+>
           {/* BACKGROUND LIGHT */}
           <div
             aria-hidden="true"
