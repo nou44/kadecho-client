@@ -1,45 +1,69 @@
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  AnimatePresence,
-  motion,
-  useReducedMotion,
-} from "framer-motion";
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import { useReducedMotion } from "framer-motion";
 
 import HeroOverlay from "./HeroOverlay";
 import HeroControls from "./HeroControls";
 
 const API_URL = (
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000/api"
 ).replace(/\/$/, "");
 
 const FALLBACK_DURATION = 5000;
-const TRANSITION_DURATION = 0.35;
-const EASE = [0.22, 1, 0.36, 1];
+const TRANSITION_MS = 350;
+
+const getPoster = (slide) =>
+  slide?.poster ||
+  slide?.thumbnail ||
+  slide?.thumbnailUrl ||
+  slide?.posterUrl ||
+  undefined;
 
 export default function HeroSlider() {
   const sectionRef = useRef(null);
-  const videoRef = useRef(null);
 
+  const videoRefs = useRef([null, null]);
+
+  const activeSlotRef = useRef(0);
   const currentRef = useRef(0);
   const slidesRef = useRef([]);
-  const transitioningRef = useRef(false);
-  const fallbackTimerRef = useRef(null);
+
+  const readyRef = useRef([false, false]);
+  const pendingRef = useRef(false);
+  const switchingRef = useRef(false);
+
   const transitionTimerRef = useRef(null);
+  const errorTimerRef = useRef(null);
 
   const [heroSlides, setHeroSlides] = useState([]);
   const [current, setCurrent] = useState(0);
+
+  const [slots, setSlots] = useState([
+    null,
+    null,
+  ]);
+
+  const [activeSlot, setActiveSlot] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const [isPageVisible, setIsPageVisible] = useState(
     () =>
       typeof document === "undefined" ||
       document.visibilityState === "visible"
   );
 
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isTransitioning, setIsTransitioning] =
+    useState(false);
+
   const [progressKey, setProgressKey] = useState(0);
   const [videoDuration, setVideoDuration] = useState(
     FALLBACK_DURATION
@@ -47,45 +71,70 @@ export default function HeroSlider() {
 
   const reduceMotion = useReducedMotion();
 
-  const canPlay = isVisible && isPageVisible && !loading;
+  const canPlay =
+    isVisible && isPageVisible && !loading;
+
+  const canPlayRef = useRef(canPlay);
+
+  useEffect(() => {
+    canPlayRef.current = canPlay;
+  }, [canPlay]);
+
   const slide = heroSlides[current];
 
   /* ==========================================
-     FETCH HERO VIDEOS
+     FETCH VIDEOS
   ========================================== */
 
   useEffect(() => {
     const controller = new AbortController();
 
-    async function fetchHeroVideos() {
+    async function fetchVideos() {
       try {
-        setLoading(true);
-        setError(false);
-
-        const response = await fetch(`${API_URL}/hero-videos`, {
-          signal: controller.signal,
-        });
+        const response = await fetch(
+          `${API_URL}/hero-videos`,
+          { signal: controller.signal }
+        );
 
         if (!response.ok) {
-          throw new Error(`Hero API: ${response.status}`);
+          throw new Error(
+            `Hero API: ${response.status}`
+          );
         }
 
         const data = await response.json();
 
         const videos = Array.isArray(data.heroVideos)
-          ? data.heroVideos.filter((item) => item?.video)
+          ? data.heroVideos.filter(
+              (item) => item?.video
+            )
           : [];
 
-        if (!controller.signal.aborted) {
-          slidesRef.current = videos;
-          currentRef.current = 0;
+        if (controller.signal.aborted) return;
 
-          setHeroSlides(videos);
-          setCurrent(0);
-        }
+        slidesRef.current = videos;
+        currentRef.current = 0;
+        activeSlotRef.current = 0;
+
+        readyRef.current = [false, false];
+        pendingRef.current = false;
+        switchingRef.current = false;
+
+        setHeroSlides(videos);
+        setCurrent(0);
+
+        setSlots([
+          videos[0] ? 0 : null,
+          videos.length > 1 ? 1 : null,
+        ]);
+
+        setError(false);
       } catch (err) {
         if (err.name !== "AbortError") {
-          console.error("Failed to load hero videos:", err);
+          console.error(
+            "Failed to load hero videos:",
+            err
+          );
           setError(true);
         }
       } finally {
@@ -95,13 +144,13 @@ export default function HeroSlider() {
       }
     }
 
-    fetchHeroVideos();
+    fetchVideos();
 
     return () => controller.abort();
   }, []);
 
   /* ==========================================
-     INTERSECTION OBSERVER
+     VISIBILITY
   ========================================== */
 
   useEffect(() => {
@@ -112,9 +161,7 @@ export default function HeroSlider() {
       ([entry]) => {
         setIsVisible(entry.isIntersecting);
       },
-      {
-        threshold: 0.1,
-      }
+      { threshold: 0.1 }
     );
 
     observer.observe(element);
@@ -122,12 +169,8 @@ export default function HeroSlider() {
     return () => observer.disconnect();
   }, []);
 
-  /* ==========================================
-     PAGE VISIBILITY
-  ========================================== */
-
   useEffect(() => {
-    const handleVisibilityChange = () => {
+    const onVisibilityChange = () => {
       setIsPageVisible(
         document.visibilityState === "visible"
       );
@@ -135,140 +178,272 @@ export default function HeroSlider() {
 
     document.addEventListener(
       "visibilitychange",
-      handleVisibilityChange
+      onVisibilityChange
     );
 
-    return () => {
+    return () =>
       document.removeEventListener(
         "visibilitychange",
-        handleVisibilityChange
+        onVisibilityChange
       );
-    };
   }, []);
 
   /* ==========================================
-     CLEAR TIMERS
+     PLAY / PAUSE
   ========================================== */
 
-  const clearTimers = useCallback(() => {
-    window.clearTimeout(fallbackTimerRef.current);
-    window.clearTimeout(transitionTimerRef.current);
+  const playActive = useCallback(() => {
+    const video =
+      videoRefs.current[activeSlotRef.current];
+
+    if (!video || !canPlayRef.current) return;
+
+    const promise = video.play();
+    promise?.catch?.(() => {});
   }, []);
 
+  useEffect(() => {
+    const active = activeSlotRef.current;
+
+    videoRefs.current.forEach((video, index) => {
+      if (!video) return;
+
+      if (canPlay && index === active) {
+        const promise = video.play();
+        promise?.catch?.(() => {});
+      } else {
+        video.pause();
+      }
+    });
+  }, [canPlay, activeSlot, slots]);
+
   /* ==========================================
-     CHANGE SLIDE
+     PREPARE NEXT VIDEO
   ========================================== */
 
-  const goToSlide = useCallback(
-    (index) => {
+  const prepareNext = useCallback(
+    (nextIndex, slotIndex) => {
+      readyRef.current[slotIndex] = false;
+
+      setSlots((previous) => {
+        if (previous[slotIndex] === nextIndex) {
+          return previous;
+        }
+
+        const updated = [...previous];
+        updated[slotIndex] = nextIndex;
+
+        return updated;
+      });
+    },
+    []
+  );
+
+  /* ==========================================
+     SWITCH VIDEO
+  ========================================== */
+
+  const switchTo = useCallback(
+    (targetIndex) => {
       const total = slidesRef.current.length;
 
-      if (total <= 1 || transitioningRef.current) {
+      if (
+        total <= 1 ||
+        switchingRef.current
+      ) {
         return;
       }
 
-      const nextIndex = (index + total) % total;
+      const nextIndex =
+        (targetIndex + total) % total;
 
       if (nextIndex === currentRef.current) {
         return;
       }
 
-      transitioningRef.current = true;
+      const oldSlot = activeSlotRef.current;
+      const nextSlot = 1 - oldSlot;
+
+      const nextVideo =
+        videoRefs.current[nextSlot];
+
+      // The next video must be prepared.
+      if (
+        !nextVideo ||
+        !readyRef.current[nextSlot]
+      ) {
+        pendingRef.current = nextIndex;
+        prepareNext(nextIndex, nextSlot);
+        return;
+      }
+
+      // If a different video was prepared,
+      // wait until the requested one is ready.
+      const preparedIndex = Number(
+        nextVideo.dataset.slideIndex
+      );
+
+      if (preparedIndex !== nextIndex) {
+        pendingRef.current = nextIndex;
+        prepareNext(nextIndex, nextSlot);
+        return;
+      }
+
+      pendingRef.current = false;
+      switchingRef.current = true;
+
       setIsTransitioning(true);
 
-      clearTimers();
+      window.clearTimeout(
+        transitionTimerRef.current
+      );
+      window.clearTimeout(errorTimerRef.current);
 
+      const oldVideo =
+        videoRefs.current[oldSlot];
+
+      oldVideo?.pause();
+
+      try {
+        nextVideo.currentTime = 0;
+      } catch {
+        // Seeking may not be available yet.
+      }
+
+      activeSlotRef.current = nextSlot;
       currentRef.current = nextIndex;
 
+      setActiveSlot(nextSlot);
       setCurrent(nextIndex);
-      setVideoDuration(FALLBACK_DURATION);
+
       setProgressKey((key) => key + 1);
 
-      transitionTimerRef.current = window.setTimeout(
-        () => {
-          transitioningRef.current = false;
-          setIsTransitioning(false);
-        },
-        reduceMotion ? 0 : TRANSITION_DURATION * 1000
+      const duration = nextVideo.duration;
+
+      setVideoDuration(
+        Number.isFinite(duration) &&
+          duration > 0
+          ? duration * 1000
+          : FALLBACK_DURATION
       );
+
+      if (canPlayRef.current) {
+        const promise = nextVideo.play();
+        promise?.catch?.(() => {});
+      }
+
+      transitionTimerRef.current =
+        window.setTimeout(() => {
+          switchingRef.current = false;
+          setIsTransitioning(false);
+
+          const upcomingIndex =
+            (nextIndex + 1) % total;
+
+          prepareNext(
+            upcomingIndex,
+            oldSlot
+          );
+        }, reduceMotion ? 0 : TRANSITION_MS);
     },
-    [clearTimers, reduceMotion]
+    [prepareNext, reduceMotion]
   );
 
   const nextSlide = useCallback(() => {
-    goToSlide(currentRef.current + 1);
-  }, [goToSlide]);
+    switchTo(currentRef.current + 1);
+  }, [switchTo]);
 
   const prevSlide = useCallback(() => {
-    goToSlide(currentRef.current - 1);
-  }, [goToSlide]);
+    switchTo(currentRef.current - 1);
+  }, [switchTo]);
 
   /* ==========================================
-     VIDEO PLAY / PAUSE
+     VIDEO READY
   ========================================== */
 
-  useEffect(() => {
-    const video = videoRef.current;
+  const handleCanPlay = useCallback(
+    (slotIndex, slideIndex) => {
+      const video =
+        videoRefs.current[slotIndex];
 
-    if (!video) return;
+      if (!video) return;
 
-    if (canPlay) {
-      const playPromise = video.play();
-      playPromise?.catch?.(() => {});
-    } else {
-      video.pause();
-    }
-  }, [current, canPlay]);
+      readyRef.current[slotIndex] = true;
 
-  /* ==========================================
-     VIDEO METADATA
-  ========================================== */
+      // Active video is ready.
+      if (
+        slotIndex === activeSlotRef.current &&
+        slideIndex === currentRef.current
+      ) {
+        playActive();
+      }
 
-  const handleLoadedMetadata = useCallback((event) => {
-    const duration = event.currentTarget.duration;
-
-    if (Number.isFinite(duration) && duration > 0) {
-      setVideoDuration(duration * 1000);
-    }
-  }, []);
+      // Waiting for a video to buffer.
+      if (
+        slotIndex !== activeSlotRef.current &&
+        pendingRef.current === slideIndex
+      ) {
+        switchTo(slideIndex);
+      }
+    },
+    [playActive, switchTo]
+  );
 
   /* ==========================================
      VIDEO ENDED
-     VIDEO CONTROLS THE SLIDER
   ========================================== */
 
-  const handleVideoEnded = useCallback(() => {
-    if (isVisible && isPageVisible) {
+  const handleEnded = useCallback(
+    (slotIndex) => {
+      if (
+        slotIndex !== activeSlotRef.current ||
+        !canPlayRef.current
+      ) {
+        return;
+      }
+
+      if (slidesRef.current.length === 1) {
+        const video =
+          videoRefs.current[slotIndex];
+
+        if (video) {
+          video.currentTime = 0;
+          playActive();
+          setProgressKey((key) => key + 1);
+        }
+
+        return;
+      }
+
       nextSlide();
-    }
-  }, [isVisible, isPageVisible, nextSlide]);
+    },
+    [nextSlide, playActive]
+  );
 
   /* ==========================================
-     FALLBACK TIMER
-     ONLY IF VIDEO CANNOT PLAY
+     VIDEO ERROR
   ========================================== */
 
-  const handleVideoError = useCallback(() => {
-    if (!canPlay) return;
+  const handleError = useCallback(
+    (slotIndex, slideIndex) => {
+      readyRef.current[slotIndex] = false;
 
-    window.clearTimeout(fallbackTimerRef.current);
+      if (
+        slotIndex === activeSlotRef.current &&
+        slideIndex === currentRef.current
+      ) {
+        window.clearTimeout(
+          errorTimerRef.current
+        );
 
-    fallbackTimerRef.current = window.setTimeout(() => {
-      nextSlide();
-    }, FALLBACK_DURATION);
-  }, [canPlay, nextSlide]);
-
-  /* ==========================================
-     RESET FALLBACK ON SLIDE CHANGE
-  ========================================== */
-
-  useEffect(() => {
-    window.clearTimeout(fallbackTimerRef.current);
-
-    return () => {
-      window.clearTimeout(fallbackTimerRef.current);
-    };
-  }, [current]);
+        errorTimerRef.current =
+          window.setTimeout(() => {
+            nextSlide();
+          }, FALLBACK_DURATION);
+      }
+    },
+    [nextSlide]
+  );
 
   /* ==========================================
      CLEANUP
@@ -276,25 +451,19 @@ export default function HeroSlider() {
 
   useEffect(() => {
     return () => {
-      clearTimers();
+      window.clearTimeout(
+        transitionTimerRef.current
+      );
+
+      window.clearTimeout(
+        errorTimerRef.current
+      );
     };
-  }, [clearTimers]);
+  }, []);
 
   /* ==========================================
-     POSTER + KEY
+     RENDER
   ========================================== */
-
-  const poster = slide
-    ? slide.poster ||
-      slide.thumbnail ||
-      slide.thumbnailUrl ||
-      slide.posterUrl ||
-      undefined
-    : undefined;
-
-  const slideKey = slide
-    ? slide._id || slide.id || slide.video
-    : "empty";
 
   return (
     <section
@@ -318,8 +487,8 @@ export default function HeroSlider() {
 
       {/* ======================================
           VIDEO FRAME
-          ORIGINAL DIMENSIONS PRESERVED
       ====================================== */}
+
       <div
         className="
           relative z-10
@@ -334,61 +503,108 @@ export default function HeroSlider() {
           shadow-[0_14px_40px_rgba(0,0,0,.28)]
         "
       >
-        {loading ? (
+        {loading && (
           <div
             className="
-              absolute inset-0
-              animate-pulse
+              absolute inset-0 animate-pulse
               bg-gradient-to-br
               from-white/[0.025]
               via-transparent
               to-red-500/[0.02]
             "
           />
-        ) : slide ? (
-          <AnimatePresence mode="sync" initial={false}>
-            <motion.video
-              key={slideKey}
-              ref={videoRef}
-              autoPlay
-              muted
-              playsInline
-              preload="metadata"
-              poster={poster}
-              disablePictureInPicture
-              controls={false}
+        )}
 
-              onLoadedMetadata={handleLoadedMetadata}
-              onEnded={handleVideoEnded}
-              onError={handleVideoError}
+        {/* TWO PERSISTENT VIDEO PLAYERS */}
+        {!loading &&
+          slots.map((slideIndex, slotIndex) => {
+            if (slideIndex === null) {
+              return null;
+            }
 
-              initial={
-                reduceMotion
-                  ? { opacity: 1 }
-                  : { opacity: 0 }
-              }
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{
-                duration: reduceMotion
-                  ? 0
-                  : TRANSITION_DURATION,
-                ease: EASE,
-              }}
+            const videoSlide =
+              heroSlides[slideIndex];
 
-              className="
-                absolute inset-0
-                h-full w-full
-                object-cover object-center
-              "
-            >
-              <source
-                src={slide.video}
-                type="video/mp4"
+            if (!videoSlide) return null;
+
+            const isActive =
+              activeSlot === slotIndex;
+
+            return (
+              <video
+                key={slotIndex}
+                ref={(element) => {
+                  videoRefs.current[slotIndex] =
+                    element;
+                }}
+                data-slide-index={slideIndex}
+                src={videoSlide.video}
+                poster={getPoster(videoSlide)}
+                muted
+                playsInline
+                preload={
+                  isActive ? "auto" : "auto"
+                }
+                controls={false}
+                disablePictureInPicture
+                onCanPlay={() =>
+                  handleCanPlay(
+                    slotIndex,
+                    slideIndex
+                  )
+                }
+                onLoadedMetadata={(event) => {
+                  if (
+                    slotIndex ===
+                    activeSlotRef.current
+                  ) {
+                    const duration =
+                      event.currentTarget.duration;
+
+                    if (
+                      Number.isFinite(duration) &&
+                      duration > 0
+                    ) {
+                      setVideoDuration(
+                        duration * 1000
+                      );
+                    }
+                  }
+                }}
+                onEnded={() =>
+                  handleEnded(slotIndex)
+                }
+                onError={() =>
+                  handleError(
+                    slotIndex,
+                    slideIndex
+                  )
+                }
+                className={`
+                  absolute inset-0
+                  h-full w-full
+                  object-cover object-center
+
+                  transition-opacity
+                  duration-[350ms]
+                  ease-out
+
+                  ${
+                    isActive
+                      ? "z-10 opacity-100"
+                      : "z-0 opacity-0"
+                  }
+                `}
+                style={
+                  reduceMotion
+                    ? { transitionDuration: "0ms" }
+                    : undefined
+                }
               />
-            </motion.video>
-          </AnimatePresence>
-        ) : (
+            );
+          })}
+
+        {!loading && !slide && (
           <div
             className="
               absolute inset-0
@@ -407,8 +623,7 @@ export default function HeroSlider() {
           aria-hidden="true"
           className="
             pointer-events-none
-            absolute inset-0
-
+            absolute inset-0 z-20
             bg-gradient-to-t
             from-black/95
             via-black/25
@@ -421,9 +636,8 @@ export default function HeroSlider() {
           aria-hidden="true"
           className="
             pointer-events-none
-            absolute inset-x-0 top-0
+            absolute inset-x-0 top-0 z-20
             h-px
-
             bg-gradient-to-r
             from-transparent
             via-white/15
@@ -436,7 +650,7 @@ export default function HeroSlider() {
           aria-hidden="true"
           className="
             pointer-events-none
-            absolute inset-0
+            absolute inset-0 z-20
             rounded-[18px] sm:rounded-[20px]
             ring-1 ring-inset ring-white/[0.035]
           "
@@ -444,9 +658,9 @@ export default function HeroSlider() {
       </div>
 
       {/* ======================================
-          OVERLAY
-          ORIGINAL POSITION PRESERVED
+          OVERLAY — SAME POSITION
       ====================================== */}
+
       {slide && (
         <div
           className="
@@ -455,6 +669,7 @@ export default function HeroSlider() {
             -translate-x-1/2
 
             sm:top-[58%] sm:w-[84%]
+
             lg:top-[60%] lg:w-[78%]
           "
         >
@@ -462,7 +677,9 @@ export default function HeroSlider() {
             slide={slide}
             progressKey={progressKey}
             duration={videoDuration}
-            paused={!canPlay || isTransitioning}
+            paused={
+              !canPlay || isTransitioning
+            }
           />
 
           <HeroControls
