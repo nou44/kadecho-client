@@ -34,7 +34,7 @@ const stats = [
 
 const EASE = [0.22, 1, 0.36, 1];
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 /* ==========================================
    ANIMATION VARIANTS
