@@ -14,8 +14,20 @@ export default function FeaturedSlider() {
   const [error, setError] = useState("");
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches
+  );
   const swiperRef = useRef(null);
   const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 639px)");
+    const update = () => setIsMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -27,7 +39,9 @@ export default function FeaturedSlider() {
         if (!response.ok) throw new Error("Failed to fetch projects");
         const data = await response.json();
         if (!data.success) throw new Error(data.message || "Failed to fetch projects");
-        if (!controller.signal.aborted) setProjects(Array.isArray(data.projects) ? data.projects : []);
+        if (!controller.signal.aborted) {
+          setProjects(Array.isArray(data.projects) ? data.projects : []);
+        }
       } catch (err) {
         if (err.name !== "AbortError" && !controller.signal.aborted) {
           setError(err.message || "Something went wrong while loading projects");
@@ -41,8 +55,10 @@ export default function FeaturedSlider() {
   }, []);
 
   const syncNavigation = (swiper) => {
+    if (!swiper || swiper.destroyed) return;
     setCanPrev(!swiper.isBeginning);
     setCanNext(!swiper.isEnd);
+    setActiveIndex(swiper.activeIndex);
   };
 
   return (
@@ -62,7 +78,9 @@ export default function FeaturedSlider() {
         </div>
       )}
 
-      {!loading && error && <p className="py-16 text-center font-satoshi text-sm text-red-500" role="alert">{error}</p>}
+      {!loading && error && (
+        <p className="py-16 text-center font-satoshi text-sm text-red-500" role="alert">{error}</p>
+      )}
       {!loading && !error && projects.length === 0 && (
         <p className="py-16 text-center font-bebas text-sm tracking-[.15em] text-zinc-500">NO PROJECTS FOUND</p>
       )}
@@ -70,7 +88,9 @@ export default function FeaturedSlider() {
       {!loading && !error && projects.length > 0 && (
         <>
           <div className="mb-4 flex items-center justify-between gap-4 px-1">
-            <p className="font-bebas text-[11px] uppercase tracking-[0.22em] text-zinc-500">Explore our work <span className="text-red-500">/ {projects.length} projects</span></p>
+            <p className="font-bebas text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+              Explore our work <span className="text-red-500">/ {projects.length} projects</span>
+            </p>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -88,6 +108,7 @@ export default function FeaturedSlider() {
               ><ChevronRight size={17} /></button>
             </div>
           </div>
+
           <Swiper
             modules={[Navigation, A11y]}
             onSwiper={(swiper) => { swiperRef.current = swiper; syncNavigation(swiper); }}
@@ -108,13 +129,21 @@ export default function FeaturedSlider() {
             }}
             className="!overflow-hidden"
           >
-            {projects.map((project, index) => (
-              <SwiperSlide key={project._id || project.slug || index} className="!h-auto py-3 hover:!z-20 focus-within:!z-20">
-                <FeaturedCard project={project} index={index} />
-              </SwiperSlide>
-            ))}
+            {projects.map((project, index) => {
+              const isActive = isMobile && index === activeIndex;
+              return (
+                <SwiperSlide
+                  key={project._id || project.slug || index}
+                  className={`!h-auto py-3 hover:!z-20 focus-within:!z-20 ${isActive ? "!z-10" : ""}`}
+                >
+                  <FeaturedCard project={project} index={index} isActive={isActive} />
+                </SwiperSlide>
+              );
+            })}
           </Swiper>
-          <p className="mt-3 text-center font-satoshi text-[10px] tracking-[0.08em] text-zinc-600 sm:hidden">Swipe to explore projects</p>
+          <p className="mt-3 text-center font-satoshi text-[10px] tracking-[0.08em] text-zinc-600 sm:hidden">
+            Swipe to explore projects
+          </p>
         </>
       )}
     </motion.div>
