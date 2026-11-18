@@ -9,20 +9,41 @@ const footerLinks = [
   { name: "Contact", path: "/contact" },
 ];
 
+function MoroccoFlag() {
+  return (
+    <svg
+      viewBox="0 0 36 24"
+      width="25"
+      height="17"
+      role="img"
+      aria-label="Flag of Morocco"
+      className="shrink-0 rounded-[3px] shadow-[0_2px_8px_rgba(0,0,0,0.25)]"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect width="36" height="24" fill="#C1272D" />
+      <path
+        d="M18 5.1 21.75 16.65 11.93 9.51H24.07L14.25 16.65Z"
+        fill="none"
+        stroke="#006233"
+        strokeWidth="1.45"
+        strokeLinejoin="miter"
+      />
+    </svg>
+  );
+}
+
 export default function FooterBottom() {
   const navigate = useNavigate();
-
   const clickCount = useRef(0);
   const clickTimer = useRef(null);
 
-  // Keep the original 3-click secret login.
   const handleSecretLogin = () => {
     clickCount.current += 1;
-
     clearTimeout(clickTimer.current);
 
     if (clickCount.current >= 3) {
       clickCount.current = 0;
+      clickTimer.current = null;
       navigate("/login");
       return;
     }
@@ -33,18 +54,12 @@ export default function FooterBottom() {
     }, 1000);
   };
 
-  // Clean up the timer when the footer unmounts.
   useEffect(() => {
     return () => clearTimeout(clickTimer.current);
   }, []);
 
   return (
-    <div
-      className="
-        relative
-        py-5 sm:py-6
-      "
-    >
+    <div className="relative py-5 sm:py-6">
       {/* TOP DIVIDER */}
       <div
         aria-hidden="true"
@@ -82,7 +97,7 @@ export default function FooterBottom() {
           lg:flex-row lg:gap-6
         "
       >
-        {/* COPYRIGHT */}
+        {/* COPYRIGHT + MOROCCO FLAG */}
         <div
           className="
             flex flex-wrap
@@ -98,10 +113,7 @@ export default function FooterBottom() {
 
           <span
             aria-hidden="true"
-            className="
-              h-1 w-1 rounded-full
-              bg-red-500/70
-            "
+            className="h-1 w-1 rounded-full bg-red-500/70"
           />
 
           <button
@@ -128,6 +140,38 @@ export default function FooterBottom() {
           <span className="hidden sm:inline">
             All Rights Reserved.
           </span>
+
+          {/* MOROCCAN IDENTITY */}
+          <div
+            className="
+              group/ml
+              ml-0 sm:ml-1
+              inline-flex items-center gap-2
+              rounded-full
+              border border-white/[0.09]
+              bg-white/[0.025]
+              px-2.5 py-1
+              transition-[background-color,border-color]
+              duration-300
+              hover:border-red-500/25
+              hover:bg-red-500/[0.05]
+            "
+          >
+            <MoroccoFlag />
+
+            <span
+              className="
+                whitespace-nowrap
+                text-[9px] font-semibold
+                uppercase tracking-[0.1em]
+                text-zinc-400
+                transition-colors duration-300
+                group-hover/ml:text-zinc-200
+              "
+            >
+              Made in Morocco
+            </span>
+          </div>
         </div>
 
         {/* LEGAL NAVIGATION */}

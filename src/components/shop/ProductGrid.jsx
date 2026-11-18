@@ -1,271 +1,208 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
-import { SlidersHorizontal, X } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import {
+  SlidersHorizontal,
+  X,
+  PackageSearch,
+  AlertCircle,
+  RotateCcw,
+} from "lucide-react";
 
 import SearchBar from "./SearchBar";
 import FilterSidebar from "./FilterSidebar";
 import ProductCard from "./ProductCard";
 
-const API_URL =
-  `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/products`;
+const API_URL = `${
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+}/products`;
+
+const EASE = [0.22, 1, 0.36, 1];
 
 export default function ProductGrid() {
   const [searchParams] = useSearchParams();
-
   const category = searchParams.get("category");
+
+  const reduceMotion = useReducedMotion();
 
   const [openFilters, setOpenFilters] = useState(false);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
 
-  /* =========================
-     GET PRODUCTS
-  ========================= */
-
+  // Fetch once, and refetch only when retrying.
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        setError("");
+    const controller = new AbortController();
 
-        const response = await fetch(API_URL);
+    const fetchProducts = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const response = await fetch(API_URL, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch products");
+        }
+
         const data = await response.json();
 
-        if (!response.ok || !data.success) {
+        if (!data.success) {
           throw new Error(
             data.message || "Failed to fetch products"
           );
         }
 
-        setProducts(data.products || []);
-      } catch (error) {
-        console.error("❌ Fetch products error:", error);
+        if (!controller.signal.aborted) {
+          setProducts(
+            Array.isArray(data.products) ? data.products : []
+          );
+        }
+      } catch (err) {
+        if (err.name === "AbortError") return;
 
-        setError(
-          error.message ||
-            "Something went wrong while loading products"
-        );
+        console.error("Fetch products error:", err);
+
+        if (!controller.signal.aborted) {
+          setError(
+            err.message ||
+              "Something went wrong while loading products"
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchProducts();
-  }, []);
 
-  /* =========================
-     FILTER PRODUCTS
-  ========================= */
+    return () => controller.abort();
+  }, [retryKey]);
 
-  const filteredProducts = products.filter((product) => {
-    const matchesCategory =
-      !category ||
-      product.category?.toLowerCase() === category.toLowerCase();
+  // Memoized filtering.
+  const filteredProducts = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+    const normalizedCategory = category?.toLowerCase();
 
-    const searchTerm = search.trim().toLowerCase();
+    return products.filter((product) => {
+      const matchesCategory =
+        !normalizedCategory ||
+        product.category?.toLowerCase() === normalizedCategory;
 
-    const matchesSearch =
-      !searchTerm ||
-      product.name?.toLowerCase().includes(searchTerm) ||
-      product.title?.toLowerCase().includes(searchTerm);
+      const matchesSearch =
+        !normalizedSearch ||
+        product.name?.toLowerCase().includes(normalizedSearch) ||
+        product.title?.toLowerCase().includes(normalizedSearch);
 
-    return matchesCategory && matchesSearch;
-  });
+      return matchesCategory && matchesSearch;
+    });
+  }, [products, category, search]);
+
+  // Close filters with Escape, and lock page scrolling.
+  useEffect(() => {
+    if (!openFilters) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setOpenFilters(false);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [openFilters]);
 
   return (
     <section
+      id="shop-products"
+      aria-label="Shop collection"
       className="
-        relative
-       
-
-        -mt-8
-        lg:-mt-12
-
-        bg-[#050505]
-
-        px-4
-        sm:px-6
-        lg:px-8
-
-        pb-16
-        lg:pb-20
+        relative bg-[#050505]
+        px-4 pb-12 pt-4
+        sm:px-6 sm:pb-14
+        lg:px-8 lg:pb-16 lg:pt-5
       "
     >
-      {/* =========================
-          SEARCH
-      ========================= */}
-
-      <div
-        className="
-          relative
-          z-20
-
-          mx-auto
-
-          mb-6
-          lg:mb-8
-
-          max-w-[600px]
-          lg:max-w-[660px]
-        "
-      >
-        <SearchBar
-          value={search}
-          onChange={setSearch}
-        />
+      {/* SEARCH */}
+      <div className="relative z-20 mx-auto mb-5 max-w-[600px] lg:mb-6">
+        <SearchBar value={search} onChange={setSearch} />
       </div>
 
-      {/* =========================
-          MOBILE FILTER
-      ========================= */}
-
-      <div
-        className="
-          mb-5
-          lg:hidden
-        "
-      >
+      {/* MOBILE FILTER BUTTON */}
+      <div className="mb-4 lg:hidden">
         <button
+          type="button"
           onClick={() => setOpenFilters(true)}
+          aria-haspopup="dialog"
+          aria-expanded={openFilters}
           className="
-            group
-
-            flex
-            w-full
-
-            items-center
-            justify-center
-            gap-2.5
-
-            rounded-xl
-
-            border
-            border-white/[0.08]
-
+            group flex w-full items-center
+            justify-center gap-2
+            rounded-xl border border-white/[0.08]
             bg-white/[0.025]
-
-            py-2.5
-
-            font-bebas
-
-            text-[12px]
-
-            uppercase
-            tracking-[.20em]
-
+            px-4 py-2.5
+            font-bebas text-[12px]
+            uppercase tracking-[0.18em]
             text-zinc-300
-
-            backdrop-blur-xl
-
-            transition-all
-            duration-300
-
+            transition-[border-color,background-color,color]
+            duration-200
             hover:border-red-500/30
             hover:bg-red-500/[0.06]
             hover:text-white
           "
         >
           <SlidersHorizontal
-            size={16}
-            className="
-              text-red-400
-
-              transition-transform
-              duration-300
-
-              group-hover:rotate-12
-            "
+            size={15}
+            className="text-red-400"
           />
-
           Filters
         </button>
       </div>
 
-      {/* =========================
-          MAIN SHOP LAYOUT
-      ========================= */}
-
+      {/* SHOP LAYOUT */}
       <div
         className="
-          mx-auto
-          max-w-[1450px]
-
-          grid
-
-          gap-6
-          lg:gap-8
-
-          lg:grid-cols-[230px_minmax(0,1fr)]
+          mx-auto grid max-w-[1450px]
+          gap-5 lg:grid-cols-[220px_minmax(0,1fr)]
+          lg:gap-6
         "
       >
-        {/* =========================
-            DESKTOP SIDEBAR
-        ========================= */}
+        {/* DESKTOP FILTERS */}
+        <aside className="sticky top-24 hidden h-fit self-start lg:block">
+          <FilterSidebar products={products} />
+        </aside>
 
-       <aside
-  className="
-    hidden
-    lg:block
-    self-start
-    sticky
-    top-24
-    h-fit
-  "
->
-  <FilterSidebar
-    products={products}
-  />
-</aside>
-
-        {/* =========================
-            PRODUCTS AREA
-        ========================= */}
-
+        {/* PRODUCT AREA */}
         <div className="min-w-0">
-          {/* Result Header */}
-
           {!loading && !error && (
             <div
               className="
-                mb-4
-
-                flex
-                items-center
-                justify-between
-
-                border-b
-                border-white/[0.06]
-
-                pb-3
+                mb-3 flex items-center
+                justify-between gap-3
+                border-b border-white/[0.06]
+                pb-2.5
               "
             >
               <div className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
                 <span
                   className="
-                    h-1.5
-                    w-1.5
-
-                    rounded-full
-
-                    bg-red-500
-
-                    shadow-[0_0_10px_rgba(239,68,68,.7)]
-                  "
-                />
-
-                <span
-                  className="
-                    font-bebas
-
-                    text-[11px]
-
-                    uppercase
-                    tracking-[.18em]
-
+                    font-bebas text-[11px]
+                    uppercase tracking-[0.18em]
                     text-zinc-500
                   "
                 >
@@ -274,13 +211,10 @@ export default function ProductGrid() {
               </div>
 
               <span
+                aria-live="polite"
                 className="
-                  font-bebas
-
-                  text-[11px]
-
-                  tracking-[.12em]
-
+                  font-bebas text-[11px]
+                  tracking-[0.12em]
                   text-zinc-600
                 "
               >
@@ -289,215 +223,132 @@ export default function ProductGrid() {
             </div>
           )}
 
-          {/* =========================
-              PRODUCT GRID
-          ========================= */}
-
-      <div 
-  className="
-    grid
-    grid-cols-2
-    gap-3
-    sm:gap-4
-    lg:grid-cols-3
-    2xl:gap-5
-  "
->
+          <div
+            className="
+              grid grid-cols-2 gap-3
+              sm:gap-4 lg:grid-cols-3
+              2xl:gap-5
+            "
+          >
             {/* LOADING */}
-
             {loading && (
               <div
+                role="status"
                 className="
-                  col-span-full
-
-                  flex
-                  min-h-[300px]
-
-                  items-center
-                  justify-center
-                "
-              >
-                <div className="text-center">
-                  <div
-                    className="
-                      mx-auto
-                      mb-4
-
-                      h-9
-                      w-9
-
-                      animate-spin
-
-                      rounded-full
-
-                      border-2
-                      border-white/[0.08]
-
-                      border-t-red-500
-                    "
-                  />
-
-                  <p
-                    className="
-                      font-bebas
-
-                      text-[12px]
-
-                      tracking-[.20em]
-
-                      text-zinc-500
-                    "
-                  >
-                    LOADING COLLECTION...
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* ERROR */}
-
-            {!loading && error && (
-              <div
-                className="
-                  col-span-full
-
-                  flex
-                  min-h-[280px]
-
-                  items-center
-                  justify-center
+                  col-span-full flex min-h-[220px]
+                  flex-col items-center justify-center
+                  gap-3
                 "
               >
                 <div
                   className="
-                    w-full
-                    max-w-sm
+                    h-8 w-8 animate-spin
+                    rounded-full border-2
+                    border-white/[0.08]
+                    border-t-red-500
+                  "
+                />
 
-                    rounded-2xl
-
-                    border
-                    border-red-500/15
-
-                    bg-red-500/[0.03]
-
-                    p-6
-
-                    text-center
+                <p
+                  className="
+                    font-bebas text-[11px]
+                    uppercase tracking-[0.2em]
+                    text-zinc-500
                   "
                 >
-                  <p
-                    className="
-                      text-sm
-                      text-red-400
-                    "
-                  >
+                  Loading Collection...
+                </p>
+              </div>
+            )}
+
+            {/* ERROR */}
+            {!loading && error && (
+              <div className="col-span-full flex min-h-[220px] items-center justify-center">
+                <div
+                  className="
+                    w-full max-w-sm rounded-2xl
+                    border border-red-500/15
+                    bg-red-500/[0.035]
+                    p-5 text-center
+                  "
+                >
+                  <AlertCircle
+                    size={22}
+                    className="mx-auto text-red-400"
+                  />
+
+                  <p className="mt-3 text-[12px] leading-5 text-red-300">
                     {error}
                   </p>
 
                   <button
-                    onClick={() =>
-                      window.location.reload()
-                    }
+                    type="button"
+                    onClick={() => setRetryKey((value) => value + 1)}
                     className="
-                      mt-4
-
-                      rounded-xl
-
-                      border
-                      border-white/10
-
-                      px-5
-                      py-2
-
-                      font-bebas
-
-                      text-[11px]
-
-                      tracking-[.16em]
-
+                      mt-4 inline-flex items-center
+                      gap-2 rounded-xl
+                      border border-white/10
+                      px-4 py-2
+                      font-bebas text-[11px]
+                      uppercase tracking-[0.15em]
                       text-zinc-300
-
-                      transition-all
-                      duration-300
-
+                      transition-colors duration-200
                       hover:border-red-500/40
                       hover:text-white
                     "
                   >
-                    TRY AGAIN
+                    <RotateCcw size={13} />
+                    Try Again
                   </button>
                 </div>
               </div>
             )}
 
             {/* EMPTY */}
-
             {!loading &&
               !error &&
               filteredProducts.length === 0 && (
                 <div
                   className="
-                    col-span-full
-
-                    flex
-                    min-h-[280px]
-
-                    items-center
-                    justify-center
+                    col-span-full flex min-h-[220px]
+                    flex-col items-center
+                    justify-center text-center
                   "
                 >
-                  <div className="text-center">
-                    <div
-                      className="
-                        mx-auto
-                        mb-4
-
-                        h-10
-                        w-10
-
-                        rounded-full
-
-                        border
-                        border-red-500/20
-
-                        bg-red-500/[0.05]
-                      "
+                  <div
+                    className="
+                      flex h-10 w-10 items-center
+                      justify-center rounded-xl
+                      border border-red-500/20
+                      bg-red-500/[0.05]
+                    "
+                  >
+                    <PackageSearch
+                      size={18}
+                      className="text-red-400"
                     />
-
-                    <p
-                      className="
-                        font-bebas
-
-                        text-xl
-
-                        tracking-[.16em]
-
-                        text-zinc-500
-                      "
-                    >
-                      NO PRODUCTS FOUND
-                    </p>
-
-                    <p
-                      className="
-                        mt-1
-
-                        text-xs
-
-                        text-zinc-600
-                      "
-                    >
-                      Try another search or category.
-                    </p>
                   </div>
+
+                  <h3
+                    className="
+                      mt-3 font-bebas text-lg
+                      uppercase tracking-[0.12em]
+                      text-zinc-400
+                    "
+                  >
+                    No Products Found
+                  </h3>
+
+                  <p className="mt-1 text-[11px] text-zinc-600">
+                    Try another search or category.
+                  </p>
                 </div>
               )}
 
             {/* PRODUCTS */}
-
             {!loading &&
               !error &&
-              filteredProducts.map((product, index) => (
+              filteredProducts.map((product) => (
                 <ProductCard
                   key={product._id}
                   product={product}
@@ -507,155 +358,89 @@ export default function ProductGrid() {
         </div>
       </div>
 
-      {/* =========================
-          MOBILE FILTER DRAWER
-      ========================= */}
-
+      {/* MOBILE FILTER DRAWER */}
       <AnimatePresence>
         {openFilters && (
           <>
-            {/* BACKDROP */}
-
             <motion.div
-              initial={{ opacity: 0 }}
+              initial={reduceMotion ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              exit={reduceMotion ? undefined : { opacity: 0 }}
+              transition={{ duration: 0.2 }}
               onClick={() => setOpenFilters(false)}
+              aria-hidden="true"
               className="
-                fixed
-                inset-0
-
-                z-40
-
-                bg-black/75
-
-                backdrop-blur-md
+                fixed inset-0 z-[80]
+                bg-black/80
               "
             />
 
-            {/* DRAWER */}
-
             <motion.div
-              initial={{
-                y: "100%",
-              }}
-              animate={{
-                y: 0,
-              }}
-              exit={{
-                y: "100%",
-              }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Product filters"
+              initial={reduceMotion ? false : { y: "100%" }}
+              animate={{ y: 0 }}
+              exit={reduceMotion ? undefined : { y: "100%" }}
               transition={{
-                duration: 0.35,
-                ease: [0.22, 1, 0.36, 1],
+                duration: reduceMotion ? 0 : 0.3,
+                ease: EASE,
               }}
               className="
-                fixed
-
-                bottom-0
-                left-0
-                right-0
-
-                z-50
-
-                max-h-[88vh]
-
-                overflow-hidden
-
-                rounded-t-[26px]
-
-                border-t
-                border-red-500/15
-
+                fixed inset-x-0 bottom-0 z-[90]
+                max-h-[88dvh] overflow-hidden
+                rounded-t-[24px]
+                border-t border-red-500/15
                 bg-[#080808]
-
-                shadow-[0_-25px_90px_rgba(0,0,0,.7)]
+                shadow-[0_-20px_70px_rgba(0,0,0,.6)]
+                lg:hidden
               "
             >
-              {/* Handle */}
-
-              <div className="flex justify-center pt-3">
-                <span
-                  className="
-                    h-1
-                    w-12
-
-                    rounded-full
-
-                    bg-zinc-700
-                  "
-                />
+              {/* HANDLE */}
+              <div className="flex justify-center pt-2.5">
+                <span className="h-1 w-10 rounded-full bg-zinc-700" />
               </div>
 
-              {/* Header */}
-
+              {/* DRAWER HEADER */}
               <div
                 className="
-                  flex
-                  items-center
-                  justify-between
-
-                  border-b
-                  border-white/[0.07]
-
-                  px-5
-                  py-4
+                  flex items-center justify-between
+                  border-b border-white/[0.07]
+                  px-4 py-3
                 "
               >
                 <div>
                   <h2
                     className="
-                      font-bebas
-
-                      text-2xl
-
-                      tracking-[.16em]
-
+                      font-bebas text-xl
+                      uppercase tracking-[0.15em]
                       text-white
                     "
                   >
-                    FILTERS
+                    Filters
                   </h2>
 
                   <p
                     className="
-                      mt-0.5
-
-                      text-[9px]
-
-                      uppercase
-                      tracking-[.18em]
-
+                      mt-0.5 text-[9px]
+                      uppercase tracking-[0.16em]
                       text-zinc-600
                     "
                   >
-                    Refine collection
+                    Refine Collection
                   </p>
                 </div>
 
                 <button
-                  onClick={() =>
-                    setOpenFilters(false)
-                  }
+                  type="button"
+                  onClick={() => setOpenFilters(false)}
+                  aria-label="Close filters"
                   className="
-                    flex
-
-                    h-9
-                    w-9
-
-                    items-center
-                    justify-center
-
-                    rounded-xl
-
-                    border
-                    border-white/10
-
-                    text-zinc-500
-
-                    transition-all
-                    duration-300
-
+                    flex h-9 w-9 items-center
+                    justify-center rounded-xl
+                    border border-white/10
+                    text-zinc-400
+                    transition-colors duration-200
                     hover:border-red-500/30
                     hover:text-white
                   "
@@ -664,14 +449,11 @@ export default function ProductGrid() {
                 </button>
               </div>
 
-              {/* BODY */}
-
+              {/* DRAWER BODY */}
               <div
                 className="
-                  max-h-[calc(88vh-90px)]
-
-                  overflow-y-auto
-
+                  max-h-[calc(88dvh-85px)]
+                  overflow-y-auto overscroll-contain
                   p-4
                 "
               >
@@ -688,4 +470,3 @@ export default function ProductGrid() {
     </section>
   );
 }
-

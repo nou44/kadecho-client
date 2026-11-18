@@ -1,4 +1,10 @@
-import { motion } from "framer-motion";
+
+import { useRef } from "react";
+import {
+  motion,
+  useInView,
+  useReducedMotion,
+} from "framer-motion";
 import Container from "../ui/Container";
 import {
   ShieldCheck,
@@ -6,7 +12,10 @@ import {
   Hammer,
   Truck,
   ArrowUpRight,
+  Puzzle,
 } from "lucide-react";
+
+const EASE = [0.22, 1, 0.36, 1];
 
 const features = [
   {
@@ -14,498 +23,420 @@ const features = [
     title: "Premium Quality",
     description:
       "We use carefully selected materials and maintain high manufacturing standards to deliver durable, elegant results.",
+    label: "QUALITY",
   },
   {
     icon: PenTool,
     title: "Custom Design",
     description:
       "Every project is tailored to your space, style, and functional requirements for a truly unique result.",
+    label: "DESIGN",
   },
   {
     icon: Hammer,
     title: "Expert Craftsmanship",
     description:
       "Our experienced team pays attention to every detail, ensuring precision from fabrication to finishing.",
+    label: "CRAFT",
   },
   {
     icon: Truck,
     title: "Reliable Delivery",
     description:
       "From planning to installation, we keep projects on schedule while maintaining exceptional quality.",
+    label: "DELIVERY",
   },
 ];
 
-export default function WhyChooseUs() {
+const assembly = [
+  { x: -35, y: -25, rotate: -4 },
+  { x: 35, y: -25, rotate: 4 },
+  { x: -35, y: 25, rotate: 4 },
+  { x: 35, y: 25, rotate: -4 },
+];
+
+function PuzzleCore() {
   return (
-    <section
+    <div
+      aria-hidden="true"
       className="
-        relative
-        overflow-hidden
-        bg-[#050505]
-        py-14
-        sm:py-16
-        lg:py-20
+        pointer-events-none absolute
+        left-1/2 top-1/2 z-30
+        flex h-14 w-14
+        -translate-x-1/2 -translate-y-1/2
+        items-center justify-center
+        rounded-2xl
+        border border-red-500/40
+        bg-[#090909]
+        shadow-[0_0_0_5px_#050505,0_0_25px_rgba(220,38,38,0.12)]
+        sm:h-16 sm:w-16
       "
     >
-      {/* ================================================= */}
-      {/* BACKGROUND GLOW */}
-      {/* ================================================= */}
-
       <div
         className="
-          pointer-events-none
-          absolute
-          left-1/2
-          top-1/2
-          h-[460px]
-          w-[460px]
-          -translate-x-1/2
-          -translate-y-1/2
-          rounded-full
-          bg-red-600/[0.045]
-          blur-[150px]
+          absolute inset-1.5
+          rounded-xl border border-white/10
+          bg-gradient-to-br
+          from-red-500/15 to-transparent
         "
       />
 
-      {/* ================================================= */}
-      {/* GRID */}
-      {/* ================================================= */}
+      <Puzzle
+        size={23}
+        strokeWidth={1.2}
+        className="relative text-red-400 sm:h-7 sm:w-7"
+      />
+    </div>
+  );
+}
 
+export default function WhyChooseUs() {
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, {
+    once: true,
+    amount: 0.15,
+  });
+  const reduceMotion = useReducedMotion();
+  const assembled = isInView || reduceMotion;
+
+  return (
+    <section
+      ref={sectionRef}
+      className="
+        relative isolate overflow-hidden
+        bg-[#050505]
+        py-12 sm:py-14 lg:py-16
+      "
+    >
+      {/* STATIC ATMOSPHERE */}
       <div
+        aria-hidden="true"
         className="
-          pointer-events-none
-          absolute
-          inset-0
-          opacity-[0.018]
-          bg-[linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)]
-          bg-[size:42px_42px]
+          pointer-events-none absolute inset-0
+          bg-[radial-gradient(ellipse_at_50%_55%,rgba(220,38,38,0.07),transparent_60%)]
+        "
+      />
+
+      {/* ARCHITECTURAL GRID */}
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none absolute inset-0
+          opacity-[0.02]
+          [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)]
+          [background-size:42px_42px]
         "
       />
 
       <Container className="relative z-10">
-
-        {/* ================================================= */}
         {/* HEADER */}
-        {/* ================================================= */}
-
-        <div className="mx-auto max-w-2xl text-center">
-
-          {/* Badge */}
-
-          <motion.span
-            initial={{
-              opacity: 0,
-              y: 15,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-            }}
-            viewport={{
-              once: true,
-              amount: 0.3,
-            }}
-            transition={{
-              duration: 0.5,
-            }}
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+          animate={assembled ? { opacity: 1, y: 0 } : undefined}
+          transition={{ duration: 0.6, ease: EASE }}
+          className="mx-auto max-w-2xl text-center"
+        >
+          <span
             className="
-              inline-flex
-              items-center
+              inline-flex items-center gap-2
               rounded-full
-              border
-              border-red-500/20
+              border border-red-500/20
               bg-red-500/[0.08]
-              px-3.5
-              py-1.5
-              text-[9px]
-              font-semibold
-              uppercase
-              tracking-[0.28em]
+              px-3.5 py-1.5
+              text-[9px] font-semibold
+              uppercase tracking-[0.28em]
               text-red-400
             "
           >
+            <Puzzle size={12} />
             Why Choose Us
-          </motion.span>
+          </span>
 
-          {/* Title */}
-
-          <motion.h2
-            initial={{
-              opacity: 0,
-              y: 25,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-            }}
-            viewport={{
-              once: true,
-              amount: 0.3,
-            }}
-            transition={{
-              delay: 0.1,
-              duration: 0.65,
-              ease: [0.22, 1, 0.36, 1],
-            }}
+          <h2
             className="
-              mt-4
-              font-bebas
-              text-3xl
-              font-black
-              uppercase
-              leading-[0.9]
+              mt-4 font-bebas
+              text-3xl font-black
+              uppercase leading-[0.9]
               tracking-[0.05em]
               text-white
-              sm:text-4xl
-              lg:text-5xl
+              sm:text-4xl lg:text-5xl
             "
           >
             Why Clients{" "}
             <span
               className="
                 bg-gradient-to-r
-                from-red-500
-                via-red-400
-                to-orange-400
-                bg-clip-text
-                text-transparent
+                from-red-500 via-red-400 to-orange-400
+                bg-clip-text text-transparent
               "
             >
               Trust KADECHO
             </span>
-          </motion.h2>
+          </h2>
 
-          {/* Accent */}
-
-          <motion.div
-            initial={{
-              width: 0,
-              opacity: 0,
-            }}
-            whileInView={{
-              width: 90,
-              opacity: 1,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              delay: 0.35,
-              duration: 0.7,
-              ease: "easeOut",
-            }}
+          <div
+            aria-hidden="true"
             className="
-              mx-auto
-              mt-4
-              h-[2px]
-              rounded-full
+              mx-auto mt-4 h-[2px] w-[90px]
               bg-gradient-to-r
-              from-transparent
-              via-red-500
-              to-transparent
+              from-transparent via-red-500 to-transparent
             "
           />
 
-          {/* Description */}
-
-          <motion.p
-            initial={{
-              opacity: 0,
-              y: 15,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-            }}
-            viewport={{
-              once: true,
-              amount: 0.3,
-            }}
-            transition={{
-              delay: 0.45,
-              duration: 0.5,
-            }}
+          <p
             className="
-              mx-auto
-              mt-4
-              max-w-xl
-              text-[12px]
-              leading-6
-              text-zinc-500
-              sm:text-[13px]
-              sm:leading-6
+              mx-auto mt-4 max-w-xl
+              text-[12px] leading-6
+              text-zinc-500 sm:text-[13px]
             "
           >
             We combine creativity, precision and premium
             craftsmanship to create metal solutions built
             around your vision.
-          </motion.p>
+          </p>
+        </motion.div>
 
-        </div>
+        {/* ASSEMBLY CAPTION */}
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+          animate={assembled ? { opacity: 1, y: 0 } : undefined}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="
+            mt-8 flex items-center justify-center gap-3
+            sm:mt-9
+          "
+        >
+          <span className="h-px w-7 bg-red-500/30" />
+          <span
+            className="
+              font-mono text-[9px]
+              uppercase tracking-[0.22em]
+              text-zinc-500
+            "
+          >
+            Four pieces. One standard.
+          </span>
+          <span className="h-px w-7 bg-red-500/30" />
+        </motion.div>
 
-        {/* ================================================= */}
-        {/* FEATURES */}
-        {/* ================================================= */}
-
+        {/* PUZZLE ASSEMBLY GRID */}
         <div
           className="
-            mt-9
-            grid
-            gap-3
-            sm:mt-10
-            sm:grid-cols-2
+            relative mx-auto mt-5
+            grid max-w-5xl grid-cols-2
+            gap-2.5 sm:gap-3
             lg:gap-4
           "
         >
+          {/* CENTER CORE */}
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
+            animate={
+              assembled
+                ? { opacity: 1, scale: 1 }
+                : undefined
+            }
+            transition={{
+              duration: 0.55,
+              delay: 0.7,
+              ease: EASE,
+            }}
+            className="
+              pointer-events-none absolute inset-0 z-30
+            "
+          >
+            <PuzzleCore />
+          </motion.div>
 
           {features.map((feature, index) => {
-
             const Icon = feature.icon;
+            const offset = assembly[index];
 
             return (
-              <motion.div
+              <motion.article
                 key={feature.title}
-                initial={{
-                  opacity: 0,
-                  y: 35,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                viewport={{
-                  once: true,
-                  amount: 0.2,
-                }}
+                initial={
+                  reduceMotion
+                    ? false
+                    : {
+                        opacity: 0,
+                        x: offset.x,
+                        y: offset.y,
+                        rotate: offset.rotate,
+                        scale: 0.96,
+                      }
+                }
+                animate={
+                  assembled
+                    ? {
+                        opacity: 1,
+                        x: 0,
+                        y: 0,
+                        rotate: 0,
+                        scale: 1,
+                      }
+                    : undefined
+                }
                 transition={{
-                  delay: index * 0.08,
-                  duration: 0.55,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-                whileHover={{
-                  y: -6,
+                  duration: 0.8,
+                  delay: index * 0.1,
+                  ease: EASE,
                 }}
                 className="
-                  group
-                  relative
+                  group relative min-w-0
                   overflow-hidden
-                  rounded-[22px]
-                  border
-                  border-white/[0.07]
+                  rounded-[18px]
+                  border border-white/[0.09]
                   bg-gradient-to-br
-                  from-white/[0.045]
-                  via-[#0a0a0a]
-                  to-[#060606]
-                  p-5
-                  transition-all
-                  duration-500
-                  hover:border-red-500/25
-                  hover:shadow-[0_20px_55px_rgba(239,68,68,.10)]
-                  sm:p-6
+                  from-[#171717] via-[#0c0c0c] to-[#070707]
+                  p-3.5
+                  transition-[border-color,box-shadow]
+                  duration-300
+                  hover:border-red-500/30
+                  hover:shadow-[0_12px_40px_rgba(220,38,38,0.08)]
+                  sm:rounded-[22px] sm:p-6
                 "
               >
-
-                {/* ================================================= */}
-                {/* TOP ACCENT */}
-                {/* ================================================= */}
-
+                {/* TOP RED EDGE */}
                 <div
+                  aria-hidden="true"
                   className="
-                    absolute
-                    left-0
-                    top-0
-                    h-px
-                    w-16
+                    absolute left-0 top-0
+                    h-px w-20
                     bg-gradient-to-r
-                    from-red-500
-                    to-transparent
-                    transition-all
-                    duration-500
+                    from-red-500/80 to-transparent
+                    transition-[width] duration-300
                     group-hover:w-full
                   "
                 />
 
-                {/* ================================================= */}
-                {/* CORNER GLOW */}
-                {/* ================================================= */}
-
-                <div
+                {/* LARGE PUZZLE WATERMARK */}
+                <Puzzle
+                  aria-hidden="true"
+                  size={86}
+                  strokeWidth={0.55}
                   className="
                     pointer-events-none
-                    absolute
-                    -right-16
-                    -top-16
-                    h-36
-                    w-36
-                    rounded-full
-                    bg-red-500/10
-                    blur-3xl
-                    opacity-0
-                    transition-opacity
-                    duration-500
-                    group-hover:opacity-100
+                    absolute -right-5 -top-5
+                    text-red-500/[0.065]
+                    sm:h-28 sm:w-28
                   "
                 />
 
-                {/* ================================================= */}
-                {/* HEADER ROW */}
-                {/* ================================================= */}
-
-                <div className="relative flex items-start justify-between">
-
-                  {/* Icon */}
-
-                  <motion.div
-                    whileHover={{
-                      scale: 1.08,
-                      rotate: 4,
-                    }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 250,
-                      damping: 15,
-                    }}
+                {/* TOP ROW */}
+                <div
+                  className="
+                    relative flex items-start
+                    justify-between gap-2
+                  "
+                >
+                  <div
                     className="
-                      flex
-                      h-12
-                      w-12
-                      items-center
-                      justify-center
-                      rounded-[15px]
-                      border
-                      border-red-500/15
-                      bg-red-500/[0.08]
+                      flex h-10 w-10 shrink-0
+                      items-center justify-center
+                      rounded-xl
+                      border border-red-500/20
+                      bg-red-500/[0.09]
                       text-red-400
-                      transition-all
+                      transition-[background-color,transform]
                       duration-300
-                      group-hover:border-red-500/30
+                      group-hover:-translate-y-0.5
                       group-hover:bg-red-500/15
+                      sm:h-12 sm:w-12
                     "
                   >
-                    <Icon size={21} strokeWidth={1.8} />
-                  </motion.div>
-
-                  {/* Number */}
+                    <Icon size={20} strokeWidth={1.7} />
+                  </div>
 
                   <span
                     className="
-                      font-mono
-                      text-[9px]
-                      tracking-[0.25em]
-                      text-zinc-700
-                      transition-colors
-                      duration-300
-                      group-hover:text-red-500/50
+                      font-mono text-[9px]
+                      tracking-[0.22em]
+                      text-zinc-600
                     "
                   >
                     0{index + 1}
                   </span>
-
                 </div>
 
-                {/* ================================================= */}
                 {/* TITLE */}
-                {/* ================================================= */}
-
                 <h3
                   className="
-                    relative
-                    mt-5
-                    font-bebas
-                    text-lg
-                    font-bold
-                    uppercase
-                    tracking-[0.12em]
+                    relative mt-5
+                    font-bebas text-[16px]
+                    uppercase leading-tight
+                    tracking-[0.07em]
                     text-white
-                    transition-colors
-                    duration-300
+                    transition-colors duration-300
                     group-hover:text-red-400
-                    sm:text-xl
+                    sm:text-[22px]
                   "
                 >
                   {feature.title}
                 </h3>
 
-                {/* ================================================= */}
                 {/* DESCRIPTION */}
-                {/* ================================================= */}
-
                 <p
                   className="
-                    relative
-                    mt-2.5
-                    max-w-xl
-                    text-[11px]
-                    leading-5
+                    relative mt-2
+                    text-[10px] leading-[1.7]
                     text-zinc-500
-                    sm:text-[12px]
-                    sm:leading-6
+                    sm:text-[12px] sm:leading-6
                   "
                 >
                   {feature.description}
                 </p>
 
-                {/* ================================================= */}
-                {/* BOTTOM ACTION */}
-                {/* ================================================= */}
-
+                {/* BOTTOM BAR */}
                 <div
                   className="
-                    relative
-                    mt-5
-                    flex
-                    items-center
-                    justify-between
-                    border-t
-                    border-white/[0.05]
+                    relative mt-5 flex items-center
+                    justify-between gap-2
+                    border-t border-white/[0.06]
                     pt-4
                   "
                 >
-
                   <span
                     className="
-                      text-[8px]
-                      font-medium
-                      uppercase
-                      tracking-[0.22em]
-                      text-zinc-700
-                      transition-colors
-                      duration-300
-                      group-hover:text-zinc-500
+                      font-mono text-[8px]
+                      uppercase tracking-[0.15em]
+                      text-zinc-600
                     "
                   >
                     KADECHO STANDARD
                   </span>
 
-                  <div
+                  <ArrowUpRight
+                    size={14}
                     className="
-                      flex
-                      h-7
-                      w-7
-                      items-center
-                      justify-center
-                      rounded-full
-                      border
-                      border-white/[0.06]
-                      text-zinc-600
-                      transition-all
+                      shrink-0 text-zinc-600
+                      transition-[color,transform]
                       duration-300
-                      group-hover:border-red-500/30
-                      group-hover:bg-red-500/10
+                      group-hover:-translate-y-0.5
+                      group-hover:translate-x-0.5
                       group-hover:text-red-400
                     "
-                  >
-                    <ArrowUpRight size={13} />
-                  </div>
-
+                  />
                 </div>
-
-              </motion.div>
+              </motion.article>
             );
           })}
-
         </div>
 
+        {/* FINAL SIGNATURE */}
+        <motion.p
+          initial={reduceMotion ? false : { opacity: 0 }}
+          animate={assembled ? { opacity: 1 } : undefined}
+          transition={{ duration: 0.6, delay: 1.1 }}
+          className="
+            mt-6 text-center
+            font-mono text-[9px]
+            uppercase tracking-[0.22em]
+            text-zinc-600
+          "
+        >
+          Precision connects everything.
+        </motion.p>
       </Container>
     </section>
   );

@@ -1,699 +1,593 @@
-import { motion } from "framer-motion";
+
+import { useEffect, useId, useRef, useState } from "react";
+import {
+  motion,
+  useInView,
+  useReducedMotion,
+} from "framer-motion";
 import Container from "../ui/Container";
 import {
   MessageSquare,
+  Ruler,
   PencilRuler,
+  BadgeCheck,
   Hammer,
+  Paintbrush,
+  Truck,
   CheckCircle2,
   ArrowRight,
 } from "lucide-react";
 
+const EASE = [0.22, 1, 0.36, 1];
+
 const steps = [
   {
-    number: "01",
     icon: MessageSquare,
     title: "Consultation",
-    description:
-      "We discuss your ideas, requirements, dimensions and budget to fully understand your project.",
+    description: "Your vision & requirements.",
   },
   {
-    number: "02",
+    icon: Ruler,
+    title: "Measurements",
+    description: "Every dimension matters.",
+  },
+  {
     icon: PencilRuler,
     title: "Design",
-    description:
-      "Our team creates a custom design that combines functionality, durability and luxury aesthetics.",
+    description: "Ideas become precision.",
   },
   {
-    number: "03",
+    icon: BadgeCheck,
+    title: "Approval",
+    description: "Every detail confirmed.",
+  },
+  {
     icon: Hammer,
-    title: "Production",
-    description:
-      "Every piece is manufactured with precision using premium materials and professional craftsmanship.",
+    title: "Fabrication",
+    description: "Crafted by expert hands.",
   },
   {
-    number: "04",
+    icon: Paintbrush,
+    title: "Finishing",
+    description: "The premium final touch.",
+  },
+  {
+    icon: Truck,
+    title: "Delivery",
+    description: "Handled with care.",
+  },
+  {
     icon: CheckCircle2,
     title: "Installation",
-    description:
-      "We deliver and install your project with attention to every final detail.",
+    description: "Perfectly fitted on site.",
   },
 ];
 
-export default function WorkProcess() {
+/*
+  Geometry:
+  Each cell uses a 100 x 100 local coordinate system.
+
+  Tabs:
+  +1 = outward
+  -1 = inward
+   0 = flat
+
+  Shared neighboring edges have opposite tab values.
+  The same cubic curves are used for both sides.
+*/
+
+const TAB = 11;
+const A = 34;
+const B = 66;
+
+function puzzlePath(top, right, bottom, left) {
+  let d = "M 0 0";
+
+  // TOP: left -> right
+  if (!top) {
+    d += " H 100";
+  } else {
+    const v = -top * TAB;
+    d += ` H ${A}`;
+    d += ` C ${A - 6} ${v}, ${B + 6} ${v}, ${B} 0`;
+    d += " H 100";
+  }
+
+  // RIGHT: top -> bottom
+  if (!right) {
+    d += " V 100";
+  } else {
+    const v = 100 + right * TAB;
+    d += ` V ${A}`;
+    d += ` C ${v} ${A - 6}, ${v} ${B + 6}, 100 ${B}`;
+    d += " V 100";
+  }
+
+  // BOTTOM: right -> left
+  if (!bottom) {
+    d += " H 0";
+  } else {
+    const v = 100 + bottom * TAB;
+    d += ` H ${B}`;
+    d += ` C ${B + 6} ${v}, ${A - 6} ${v}, ${A} 100`;
+    d += " H 0";
+  }
+
+  // LEFT: bottom -> top
+  if (!left) {
+    d += " V 0";
+  } else {
+    const v = -left * TAB;
+    d += ` V ${B}`;
+    d += ` C ${v} ${B + 6}, ${v} ${A - 6}, 0 ${A}`;
+    d += " V 0";
+  }
+
+  return d + " Z";
+}
+
+// Consistent connection patterns across rows/columns.
+const horizontalConnections = [
+  [1, -1, 1],
+  [-1, 1, -1],
+  [1, 1, -1],
+  [-1, -1, 1],
+];
+
+const verticalConnections = [
+  [1, -1, 1, -1],
+  [-1, 1, -1, 1],
+  [1, 1, -1, -1],
+];
+
+function getPieceEdges(index, columns) {
+  const row = Math.floor(index / columns);
+  const col = index % columns;
+  const rows = steps.length / columns;
+
+  const right =
+    col === columns - 1
+      ? 0
+      : horizontalConnections[row][col];
+
+  const left =
+    col === 0
+      ? 0
+      : -horizontalConnections[row][col - 1];
+
+  const bottom =
+    row === rows - 1
+      ? 0
+      : verticalConnections[row][col];
+
+  const top =
+    row === 0
+      ? 0
+      : -verticalConnections[row - 1][col];
+
+  return { top, right, bottom, left };
+}
+
+// Separate edge patterns for mobile 2x4.
+function getMobileEdges(index) {
+  const row = Math.floor(index / 2);
+  const col = index % 2;
+
+  const jointsX = [1, -1, 1, -1];
+  const jointsY = [
+    [1, -1],
+    [-1, 1],
+    [1, 1],
+  ];
+
+  return {
+    top: row === 0 ? 0 : -jointsY[row - 1][col],
+    right: col === 1 ? 0 : jointsX[row],
+    bottom: row === 3 ? 0 : jointsY[row][col],
+    left: col === 0 ? 0 : -jointsX[row],
+  };
+}
+
+function PuzzlePiece({
+  step,
+  index,
+  columns,
+  assembled,
+  reduceMotion,
+  gradientId,
+}) {
+  const Icon = step.icon;
+
+  const row = Math.floor(index / columns);
+  const col = index % columns;
+
+  const edges =
+    columns === 2
+      ? getMobileEdges(index)
+      : getPieceEdges(index, columns);
+
+  const path = puzzlePath(
+    edges.top,
+    edges.right,
+    edges.bottom,
+    edges.left
+  );
+
+  const centerX = (columns - 1) / 2;
+  const centerY = (steps.length / columns - 1) / 2;
+
+  const offsetX = (col - centerX) * 28;
+  const offsetY = (row - centerY) * 24;
+
+  const rotation =
+    (index % 2 === 0 ? -1 : 1) * 3;
+
+  const target =
+    reduceMotion || assembled
+      ? { x: 0, y: 0, rotate: 0, opacity: 1 }
+      : {
+          x: offsetX,
+          y: offsetY,
+          rotate: rotation,
+          opacity: 0.88,
+        };
+
   return (
-    <section
+    <motion.div
+      initial={false}
+      animate={target}
+      transition={{
+        duration: assembled ? 1.05 : 0.8,
+        delay: assembled ? index * 0.055 : 0,
+        ease: EASE,
+      }}
       className="
-        relative
-        overflow-hidden
-        bg-[#050505]
-        py-14
-        sm:py-16
-        lg:py-20
+        group relative min-w-0
+        aspect-[1.18/1]
+        transform-gpu
       "
     >
-      {/* ================================================= */}
-      {/* BACKGROUND GLOW */}
-      {/* ================================================= */}
-
-      <div
+      {/* REAL PUZZLE SILHOUETTE */}
+      <svg
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        aria-hidden="true"
         className="
           pointer-events-none
-          absolute
-          left-1/2
-          top-1/2
-          h-[420px]
-          w-[420px]
-          -translate-x-1/2
-          -translate-y-1/2
-          rounded-full
-          bg-red-600/[0.045]
-          blur-[140px]
+          absolute inset-0
+          h-full w-full
+          overflow-visible
+        "
+      >
+        <path
+          d={path}
+          fill={`url(#${gradientId})`}
+          stroke="#823037"
+          strokeWidth="0.7"
+          vectorEffect="non-scaling-stroke"
+          strokeLinejoin="round"
+        />
+      </svg>
+
+      {/* CONTENT — MOVES WITH ITS PIECE */}
+      <div
+        className="
+          relative z-10 flex h-full
+          min-w-0 flex-col
+          items-center justify-center
+          px-2.5 py-2.5
+          text-center
+          sm:px-3 sm:py-3
+          lg:px-3
+        "
+      >
+        <span
+          className="
+            absolute right-2 top-2
+            font-mono text-[7px]
+            tracking-wider
+            text-red-400/45
+            sm:right-3 sm:top-3
+          "
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
+
+        <div
+          className="
+            flex h-7 w-7
+            shrink-0 items-center justify-center
+            rounded-lg
+            border border-red-500/20
+            bg-red-500/10
+            text-red-400
+            sm:h-8 sm:w-8
+            lg:h-9 lg:w-9
+          "
+        >
+          <Icon
+            size={14}
+            strokeWidth={1.7}
+            className="lg:h-4 lg:w-4"
+          />
+        </div>
+
+        <h3
+          className="
+            mt-2 font-bebas
+            text-[13px] uppercase
+            leading-none
+            tracking-[0.035em]
+            text-white
+            sm:text-[16px]
+            lg:text-[18px]
+          "
+        >
+          {step.title}
+        </h3>
+
+        <div className="mt-1.5 h-px w-5 bg-red-500/65" />
+
+        <p
+          className="
+            mt-1.5 max-w-[130px]
+            text-[8px] leading-[1.45]
+            text-zinc-400
+            sm:text-[9px]
+            lg:text-[10px]
+          "
+        >
+          {step.description}
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+function PuzzleAssembly({
+  columns,
+  active,
+  reduceMotion,
+  gradientId,
+}) {
+  const [assembled, setAssembled] = useState(false);
+
+  useEffect(() => {
+    if (reduceMotion) {
+      setAssembled(true);
+      return;
+    }
+
+    if (!active) {
+      setAssembled(false);
+      return;
+    }
+
+    const timers = [];
+
+    const start = window.setTimeout(() => {
+      setAssembled(true);
+    }, 300);
+
+    const interval = window.setInterval(() => {
+      setAssembled(false);
+
+      const reassemble = window.setTimeout(() => {
+        setAssembled(true);
+      }, 1150);
+
+      timers.push(reassemble);
+    }, 6500);
+
+    return () => {
+      window.clearTimeout(start);
+      window.clearInterval(interval);
+      timers.forEach(window.clearTimeout);
+    };
+  }, [active, reduceMotion]);
+
+  return (
+    <div
+      className="
+        relative mx-auto
+        w-full
+      "
+    >
+      <svg
+        aria-hidden="true"
+        width="0"
+        height="0"
+        className="absolute"
+      >
+        <defs>
+          <linearGradient
+            id={gradientId}
+            x1="0"
+            y1="0"
+            x2="1"
+            y2="1"
+          >
+            <stop offset="0%" stopColor="#191919" />
+            <stop offset="55%" stopColor="#101010" />
+            <stop offset="100%" stopColor="#080808" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <div
+        className={`
+          relative grid gap-0
+          ${
+            columns === 2
+              ? "grid-cols-2"
+              : "grid-cols-4"
+          }
+        `}
+      >
+        {steps.map((step, index) => (
+          <PuzzlePiece
+            key={step.title}
+            step={step}
+            index={index}
+            columns={columns}
+            assembled={assembled}
+            reduceMotion={reduceMotion}
+            gradientId={gradientId}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function WorkProcess() {
+  const sectionRef = useRef(null);
+
+  const active = useInView(sectionRef, {
+    amount: 0.15,
+  });
+
+  const reduceMotion = useReducedMotion();
+  const rawId = useId();
+  const gradientId = `kadecho-metal-${rawId.replace(/:/g, "")}`;
+
+  return (
+    <section
+      ref={sectionRef}
+      className="
+        relative isolate overflow-hidden
+        bg-[#050505]
+        py-10 sm:py-12 lg:py-14
+      "
+    >
+      {/* STATIC BACKGROUND */}
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none absolute inset-0
+          bg-[radial-gradient(ellipse_at_50%_55%,rgba(220,38,38,0.055),transparent_60%)]
         "
       />
 
-      {/* Subtle Grid */}
-
       <div
+        aria-hidden="true"
         className="
-          pointer-events-none
-          absolute
-          inset-0
+          pointer-events-none absolute inset-0
           opacity-[0.018]
-          bg-[linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)]
-          bg-[size:42px_42px]
+          [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)]
+          [background-size:42px_42px]
         "
       />
 
       <Container className="relative z-10">
-
-        {/* ================================================= */}
-        {/* HEADER */}
-        {/* ================================================= */}
-
+        {/* COMPACT HEADER */}
         <div className="mx-auto max-w-3xl text-center">
-
-          <motion.span
-            initial={{
-              opacity: 0,
-              y: 15,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-            }}
-            viewport={{
-              once: true,
-              amount: 0.3,
-            }}
-            transition={{
-              duration: 0.5,
-            }}
+          <span
             className="
-              inline-flex
-              items-center
-              gap-2
+              inline-flex items-center gap-2
               rounded-full
-              border
-              border-red-500/20
+              border border-red-500/20
               bg-red-500/[0.08]
-              px-3.5
-              py-1.5
-              text-[9px]
-              font-semibold
-              uppercase
-              tracking-[0.28em]
+              px-3 py-1
+              text-[8px] font-semibold
+              uppercase tracking-[0.25em]
               text-red-400
-              backdrop-blur-md
             "
           >
-            <span
-              className="
-                h-1.5
-                w-1.5
-                rounded-full
-                bg-red-500
-                shadow-[0_0_10px_rgba(239,68,68,.7)]
-              "
-            />
-
+            <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
             Our Process
-          </motion.span>
+          </span>
 
-          <motion.h2
-            initial={{
-              opacity: 0,
-              y: 20,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-            }}
-            viewport={{
-              once: true,
-              amount: 0.3,
-            }}
-            transition={{
-              delay: 0.1,
-              duration: 0.6,
-              ease: [0.22, 1, 0.36, 1],
-            }}
+          <h2
             className="
-              mt-4
-              font-bebas
-              text-4xl
-              font-black
-              uppercase
+              mt-3 font-bebas
+              text-[32px] uppercase
               leading-[0.9]
-              tracking-[0.05em]
+              tracking-[0.04em]
               text-white
-              sm:text-5xl
-              lg:text-6xl
+              sm:text-[40px]
+              lg:text-[48px]
             "
           >
             From Idea{" "}
             <span className="text-red-500">
               To Perfection
             </span>
-          </motion.h2>
+          </h2>
 
-          {/* Animated Line */}
-
-          <motion.div
-            initial={{
-              width: 0,
-              opacity: 0,
-            }}
-            whileInView={{
-              width: 140,
-              opacity: 1,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              delay: 0.3,
-              duration: 0.8,
-              ease: [0.22, 1, 0.36, 1],
-            }}
+          <div
             className="
-              mx-auto
-              mt-4
-              h-[2px]
-              rounded-full
+              mx-auto mt-3
+              h-[2px] w-[80px]
               bg-gradient-to-r
-              from-transparent
-              via-red-500
-              to-transparent
+              from-transparent via-red-500 to-transparent
             "
           />
 
-          <motion.p
-            initial={{
-              opacity: 0,
-              y: 15,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              delay: 0.4,
-              duration: 0.5,
-            }}
+          <p
             className="
-              mx-auto
-              mt-5
-              max-w-xl
-              text-[12px]
-              leading-6
+              mx-auto mt-3 max-w-xl
+              text-[11px] leading-5
               text-zinc-500
-              sm:text-[13px]
-              sm:leading-7
+              sm:text-[12px] sm:leading-6
             "
           >
-            Every project follows a carefully planned workflow
-            to guarantee precision, quality and a flawless final result.
-          </motion.p>
-
+            Eight carefully connected stages.
+            One perfectly crafted result.
+          </p>
         </div>
 
-        {/* ================================================= */}
-        {/* PROCESS */}
-        {/* ================================================= */}
+        {/* MOBILE: 2 x 4 */}
+        <div className="mx-auto mt-7 w-full max-w-[430px] px-3 sm:hidden">
+          <PuzzleAssembly
+            columns={2}
+            active={active}
+            reduceMotion={reduceMotion}
+            gradientId={`${gradientId}-mobile`}
+          />
+        </div>
 
+        {/* TABLET + DESKTOP: 4 x 2 */}
         <div
           className="
-            relative
-            mt-10
-            sm:mt-12
-            lg:mt-14
+            mx-auto mt-8 hidden
+            w-full max-w-[1020px]
+            px-4 sm:block
           "
         >
-
-          {/* DESKTOP TIMELINE */}
-
-          <div
-            className="
-              pointer-events-none
-              absolute
-              left-[12.5%]
-              right-[12.5%]
-              top-[30px]
-              hidden
-              h-px
-              lg:block
-            "
-          >
-            <div
-              className="
-                absolute
-                inset-0
-                bg-white/[0.06]
-              "
-            />
-
-            <motion.div
-              initial={{
-                scaleX: 0,
-              }}
-              whileInView={{
-                scaleX: 1,
-              }}
-              viewport={{
-                once: true,
-              }}
-              transition={{
-                duration: 1.5,
-                delay: 0.5,
-                ease: "easeInOut",
-              }}
-              className="
-                absolute
-                inset-0
-                origin-left
-                bg-gradient-to-r
-                from-red-600/60
-                via-red-500/30
-                to-transparent
-              "
-            />
-          </div>
-
-          <div
-            className="
-              grid
-              gap-4
-              sm:gap-5
-              lg:grid-cols-4
-              lg:gap-5
-            "
-          >
-
-            {steps.map((step, index) => {
-
-              const Icon = step.icon;
-
-              return (
-                <motion.div
-                  key={step.number}
-                  initial={{
-                    opacity: 0,
-                    y: 35,
-                  }}
-                  whileInView={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  viewport={{
-                    once: true,
-                    amount: 0.2,
-                  }}
-                  transition={{
-                    delay: index * 0.12,
-                    duration: 0.6,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                  className="relative"
-                >
-
-                  {/* ================================================= */}
-                  {/* STEP NODE */}
-                  {/* ================================================= */}
-
-                  <div
-                    className="
-                      relative
-                      z-20
-                      mb-3
-                      hidden
-                      lg:flex
-                      lg:justify-center
-                    "
-                  >
-                    <motion.div
-                      initial={{
-                        scale: 0,
-                      }}
-                      whileInView={{
-                        scale: 1,
-                      }}
-                      viewport={{
-                        once: true,
-                      }}
-                      transition={{
-                        delay: 0.35 + index * 0.12,
-                        type: "spring",
-                        stiffness: 220,
-                        damping: 16,
-                      }}
-                      className="
-                        flex
-                        h-[60px]
-                        w-[60px]
-                        items-center
-                        justify-center
-                        rounded-full
-                        border
-                        border-red-500/20
-                        bg-[#080808]
-                        shadow-[0_0_0_6px_rgba(239,68,68,.025)]
-                      "
-                    >
-                      <div
-                        className="
-                          flex
-                          h-9
-                          w-9
-                          items-center
-                          justify-center
-                          rounded-full
-                          bg-red-500/10
-                          text-red-400
-                        "
-                      >
-                        <Icon size={17} />
-                      </div>
-                    </motion.div>
-                  </div>
-
-                  {/* ================================================= */}
-                  {/* CARD */}
-                  {/* ================================================= */}
-
-                  <motion.div
-                    whileHover={{
-                      y: -7,
-                    }}
-                    transition={{
-                      duration: 0.3,
-                      ease: "easeOut",
-                    }}
-                    className="
-                      group
-                      relative
-                      overflow-hidden
-                      rounded-[22px]
-                      border
-                      border-white/[0.08]
-                      bg-gradient-to-br
-                      from-white/[0.045]
-                      via-[#0a0a0a]
-                      to-black
-                      p-5
-                      transition-all
-                      duration-500
-                      hover:border-red-500/25
-                      hover:shadow-[0_18px_50px_rgba(239,68,68,.10)]
-                      lg:min-h-[245px]
-                      lg:p-5
-                    "
-                  >
-
-                    {/* Top Accent */}
-
-                    <motion.div
-                      initial={{
-                        width: 0,
-                      }}
-                      whileHover={{
-                        width: "100%",
-                      }}
-                      transition={{
-                        duration: 0.5,
-                      }}
-                      className="
-                        absolute
-                        left-0
-                        top-0
-                        h-[2px]
-                        bg-gradient-to-r
-                        from-red-600
-                        via-red-400
-                        to-transparent
-                      "
-                    />
-
-                    {/* Hover Glow */}
-
-                    <div
-                      className="
-                        pointer-events-none
-                        absolute
-                        -bottom-16
-                        left-1/2
-                        h-32
-                        w-32
-                        -translate-x-1/2
-                        rounded-full
-                        bg-red-500/15
-                        blur-3xl
-                        opacity-0
-                        transition-opacity
-                        duration-500
-                        group-hover:opacity-100
-                      "
-                    />
-
-                    {/* Mobile Header */}
-
-                    <div className="flex items-start justify-between lg:block">
-
-                      <div
-                        className="
-                          flex
-                          h-11
-                          w-11
-                          items-center
-                          justify-center
-                          rounded-xl
-                          border
-                          border-red-500/15
-                          bg-red-500/[0.08]
-                          text-red-400
-                          lg:hidden
-                        "
-                      >
-                        <Icon size={19} />
-                      </div>
-
-                      {/* Number */}
-
-                      <span
-                        className="
-                          font-bebas
-                          text-4xl
-                          font-black
-                          leading-none
-                          tracking-[0.05em]
-                          text-white/[0.07]
-                          transition-colors
-                          duration-500
-                          group-hover:text-red-500/15
-                        "
-                      >
-                        {step.number}
-                      </span>
-
-                    </div>
-
-                    {/* Desktop Number */}
-
-                    <div
-                      className="
-                        absolute
-                        right-5
-                        top-5
-                        hidden
-                        lg:block
-                      "
-                    >
-                      <span
-                        className="
-                          font-bebas
-                          text-4xl
-                          font-black
-                          leading-none
-                          tracking-[0.05em]
-                          text-white/[0.055]
-                          transition-colors
-                          duration-500
-                          group-hover:text-red-500/15
-                        "
-                      >
-                        {step.number}
-                      </span>
-                    </div>
-
-                    {/* Title */}
-
-                    <h3
-                      className="
-                        relative
-                        mt-5
-                        font-bebas
-                        text-xl
-                        font-black
-                        uppercase
-                        tracking-[0.12em]
-                        text-white
-                        transition-colors
-                        duration-300
-                        group-hover:text-red-400
-                        lg:mt-5
-                      "
-                    >
-                      {step.title}
-                    </h3>
-
-                    {/* Tiny line */}
-
-                    <div
-                      className="
-                        mt-3
-                        h-px
-                        w-8
-                        bg-red-500/50
-                        transition-all
-                        duration-500
-                        group-hover:w-14
-                        group-hover:bg-red-500
-                      "
-                    />
-
-                    {/* Description */}
-
-                    <p
-                      className="
-                        relative
-                        mt-3
-                        text-[12px]
-                        leading-6
-                        text-zinc-500
-                        transition-colors
-                        duration-300
-                        group-hover:text-zinc-400
-                        sm:text-[13px]
-                        sm:leading-6
-                      "
-                    >
-                      {step.description}
-                    </p>
-
-                    {/* Bottom Meta */}
-
-                    <div
-                      className="
-                        mt-5
-                        flex
-                        items-center
-                        gap-2
-                        text-[8px]
-                        font-semibold
-                        uppercase
-                        tracking-[0.18em]
-                        text-zinc-600
-                        transition-colors
-                        duration-300
-                        group-hover:text-red-400/70
-                      "
-                    >
-                      <span
-                        className="
-                          h-1
-                          w-1
-                          rounded-full
-                          bg-red-500
-                        "
-                      />
-
-                      Step {step.number}
-                    </div>
-
-                  </motion.div>
-
-                </motion.div>
-              );
-
-            })}
-
-          </div>
-
+          <PuzzleAssembly
+            columns={4}
+            active={active}
+            reduceMotion={reduceMotion}
+            gradientId={`${gradientId}-desktop`}
+          />
         </div>
 
-        {/* ================================================= */}
-        {/* BOTTOM STATEMENT */}
-        {/* ================================================= */}
-
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 15,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
-          viewport={{
-            once: true,
-          }}
-          transition={{
-            delay: 0.5,
-            duration: 0.5,
-          }}
+        {/* BOTTOM SIGNATURE */}
+        <div
           className="
-            mx-auto
-            mt-8
-            flex
-            w-fit
-            items-center
-            gap-2
+            mx-auto mt-6
+            flex w-fit items-center gap-2
             rounded-full
-            border
-            border-white/[0.06]
+            border border-white/[0.06]
             bg-white/[0.02]
-            px-4
-            py-2
-            text-[9px]
-            uppercase
-            tracking-[0.18em]
+            px-3 py-2
+            text-[8px] uppercase
+            tracking-[0.15em]
             text-zinc-600
+            sm:text-[9px]
           "
         >
-          Precision{" "}
+          Precision
           <span className="text-red-500">•</span>
-          Craftsmanship{" "}
+          Craftsmanship
           <span className="text-red-500">•</span>
           Excellence
-
           <ArrowRight
             size={11}
             className="ml-1 text-red-500"
           />
-        </motion.div>
-
+        </div>
       </Container>
     </section>
   );

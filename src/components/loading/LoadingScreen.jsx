@@ -5,29 +5,6 @@ import { motion, useReducedMotion } from "framer-motion";
 
 const EASE = [0.22, 1, 0.36, 1];
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.09,
-      delayChildren: 0.05,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: {
-    opacity: 0,
-  },
-  visible: {
-    opacity: 1,
-    transition: {
-      duration: 0.5,
-      ease: EASE,
-    },
-  },
-};
-
 function LoadingScreen() {
   const reduceMotion = useReducedMotion();
 
@@ -37,7 +14,7 @@ function LoadingScreen() {
       aria-live="polite"
       aria-label="Loading KadeCho"
       className="
-        fixed left-0 top-0 h-[100dvh] w-[100dvw] z-[9999]
+        fixed inset-0 z-[9999]
         isolate overflow-hidden
         bg-[#050505] text-white
       "
@@ -45,11 +22,14 @@ function LoadingScreen() {
       {/* ==========================================
           CINEMATIC BACKGROUND
       ========================================== */}
-
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 overflow-hidden"
+        className="
+          pointer-events-none
+          absolute inset-0 overflow-hidden
+        "
       >
+        {/* STATIC RED ATMOSPHERE */}
         <div
           className="
             absolute inset-0
@@ -57,47 +37,7 @@ function LoadingScreen() {
           "
         />
 
-        {/* GLOW — POSITION WRAPPER */}
-        <div
-          className="
-            absolute left-1/2 top-[45%]
-            -translate-x-1/2 -translate-y-1/2
-          "
-        >
-          <motion.div
-            animate={
-              reduceMotion
-                ? undefined
-                : {
-                    opacity: [0.35, 0.7, 0.35],
-                    scale: [0.95, 1.08, 0.95],
-                  }
-            }
-            transition={{
-              duration: 5,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="
-              h-[320px] w-[320px]
-              rounded-full
-              bg-red-600/[0.07]
-              blur-[65px]
-              sm:h-[420px] sm:w-[420px]
-            "
-          />
-        </div>
-
-        <div
-          className="
-            absolute -right-32 top-1/4
-            h-[280px] w-[280px]
-            rounded-full
-            bg-red-900/[0.055]
-            blur-[90px]
-          "
-        />
-
+        {/* ARCHITECTURAL GRID */}
         <div
           className="
             absolute inset-0
@@ -107,6 +47,7 @@ function LoadingScreen() {
           "
         />
 
+        {/* VERTICAL LIGHT */}
         <div
           className="
             absolute left-1/2 top-0
@@ -117,6 +58,7 @@ function LoadingScreen() {
           "
         />
 
+        {/* HORIZONTAL LIGHT */}
         <div
           className="
             absolute inset-x-0 top-1/2
@@ -130,69 +72,83 @@ function LoadingScreen() {
       {/* ==========================================
           CORNER DETAILS
       ========================================== */}
-
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-5 top-5 h-9 w-9 border-l border-t border-red-500/40 sm:left-10 sm:top-10"
+        className="
+          pointer-events-none
+          absolute left-5 top-5
+          h-9 w-9
+          border-l border-t border-red-500/40
+          sm:left-10 sm:top-10
+        "
       />
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute right-5 top-5 h-9 w-9 border-r border-t border-red-500/40 sm:right-10 sm:top-10"
+        className="
+          pointer-events-none
+          absolute right-5 top-5
+          h-9 w-9
+          border-r border-t border-red-500/40
+          sm:right-10 sm:top-10
+        "
       />
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-5 left-5 h-9 w-9 border-b border-l border-white/15 sm:bottom-10 sm:left-10"
+        className="
+          pointer-events-none
+          absolute bottom-5 left-5
+          h-9 w-9
+          border-b border-l border-white/15
+          sm:bottom-10 sm:left-10
+        "
       />
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-5 right-5 h-9 w-9 border-b border-r border-white/15 sm:bottom-10 sm:right-10"
+        className="
+          pointer-events-none
+          absolute bottom-5 right-5
+          h-9 w-9
+          border-b border-r border-white/15
+          sm:bottom-10 sm:right-10
+        "
       />
 
       {/* ==========================================
           CENTER CONTENT
       ========================================== */}
-
       <div
         className="
           absolute inset-0 z-10
           grid place-items-center
-          px-5
-          pb-12 pt-5
+          px-5 pb-12 pt-5
           sm:pb-14 sm:pt-6
         "
       >
-        <motion.div
-          variants={containerVariants}
-          initial={reduceMotion ? false : "hidden"}
-          animate="visible"
+        <div
           className="
             flex w-full max-w-[400px]
-            flex-col items-center text-center
+            flex-col items-center
+            text-center
           "
         >
           {/* ======================================
-              LOGO ORBIT
+              LOGO + RED ROTATING RINGS
           ====================================== */}
-
-          <motion.div
-            variants={itemVariants}
+          <div
             className="
-              relative
-              mb-8
+              relative mb-8
               flex h-[166px] w-[166px]
-              shrink-0 items-center justify-center
-
+              shrink-0
+              items-center justify-center
               sm:mb-9
               sm:h-[180px] sm:w-[180px]
-
               lg:mb-8
-              lg:h-[180px] lg:w-[180px]
             "
           >
-            {/* OUTER RING */}
+            {/* OUTER RED RING */}
             <motion.div
               aria-hidden="true"
               animate={
@@ -206,6 +162,7 @@ function LoadingScreen() {
                 ease: "linear",
               }}
               className="
+                pointer-events-none
                 absolute inset-0
                 rounded-full
                 border border-white/[0.07]
@@ -214,7 +171,7 @@ function LoadingScreen() {
               "
             />
 
-            {/* INNER RING */}
+            {/* INNER RED RING */}
             <motion.div
               aria-hidden="true"
               animate={
@@ -228,6 +185,7 @@ function LoadingScreen() {
                 ease: "linear",
               }}
               className="
+                pointer-events-none
                 absolute inset-[12px]
                 rounded-full
                 border border-red-500/15
@@ -236,62 +194,14 @@ function LoadingScreen() {
               "
             />
 
-            {/* GLOW HALO */}
-            <motion.div
-              aria-hidden="true"
-              animate={
-                reduceMotion
-                  ? undefined
-                  : {
-                      opacity: [0.3, 0.7, 0.3],
-                      scale: [0.95, 1.06, 0.95],
-                    }
-              }
-              transition={{
-                duration: 3.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              className="
-                absolute
-                h-32 w-32
-                rounded-full
-                bg-red-600/[0.12]
-                blur-[30px]
-              "
-            />
-
-            {/* LOGO FRAME */}
+            {/* ORIGINAL LOGO — NO BLACK CSS CIRCLE */}
             <div
               className="
-                relative
-                flex h-[118px] w-[118px]
+                relative z-10
+                flex h-[128px] w-[128px]
                 items-center justify-center
-                overflow-hidden rounded-full
-
-                border border-white/15
-
-                bg-gradient-to-br
-                from-[#181818]
-                via-[#0b0b0b]
-                to-[#050505]
-
-                shadow-[0_0_30px_rgba(220,38,38,.10),0_18px_40px_rgba(0,0,0,.4)]
-
-                sm:h-[128px] sm:w-[128px]
               "
             >
-              <div
-                aria-hidden="true"
-                className="
-                  pointer-events-none absolute inset-0
-                  bg-gradient-to-br
-                  from-white/[0.07]
-                  via-transparent
-                  to-red-500/[0.035]
-                "
-              />
-
               <img
                 src="/kadecho-logo-128.128.webp"
                 alt="KadeCho"
@@ -300,59 +210,33 @@ function LoadingScreen() {
                 decoding="async"
                 fetchPriority="high"
                 className="
-                  relative z-10
-                  h-[104px] w-[104px]
+                  h-[118px] w-[118px]
                   object-contain
-                  sm:h-[114px] sm:w-[114px]
+                  sm:h-[128px] sm:w-[128px]
                 "
               />
-
-              {/* SCANNING LIGHT */}
-              {!reduceMotion && (
-                <motion.div
-                  aria-hidden="true"
-                  initial={{ x: "-150%" }}
-                  animate={{ x: "250%" }}
-                  transition={{
-                    duration: 2.6,
-                    repeat: Infinity,
-                    repeatDelay: 1.2,
-                    ease: "easeInOut",
-                  }}
-                  className="
-                    pointer-events-none
-                    absolute inset-y-0
-                    left-0 w-10
-                    -skew-x-12
-                    bg-gradient-to-r
-                    from-transparent via-white/[0.09] to-transparent
-                  "
-                />
-              )}
             </div>
 
-            {/* LOGO UNDERLINE */}
+            {/* RED UNDERLINE */}
             <div
               aria-hidden="true"
               className="
+                pointer-events-none
                 absolute -bottom-5
                 left-1/2 -translate-x-1/2
                 h-px w-16
                 bg-gradient-to-r
-                from-transparent via-red-500 to-transparent
-                shadow-[0_0_12px_rgba(239,68,68,.5)]
+                from-transparent
+                via-red-500
+                to-transparent
               "
             />
-          </motion.div>
+          </div>
 
           {/* ======================================
               BRAND
           ====================================== */}
-
-          <motion.div
-            variants={itemVariants}
-            className="w-full"
-          >
+          <div className="w-full">
             <h2
               className="
                 font-bebas
@@ -367,8 +251,8 @@ function LoadingScreen() {
 
             <div
               className="
-                mt-3
-                flex items-center justify-center
+                mt-3 flex
+                items-center justify-center
                 gap-3
               "
             >
@@ -376,9 +260,8 @@ function LoadingScreen() {
 
               <p
                 className="
-                  text-[10px]
-                  font-medium uppercase
-                  tracking-[0.28em]
+                  text-[10px] font-medium
+                  uppercase tracking-[0.28em]
                   text-zinc-400
                   sm:text-[11px]
                 "
@@ -388,17 +271,14 @@ function LoadingScreen() {
 
               <span className="h-px w-5 bg-red-500/40" />
             </div>
-          </motion.div>
+          </div>
 
           {/* ======================================
               BRAND STATEMENT
           ====================================== */}
-
-          <motion.p
-            variants={itemVariants}
+          <p
             className="
-              mt-7
-              max-w-xs
+              mt-7 max-w-xs
               text-[11px]
               leading-relaxed
               tracking-[0.08em]
@@ -408,55 +288,33 @@ function LoadingScreen() {
             Crafted with precision.
             <br />
             Designed to endure.
-          </motion.p>
+          </p>
 
           {/* ======================================
               PROGRESS
           ====================================== */}
-
-          <motion.div
-            variants={itemVariants}
-            className="
-              mt-9
-              w-full max-w-[260px]
-            "
-          >
+          <div className="mt-9 w-full max-w-[260px]">
             <div
               className="
-                mb-3
-                flex items-center justify-between
-                gap-3
-                text-[9px]
-                font-medium uppercase
-                tracking-[0.18em]
+                mb-3 flex items-center
+                justify-between gap-3
+                text-[9px] font-medium
+                uppercase tracking-[0.18em]
                 text-zinc-500
               "
             >
               <span>Preparing experience</span>
 
-              <motion.span
-                animate={
-                  reduceMotion
-                    ? undefined
-                    : { opacity: [0.5, 1, 0.5] }
-                }
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="text-red-400"
-              >
+              <span className="text-red-400">
                 K / 01
-              </motion.span>
+              </span>
             </div>
 
+            {/* PROGRESS BAR */}
             <div
               className="
-                relative
-                h-[3px] w-full
-                overflow-hidden
-                rounded-full
+                relative h-[3px] w-full
+                overflow-hidden rounded-full
                 bg-white/10
               "
             >
@@ -464,8 +322,8 @@ function LoadingScreen() {
                 initial={reduceMotion ? false : { scaleX: 0 }}
                 animate={{ scaleX: 1 }}
                 transition={{
-                  duration: reduceMotion ? 0 : 1.4,
-                  delay: reduceMotion ? 0 : 0.12,
+                  duration: reduceMotion ? 0 : 1.5,
+                  delay: 0,
                   ease: EASE,
                 }}
                 style={{
@@ -475,42 +333,24 @@ function LoadingScreen() {
                   h-full w-full
                   rounded-full
                   bg-gradient-to-r
-                  from-red-700 via-red-500 to-red-300
+                  from-red-700
+                  via-red-500
+                  to-red-300
                 "
               />
-
-              {!reduceMotion && (
-                <motion.div
-                  aria-hidden="true"
-                  initial={{ x: "-100%" }}
-                  animate={{ x: "400%" }}
-                  transition={{
-                    duration: 1.8,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }}
-                  className="
-                    absolute inset-y-0 left-0
-                    w-12
-                    bg-gradient-to-r
-                    from-transparent via-white/35 to-transparent
-                  "
-                />
-              )}
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
 
       {/* ==========================================
-          FOOTER — CENTERED
+          BOTTOM BRANDING
       ========================================== */}
-
       <div
         className="
           pointer-events-none
-          absolute inset-x-0 bottom-6 z-20
-          px-4 text-center
+          absolute inset-x-0 bottom-6
+          z-20 px-4 text-center
           text-[9px] uppercase
           tracking-[0.2em]
           text-zinc-600
@@ -519,8 +359,9 @@ function LoadingScreen() {
       >
         KADECHO — Built for excellence
       </div>
-    </div>
-  , document.body);
+    </div>,
+    document.body
+  );
 }
 
 export default memo(LoadingScreen);

@@ -1,333 +1,202 @@
 
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+} from "framer-motion";
 import { Sparkles } from "lucide-react";
 
+const EASE = [0.22, 1, 0.36, 1];
+
 export default function HoverDescription({
-  text,
-  visible,
+  text = "",
+  visible = false,
 }) {
-  const [displayed, setDisplayed] = useState("");
+  const reduceMotion = useReducedMotion();
+
+  const [count, setCount] = useState(0);
+  const timerRef = useRef(null);
+
+  const content = String(text || "").trim();
 
   useEffect(() => {
-    if (!visible) {
-      setDisplayed("");
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (!visible || !content) {
+      setCount(0);
       return;
     }
 
-    let i = 0;
+    if (reduceMotion) {
+      setCount(content.length);
+      return;
+    }
 
-    const interval = setInterval(() => {
-      setDisplayed(text.slice(0, i + 1));
-      i++;
+    setCount(0);
 
-      if (i >= text.length) {
-        clearInterval(interval);
+    let index = 0;
+
+    timerRef.current = window.setInterval(() => {
+      index = Math.min(index + 1, content.length);
+      setCount(index);
+
+      if (index >= content.length) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
       }
-    }, 16);
+    }, 18);
 
-    return () => clearInterval(interval);
-  }, [visible, text]);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [visible, content, reduceMotion]);
+
+  if (!content) return null;
+
+  const finished = count >= content.length;
 
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {visible && (
         <motion.div
-          initial={{
-            opacity: 0,
-            y: -8,
-            height: 0,
-          }}
+          key="hover-description"
+          initial={
+            reduceMotion
+              ? false
+              : {
+                  opacity: 0,
+                  y: -6,
+                  height: 0,
+                }
+          }
           animate={{
             opacity: 1,
             y: 0,
             height: "auto",
           }}
-          exit={{
-            opacity: 0,
-            y: -8,
-            height: 0,
-          }}
+          exit={
+            reduceMotion
+              ? { opacity: 0, height: 0 }
+              : {
+                  opacity: 0,
+                  y: -6,
+                  height: 0,
+                }
+          }
           transition={{
-            duration: 0.35,
-            ease: [0.22, 1, 0.36, 1],
+            duration: reduceMotion ? 0 : 0.24,
+            ease: EASE,
           }}
           className="
+            relative z-10
+            mx-1 mt-2
             overflow-hidden
-
-            /* =================================================
-               MOBILE
-               ================================================= */
-
-            relative
-            z-30
-
-            mx-1
-            mt-2
-
             sm:mx-2
-            sm:mt-2.5
-
-            /* =================================================
-               DESKTOP
-               ================================================= */
-
-            lg:mx-3
-            lg:mb-3
-            lg:mt-3
+            lg:mx-2 lg:mt-2.5
           "
         >
           <div
             className="
-              relative
-
-              overflow-hidden
-
+              relative overflow-hidden
               rounded-xl
-              sm:rounded-2xl
-
-              border
-              border-red-500/15
-
-              bg-[#0b0b0b]/95
-
-              shadow-[0_12px_35px_rgba(0,0,0,.35)]
-
-              backdrop-blur-xl
-
-              /* MOBILE */
-              px-2.5
-              py-2.5
-
-              sm:px-3
-              sm:py-3
-
-              /* DESKTOP */
-              lg:p-4
+              border border-red-500/20
+              bg-[#0b0b0c]
+              px-3 py-2.5
+              shadow-[0_8px_24px_rgba(0,0,0,0.2)]
+              lg:px-3.5 lg:py-3
             "
           >
-            {/* =================================================
-                TOP GLOW
-                ================================================= */}
-
+            {/* TOP ACCENT */}
             <div
+              aria-hidden="true"
               className="
                 pointer-events-none
-
-                absolute
-                inset-x-4
-                top-0
-
+                absolute inset-x-5 top-0
                 h-px
-
                 bg-gradient-to-r
                 from-transparent
-                via-red-500/80
+                via-red-500/70
                 to-transparent
-
-                opacity-80
               "
             />
 
-            {/* =================================================
-                SOFT RED GLOW
-                ================================================= */}
-
-            <div
-              className="
-                pointer-events-none
-
-                absolute
-
-                -right-10
-                -top-10
-
-                h-20
-                w-20
-
-                rounded-full
-
-                bg-red-500/[0.07]
-
-                blur-2xl
-              "
-            />
-
-            {/* =================================================
-                CONTENT
-                ================================================= */}
-
-            <div
-              className="
-                relative
-
-                flex
-                items-start
-
-                gap-2
-
-                sm:gap-2.5
-
-                lg:gap-3
-              "
-            >
-              {/* =================================================
-                  ICON
-                  ================================================= */}
-
+            <div className="flex items-start gap-2.5">
+              {/* ICON */}
               <div
                 className="
-                  mt-0.5
-
-                  flex
-
-                  h-6
-                  w-6
-
-                  shrink-0
-
-                  items-center
-                  justify-center
-
+                  flex h-6 w-6 shrink-0
+                  items-center justify-center
                   rounded-lg
-
-                  border
-                  border-red-500/15
-
-                  bg-red-500/[0.07]
-
+                  border border-red-500/20
+                  bg-red-500/[0.08]
                   text-red-400
-
-                  sm:h-7
-                  sm:w-7
-
-                  lg:h-7
-                  lg:w-7
-
-                  lg:rounded-full
                 "
               >
-                <Sparkles
-                  size={11}
-                  strokeWidth={2}
-                  className="
-                    sm:h-[12px]
-                    sm:w-[12px]
-
-                    lg:h-[13px]
-                    lg:w-[13px]
-                  "
-                />
+                <Sparkles size={12} strokeWidth={1.8} />
               </div>
 
-              {/* =================================================
-                  TEXT
-                  ================================================= */}
-
+              {/* CONTENT */}
               <div className="min-w-0 flex-1">
                 <p
                   className="
-                    mb-0.5
-
-                    font-bebas
-
-                    text-[7px]
-
-                    uppercase
-
-                    tracking-[0.16em]
-
-                    text-red-400/80
-
-                    sm:text-[8px]
-
-                    lg:text-[9px]
+                    font-bebas text-[9px]
+                    uppercase tracking-[0.16em]
+                    text-red-400
                   "
                 >
                   Product Details
                 </p>
 
-                <p
+                <div
                   className="
-                    max-h-[68px]
-
+                    relative mt-1
+                    min-h-[48px]
+                    max-h-[72px]
                     overflow-hidden
-
-                    text-[9px]
-
-                    leading-[1.45]
-
+                    text-[10px] leading-[1.6]
                     text-zinc-400
-
-                    sm:max-h-[76px]
-
-                    sm:text-[10px]
-
-                    sm:leading-[1.55]
-
-                    lg:max-h-none
-
-                    lg:text-[12px]
-
-                    lg:leading-6
-
-                    lg:text-zinc-300
+                    lg:text-[11px]
                   "
                 >
-                  {displayed}
-                </p>
+                  <span>{content.slice(0, count)}</span>
+
+                  {!finished && (
+                    <span
+                      aria-hidden="true"
+                      className="
+                        ml-[1px] inline-block
+                        h-[11px] w-[1.5px]
+                        translate-y-[2px]
+                        bg-red-400
+                        shadow-[0_0_6px_rgba(248,113,113,0.4)]
+                      "
+                    />
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* =================================================
-                BOTTOM DETAIL
-                ================================================= */}
-
+            {/* BOTTOM SIGNATURE */}
             <div
+              aria-hidden="true"
               className="
-                relative
-
-                mt-2
-
-                h-px
-
-                w-full
-
-                overflow-hidden
-
-                bg-white/[0.035]
-
-                sm:mt-2.5
-
-                lg:mt-3
+                mt-2.5 h-px
+                bg-gradient-to-r
+                from-red-500/35
+                via-white/[0.04]
+                to-transparent
               "
-            >
-              <motion.div
-                initial={{
-                  x: "-100%",
-                }}
-                animate={{
-                  x: "100%",
-                }}
-                transition={{
-                  duration: 1.2,
-                  ease: "easeInOut",
-                }}
-                className="
-                  h-full
-                  w-1/3
-
-                  bg-gradient-to-r
-                  from-transparent
-                  via-red-500/50
-                  to-transparent
-                "
-              />
-            </div>
+            />
           </div>
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
-
