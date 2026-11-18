@@ -1,276 +1,209 @@
-import { motion } from "framer-motion";
+
+import { memo } from "react";
 import {
   Ruler,
   Hammer,
   Palette,
   Package,
+  ArrowUpRight,
 } from "lucide-react";
 
-export default function ProductSpecs({ product }) {
-  const specs = [
-    {
-      title: "Dimensions",
-      value: product.dimensions,
-      icon: Ruler,
-    },
-    {
-      title: "Material",
-      value: product.material,
-      icon: Hammer,
-    },
-    {
-      title: "Finish",
-      value: product.finish,
-      icon: Palette,
-    },
-    {
-      title: "Availability",
-      value: product.availability,
-      icon: Package,
-    },
-  ];
+const SPEC_FIELDS = [
+  {
+    key: "dimensions",
+    title: "Dimensions",
+    icon: Ruler,
+  },
+  {
+    key: "material",
+    title: "Material",
+    icon: Hammer,
+  },
+  {
+    key: "finish",
+    title: "Finish",
+    icon: Palette,
+  },
+  {
+    key: "availability",
+    title: "Availability",
+    icon: Package,
+  },
+];
 
+function ProductSpecs({ product }) {
   return (
-    <section className="relative">
+    <section
+      aria-labelledby="product-specifications"
+      className="relative min-w-0"
+    >
       {/* HEADER */}
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex items-end justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <span
-              className="
-                h-1
-                w-1
-                rounded-full
-                bg-red-500
-                shadow-[0_0_8px_rgba(239,68,68,.8)]
-              "
+              aria-hidden="true"
+              className="h-1 w-1 rounded-full bg-red-500"
             />
 
             <span
               className="
-                text-[8px]
-                font-semibold
-                uppercase
-                tracking-[0.24em]
+                text-[8px] font-semibold
+                uppercase tracking-[0.2em]
                 text-red-400
               "
             >
-              Details
+              Technical Details
             </span>
           </div>
 
           <h2
+            id="product-specifications"
             className="
-              mt-1
-              font-bebas
-              text-xl
-              uppercase
-              tracking-[0.08em]
+              mt-1 font-bebas
+              text-[19px] leading-none
+              tracking-[0.06em]
               text-white
-              sm:text-2xl
+              sm:text-[21px]
             "
           >
             Specifications
           </h2>
         </div>
 
-        {/* Simple CSS animation instead of Framer Motion */}
         <div
+          aria-hidden="true"
           className="
-            hidden
-            h-px
-            w-24
-            origin-right
-            bg-gradient-to-l
-            from-red-500
-            to-transparent
-            opacity-0
-            animate-spec-line
-            sm:block
+            flex items-center gap-1
+            text-zinc-600
           "
-        />
+        >
+          <span
+            className="
+              text-[8px] uppercase
+              tracking-[0.12em]
+            "
+          >
+            04 Details
+          </span>
+
+          <ArrowUpRight size={12} />
+        </div>
       </div>
 
-      {/* SPECS */}
-      <div className="grid grid-cols-2 gap-2">
-        {specs.map((spec, index) => {
-          const Icon = spec.icon;
+      {/* TECHNICAL DATA */}
+      <dl
+        className="
+          grid grid-cols-2
+          gap-x-4 gap-y-0
+          sm:gap-x-6
+        "
+      >
+        {SPEC_FIELDS.map((field, index) => {
+          const Icon = field.icon;
+          const value = product?.[field.key];
 
           return (
-            <motion.div
-              key={spec.title}
-              initial={{
-                opacity: 0,
-                y: 8,
-              }}
-              whileInView={{
-                opacity: 1,
-                y: 0,
-              }}
-              viewport={{
-                once: true,
-                margin: "-30px",
-              }}
-              transition={{
-                delay: index * 0.05,
-                duration: 0.35,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="
-                group
-                relative
-                overflow-hidden
-                rounded-lg
-                border
-                border-white/[0.07]
-                bg-white/[0.018]
-
-                px-2.5
+            <div
+              key={field.key}
+              className={`
+                group relative min-w-0
+                flex items-center gap-2.5
                 py-2.5
-
-                transition-all
-                duration-300
-                ease-out
-
-                hover:-translate-y-0.5
-                hover:border-red-500/25
-                hover:bg-red-500/[0.025]
-              "
+                ${
+                  index < 2
+                    ? "border-b border-white/[0.07]"
+                    : ""
+                }
+              `}
             >
-              {/* TOP ACCENT */}
+              {/* ICON */}
               <div
                 className="
-                  absolute
-                  left-0
-                  top-0
-                  h-px
-                  w-full
-                  origin-left
-                  scale-x-0
-
-                  bg-gradient-to-r
-                  from-red-500
-                  via-red-500/40
-                  to-transparent
-
-                  transition-transform
-                  duration-500
-                  ease-out
-
-                  group-hover:scale-x-100
+                  flex h-7 w-7
+                  shrink-0 items-center
+                  justify-center
+                  rounded-lg
+                  bg-red-500/[0.07]
+                  text-red-400
+                  transition-colors duration-200
+                  group-hover:bg-red-500/[0.12]
                 "
-              />
-
-              {/* HOVER GLOW */}
-              <div
-                className="
-                  pointer-events-none
-                  absolute
-                  -right-8
-                  -top-8
-                  h-16
-                  w-16
-
-                  rounded-full
-                  bg-red-500/10
-                  opacity-0
-                  blur-2xl
-
-                  transition-opacity
-                  duration-500
-
-                  group-hover:opacity-100
-                "
-              />
-
-              <div className="relative flex items-center gap-2.5">
-                {/* ICON */}
-                <div
-                  className="
-                    flex
-                    h-8
-                    w-8
-                    shrink-0
-                    items-center
-                    justify-center
-
-                    rounded-md
-                    border
-                    border-red-500/15
-                    bg-red-500/[0.07]
-                    text-red-400
-
-                    transition-all
-                    duration-300
-
-                    group-hover:rotate-[-6deg]
-                    group-hover:scale-[1.08]
-                    group-hover:border-red-500/30
-                    group-hover:bg-red-500/15
-                    group-hover:text-red-300
-                  "
-                >
-                  <Icon
-                    size={14}
-                    strokeWidth={1.8}
-                  />
-                </div>
-
-                {/* TEXT */}
-                <div className="min-w-0">
-                  <p
-                    className="
-                      text-[7px]
-                      font-medium
-                      uppercase
-                      tracking-[0.16em]
-                      text-zinc-600
-                    "
-                  >
-                    {spec.title}
-                  </p>
-
-                  <p
-                    className="
-                      mt-0.5
-                      truncate
-                      text-[10px]
-                      font-semibold
-                      leading-tight
-                      text-zinc-300
-
-                      transition-colors
-                      duration-300
-
-                      group-hover:text-white
-                    "
-                  >
-                    {spec.value || "—"}
-                  </p>
-                </div>
+              >
+                <Icon
+                  size={13}
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                />
               </div>
 
-              {/* BOTTOM MICRO LINE */}
-              <div
-                className="
-                  absolute
-                  bottom-0
-                  left-0
-                  h-px
-                  w-0
+              {/* LABEL + VALUE */}
+              <div className="min-w-0 flex-1">
+                <dt
+                  className="
+                    text-[8px]
+                    font-medium uppercase
+                    tracking-[0.13em]
+                    text-zinc-500
+                  "
+                >
+                  {field.title}
+                </dt>
 
-                  bg-red-500
-
-                  transition-[width]
-                  duration-300
-
-                  group-hover:w-[35%]
-                "
-              />
-            </motion.div>
+                <dd
+                  title={
+                    value == null
+                      ? undefined
+                      : String(value)
+                  }
+                  className="
+                    mt-0.5 truncate
+                    text-[11px]
+                    font-medium leading-tight
+                    text-zinc-200
+                  "
+                >
+                  {value === null ||
+                  value === undefined ||
+                  value === ""
+                    ? "—"
+                    : String(value)}
+                </dd>
+              </div>
+            </div>
           );
         })}
+      </dl>
+
+      {/* BOTTOM MICRO DETAIL */}
+      <div
+        className="
+          mt-1.5 flex items-center
+          justify-between gap-2
+          border-t border-white/[0.05]
+          pt-2.5
+        "
+      >
+        <span
+          className="
+            font-bebas text-[9px]
+            uppercase tracking-[0.16em]
+            text-zinc-600
+          "
+        >
+          KADECHO / MATERIAL & CRAFT
+        </span>
+
+        <span
+          className="
+            h-1 w-1 shrink-0
+            rotate-45 bg-red-500/60
+          "
+          aria-hidden="true"
+        />
       </div>
     </section>
   );
 }
+
+export default memo(ProductSpecs);

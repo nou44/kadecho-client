@@ -1,3 +1,4 @@
+
 import {
   useCallback,
   useEffect,
@@ -9,15 +10,31 @@ import { AnimatePresence } from "framer-motion";
 
 import FloatingCard from "./FloatingCard";
 
-const API_URL =
-  `${
-    import.meta.env.VITE_API_URL ||
-    "http://localhost:5000/api"
-  }/products`;
+const API_URL = `${
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000/api"
+}/products`;
 
 const FIRST_DELAY = 5000;
 const PRODUCT_INTERVAL = 30000;
 const VISIBLE_DURATION = 6000;
+
+const getProductImage = (product) => {
+  const firstImage = product?.images?.[0];
+
+  if (typeof firstImage === "string" && firstImage.trim()) {
+    return firstImage;
+  }
+
+  if (
+    typeof product?.image === "string" &&
+    product.image.trim()
+  ) {
+    return product.image;
+  }
+
+  return null;
+};
 
 export default function FloatingProduct() {
   const [visible, setVisible] = useState(false);
@@ -29,59 +46,41 @@ export default function FloatingProduct() {
   const showTimerRef = useRef(null);
   const hideTimerRef = useRef(null);
 
-  const isPageVisibleRef = useRef(
-    document.visibilityState === "visible"
+  const pageVisibleRef = useRef(
+    typeof document === "undefined" ||
+      document.visibilityState === "visible"
   );
 
-  /* =====================================================
-     CLEAR TIMERS
-  ===================================================== */
-
   const clearShowTimer = useCallback(() => {
-    if (showTimerRef.current) {
-      clearTimeout(showTimerRef.current);
+    if (showTimerRef.current !== null) {
+      window.clearTimeout(showTimerRef.current);
       showTimerRef.current = null;
     }
   }, []);
 
   const clearHideTimer = useCallback(() => {
-    if (hideTimerRef.current) {
-      clearTimeout(hideTimerRef.current);
+    if (hideTimerRef.current !== null) {
+      window.clearTimeout(hideTimerRef.current);
       hideTimerRef.current = null;
     }
   }, []);
-
-  /* =====================================================
-     CLOSE CARD
-  ===================================================== */
 
   const closeProduct = useCallback(() => {
     clearHideTimer();
     setVisible(false);
   }, [clearHideTimer]);
 
-  /* =====================================================
-     SHOW NEXT PRODUCT
-
-     1 → 2 → 3 → ... → 1
-  ===================================================== */
-
   const showNextProduct = useCallback(() => {
+    if (!pageVisibleRef.current) return;
+
     const products = productsRef.current;
 
-    if (
-      !isPageVisibleRef.current ||
-      !products.length
-    ) {
-      return;
-    }
+    if (!products.length) return;
 
-    const nextProduct =
-      products[indexRef.current];
+    const nextProduct = products[indexRef.current];
 
     indexRef.current =
-      (indexRef.current + 1) %
-      products.length;
+      (indexRef.current + 1) % products.length;
 
     if (!nextProduct) return;
 
@@ -90,15 +89,34 @@ export default function FloatingProduct() {
     setProduct(nextProduct);
     setVisible(true);
 
-    /* Hide after 6 seconds */
-
     hideTimerRef.current = window.setTimeout(() => {
-      if (!isPageVisibleRef.current) return;
-
       setVisible(false);
       hideTimerRef.current = null;
     }, VISIBLE_DURATION);
   }, [clearHideTimer]);
+
+  const scheduleNextProduct = useCallback(
+    (delay = PRODUCT_INTERVAL) => {
+      clearShowTimer();
+
+      if (
+        !pageVisibleRef.current ||
+        !productsRef.current.length
+      ) {
+        return;
+      }
+
+      showTimerRef.current = window.setTimeout(() => {
+        showTimerRef.current = null;
+
+        if (!pageVisibleRef.current) return;
+
+        showNextProduct();
+        scheduleNextProduct(PRODUCT_INTERVAL);
+      }, delay);
+    },
+    [clearShowTimer, showNextProduct]
+  );
 
   /* =====================================================
      FETCH PRODUCTS
@@ -123,57 +141,38 @@ export default function FloatingProduct() {
 
         if (!data.success) {
           throw new Error(
-            data.message ||
-            "Failed to fetch products"
+            data.message || "Failed to load products"
           );
         }
 
-        /*
-          Filter once.
-
-          This is better than checking all products
-          every 30 seconds.
-        */
-
         const validProducts = (
-          data.products || []
-        ).filter(
-          (item) =>
-            item?._id &&
-            Array.isArray(item.images) &&
-            item.images.length > 0 &&
-            item.images[0]
-        );
+          Array.isArray(data.products)
+            ? data.products
+            : []
+        )
+          .filter(
+            (item) =>
+              item?._id &&
+              getProductImage(item)
+          )
+          .map((item) => ({
+            id: item._id,
+            name: item.name || item.title || "Premium Creation",
+            price: item.price,
+            category: item.category || "Collection",
+            image: getProductImage(item),
+          }));
 
-        if (!validProducts.length) {
-          return;
-        }
-
-        /*
-          Keep backend order.
-
-          Product 1 → Product 2 → Product 3
-        */
+        if (!validProducts.length) return;
 
         productsRef.current = validProducts;
         indexRef.current = 0;
 
-        /* First product after 5 seconds */
-
-        showTimerRef.current =
-          window.setTimeout(() => {
-            showNextProduct();
-          }, FIRST_DELAY);
-
+        scheduleNextProduct(FIRST_DELAY);
       } catch (error) {
-        /*
-          Don't show error when component
-          intentionally aborts the request.
-        */
-
         if (error.name !== "AbortError") {
           console.error(
-            "❌ Floating product error:",
+            "Floating product error:",
             error
           );
         }
@@ -184,82 +183,38 @@ export default function FloatingProduct() {
 
     return () => {
       controller.abort();
-
       clearShowTimer();
       clearHideTimer();
+      productsRef.current = [];
     };
   }, [
-    showNextProduct,
+    scheduleNextProduct,
     clearShowTimer,
     clearHideTimer,
   ]);
 
   /* =====================================================
-     PRODUCT LOOP
-
-     Runs every 30 seconds.
-
-     Product 1
-     ↓
-     30s
-     ↓
-     Product 2
-     ↓
-     30s
-     ↓
-     Product 3
-     ↓
-     LOOP → Product 1
-  ===================================================== */
-
-  useEffect(() => {
-    let intervalRef = null;
-
-    const startLoop = () => {
-      if (intervalRef) return;
-
-      intervalRef = window.setInterval(() => {
-        if (!isPageVisibleRef.current) return;
-
-        showNextProduct();
-      }, PRODUCT_INTERVAL);
-    };
-
-    /*
-      Small delay to ensure products have
-      enough time to load first.
-    */
-
-    const startTimer = window.setTimeout(() => {
-      startLoop();
-    }, 1000);
-
-    return () => {
-      clearTimeout(startTimer);
-
-      if (intervalRef) {
-        clearInterval(intervalRef);
-      }
-    };
-  }, [showNextProduct]);
-
-  /* =====================================================
      PAGE VISIBILITY
-
-     Stop unnecessary UI updates
-     when user changes browser tab.
   ===================================================== */
 
   useEffect(() => {
     const handleVisibilityChange = () => {
-      const isVisibleNow =
+      const isVisible =
         document.visibilityState === "visible";
 
-      isPageVisibleRef.current = isVisibleNow;
+      pageVisibleRef.current = isVisible;
 
-      if (!isVisibleNow) {
+      if (!isVisible) {
+        clearShowTimer();
         clearHideTimer();
         setVisible(false);
+        return;
+      }
+
+      // Resume with a fresh delay.
+      // Avoid showing a card immediately on tab return.
+      if (productsRef.current.length) {
+        scheduleNextProduct(FIRST_DELAY);
       }
     };
 
@@ -274,24 +229,18 @@ export default function FloatingProduct() {
         handleVisibilityChange
       );
     };
-  }, [clearHideTimer]);
-
-  /* =====================================================
-     RENDER
-  ===================================================== */
+  }, [
+    clearShowTimer,
+    clearHideTimer,
+    scheduleNextProduct,
+  ]);
 
   return (
     <AnimatePresence mode="wait">
       {visible && product && (
         <FloatingCard
-          key={product._id}
-          product={{
-            id: product._id,
-            name: product.name,
-            price: product.price,
-            category: product.category,
-            image: product.images[0],
-          }}
+          key={product.id}
+          product={product}
           onClose={closeProduct}
         />
       )}

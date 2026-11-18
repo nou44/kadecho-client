@@ -401,7 +401,7 @@ function ProductGallery({ product }) {
           GALLERY
       ===================================================== */}
 
-      <div className="flex flex-col gap-3 sm:gap-4">
+      <div className="flex min-w-0 flex-col gap-2 sm:gap-2.5">
 
         {/* ===================================================
             MAIN IMAGE
@@ -413,22 +413,22 @@ function ProductGallery({ product }) {
             relative
             overflow-hidden
 
-            rounded-[22px]
-            sm:rounded-[26px]
-            lg:rounded-[30px]
+            rounded-[17px]
+            sm:rounded-[19px]
+            lg:rounded-[21px]
 
             border
-            border-white/[0.08]
+            border-white/[0.07]
 
             bg-[#090909]
 
-            shadow-[0_25px_70px_rgba(0,0,0,.45)]
+            shadow-[0_14px_42px_rgba(0,0,0,.32)]
 
-            h-[280px]
-            sm:h-[340px]
-            md:h-[390px]
-            lg:h-[430px]
-            xl:h-[460px]
+            h-[260px]
+            sm:h-[310px]
+            md:h-[350px]
+            lg:h-[380px]
+            xl:h-[400px]
           "
         >
 
@@ -442,14 +442,14 @@ function ProductGallery({ product }) {
               -top-24
               z-0
 
-              h-64
-              w-64
+              h-44
+              w-44
 
               rounded-full
 
               bg-red-500/[0.08]
 
-              blur-[110px]
+              blur-[70px]
             "
           />
 
@@ -463,14 +463,14 @@ function ProductGallery({ product }) {
               -left-20
               z-0
 
-              h-48
-              w-48
+              h-36
+              w-36
 
               rounded-full
 
               bg-red-900/[0.06]
 
-              blur-[100px]
+              blur-[65px]
             "
           />
 
@@ -852,25 +852,23 @@ function ProductGallery({ product }) {
         <div
           className="
             flex
+            min-w-0
             items-center
-            gap-2
-            sm:gap-3
           "
         >
 
           <div
             className="
-              grid
-
+              flex
               min-w-0
-              flex-1
-
-              max-w-[560px]
-
-              grid-cols-4
-
-              gap-2
-              sm:gap-3
+              w-full
+              items-center
+              gap-1.5
+              sm:gap-2
+              overflow-x-auto
+              pb-0.5
+              [scrollbar-width:none]
+              [&::-webkit-scrollbar]:hidden
             "
           >
 
@@ -916,8 +914,11 @@ function ProductGallery({ product }) {
                       relative
                       overflow-hidden
 
-                      rounded-xl
-                      sm:rounded-2xl
+                      flex-1
+                      min-w-[48px]
+                      max-w-[104px]
+                      rounded-[10px]
+                      sm:rounded-xl
 
                       border
 
@@ -958,7 +959,7 @@ function ProductGallery({ product }) {
                       loading="lazy"
                       decoding="async"
                       className="
-                        h-14
+                        h-[52px]
                         w-full
 
                         select-none
@@ -970,9 +971,9 @@ function ProductGallery({ product }) {
 
                         group-hover:scale-110
 
-                        sm:h-16
-                        md:h-[76px]
-                        lg:h-20
+                        sm:h-[58px]
+                        md:h-[64px]
+                        lg:h-[68px]
                       "
                     />
 

@@ -1,700 +1,250 @@
+import { useId, useRef } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
+  ArrowUpRight,
+  Check,
   Heart,
-  ShoppingCart,
   ShieldCheck,
-  Truck,
+  ShoppingBag,
   Star,
-  Sparkles,
+  Truck,
 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-
 import { useCart } from "../../context/CartContext";
 
+const EASE = [0.22, 1, 0.36, 1];
+const priceFormatter = new Intl.NumberFormat("fr-MA", {
+  maximumFractionDigits: 2,
+});
 
-const ease = [0.22, 1, 0.36, 1];
-
-const containerVariants = {
-  hidden: {},
-  show: {
-    transition: {
-      staggerChildren: 0.055,
-    },
+// Four interlocking surfaces. No full background panel or puzzle lines on top.
+const PIECES = [
+  {
+    id: "top-left",
+    d: "M 20 0 H 110 V 37 C 97 29 91 39 91 48 C 91 57 97 67 110 59 V 100 H 65 C 73 87 63 81 55 81 C 47 81 37 87 45 100 H 0 V 20 Q 0 0 20 0 Z",
+    from: { x: -85, y: -65, rotate: -8 },
+    delay: 0,
   },
-};
-
-const itemVariants = {
-  hidden: {
-    opacity: 0,
-    y: 10,
+  {
+    id: "top-right",
+    d: "M 110 0 H 200 Q 220 0 220 20 V 100 H 175 C 183 87 173 81 165 81 C 157 81 147 87 155 100 H 110 V 59 C 97 67 91 57 91 48 C 91 39 97 29 110 37 Z",
+    from: { x: 85, y: -65, rotate: 8 },
+    delay: 0.07,
   },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.45,
-      ease,
-    },
+  {
+    id: "bottom-left",
+    d: "M 0 100 H 45 C 37 87 47 81 55 81 C 63 81 73 87 65 100 H 110 V 141 C 97 133 91 143 91 152 C 91 161 97 171 110 163 V 200 H 20 Q 0 200 0 180 Z",
+    from: { x: -85, y: 65, rotate: 8 },
+    delay: 0.12,
   },
-};
+  {
+    id: "bottom-right",
+    d: "M 110 100 H 155 C 147 87 157 81 165 81 C 173 81 183 87 175 100 H 220 V 180 Q 220 200 200 200 H 110 V 163 C 97 171 91 161 91 152 C 91 143 97 133 110 141 Z",
+    from: { x: 85, y: 65, rotate: -8 },
+    delay: 0.18,
+  },
+];
 
-export default function ProductInfo({
-  product,
-  onAddToCart,
-}) {
-  const { addToCart } = useCart();
- 
-
-  const addButtonRef = useRef(null);
-
-  // ==========================================
-  // PRICE / DISCOUNT
-  // ==========================================
-
-  const currentPrice = Number(product?.price || 0);
-  const oldPrice = Number(product?.oldPrice || 0);
-
-  const hasDiscount =
-    oldPrice > currentPrice &&
-    currentPrice > 0;
-
-  const discountPercentage = hasDiscount
-    ? Math.round(
-        ((oldPrice - currentPrice) / oldPrice) * 100
-      )
-    : 0;
-
-  // ==========================================
-  // ADD TO CART
-  // ==========================================
-
-const handleAddToCart = () => {
-  const productImage =
-    product?.image ||
-    product?.images?.[0];
-
-  if (!productImage) {
-    console.error(
-      "❌ Product image not found"
-    );
-    return;
-  }
-
-  addToCart({
-    ...product,
-    _id:
-      product._id ||
-      product.id,
-    name:
-      product.name ||
-      product.title,
-    title:
-      product.title ||
-      product.name,
-    image: productImage,
-  });
-
-  onAddToCart?.(
-    productImage,
-    addButtonRef.current
-  );
-};
+function PuzzleSurface({ reduceMotion }) {
+  const gradientId = useId().replace(/:/g, "");
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-      className="w-full space-y-4"
+    <svg
+      viewBox="0 0 220 200"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
     >
+      <defs>
+        <linearGradient
+          id={gradientId}
+          x1="0"
+          y1="0"
+          x2="220"
+          y2="200"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor="#1b1114" />
+          <stop offset="34%" stopColor="#141012" />
+          <stop offset="68%" stopColor="#0d0c0d" />
+          <stop offset="100%" stopColor="#090909" />
+        </linearGradient>
+      </defs>
 
-      {/* ==========================================
-          CATEGORY / RATING
-      ========================================== */}
+      {PIECES.map((piece) => (
+        <motion.path
+          key={piece.id}
+          d={piece.d}
+          fill={`url(#${gradientId})`}
+          stroke="none"
+          initial={
+            reduceMotion
+              ? false
+              : { opacity: 0, ...piece.from }
+          }
+          animate={{ opacity: 1, x: 0, y: 0, rotate: 0 }}
+          transition={{
+            duration: reduceMotion ? 0 : 0.78,
+            delay: reduceMotion ? 0 : piece.delay,
+            ease: EASE,
+          }}
+          style={{ transformOrigin: "110px 100px" }}
+        />
+      ))}
+    </svg>
+  );
+}
+
+export default function ProductInfo({ product, onAddToCart }) {
+  const { addToCart } = useCart();
+  const addButtonRef = useRef(null);
+  const reduceMotion = useReducedMotion();
+
+  const name = product?.name || product?.title || "Premium Creation";
+  const category = product?.category || "Collection";
+  const price = Number(product?.price) || 0;
+  const oldPrice = Number(product?.oldPrice) || 0;
+  const discounted = oldPrice > price && price > 0;
+  const discount = discounted
+    ? Math.round(((oldPrice - price) / oldPrice) * 100)
+    : 0;
+  const rating = Number(product?.rating);
+  const reviews = Number(product?.reviews);
+  const hasRating = Number.isFinite(rating) && rating > 0;
+  const hasReviews = Number.isFinite(reviews) && reviews >= 0;
+
+  const handleAddToCart = () => {
+    const image = product?.image || product?.images?.[0];
+    if (!image) {
+      console.error("Product image not found");
+      return;
+    }
+
+    addToCart({
+      ...product,
+      _id: product?._id || product?.id,
+      name: product?.name || product?.title,
+      title: product?.title || product?.name,
+      image,
+    });
+
+    onAddToCart?.(image, addButtonRef.current);
+  };
+
+  return (
+    <div className="relative isolate w-full min-w-0">
+      {/* The four puzzle pieces ARE the card surface. */}
+      <PuzzleSurface reduceMotion={reduceMotion} />
 
       <motion.div
-        variants={itemVariants}
-        className="flex flex-wrap items-center gap-2"
+        initial={reduceMotion ? false : { opacity: 0, y: 7 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: reduceMotion ? 0 : 0.38,
+          delay: reduceMotion ? 0 : 0.68,
+          ease: EASE,
+        }}
+        className="relative z-10 px-4 pb-4 pt-4 sm:px-5 sm:pb-5 sm:pt-5"
       >
-        {/* CATEGORY */}
+        {/* Editorial micro-header */}
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="h-1.5 w-1.5 shrink-0 rotate-45 bg-red-500" />
+            <span className="truncate text-[9px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
+              KADECHO / ATELIER
+            </span>
+          </div>
+          {hasRating && (
+            <div className="flex shrink-0 items-center gap-1.5 text-[10px] text-zinc-400">
+              <Star size={11} fill="currentColor" className="text-red-500" />
+              <span className="font-semibold text-zinc-100">{rating.toFixed(1)}</span>
+              {hasReviews && <span className="text-zinc-500">({reviews})</span>}
+            </div>
+          )}
+        </div>
 
-        <span
-          className="
-            inline-flex
-            items-center
-            rounded-full
-            border
-            border-red-500/15
-            bg-red-500/[0.06]
-            px-2.5
-            py-1
-            text-[8px]
-            font-semibold
-            uppercase
-            tracking-[0.22em]
-            text-red-400
-          "
-        >
-          {product?.category || "Collection"}
-        </span>
+        {/* Product identity */}
+        <div className="mt-5 sm:mt-6">
+          <p className="mb-1.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-red-400">
+            {category} <span className="mx-1 text-red-900">/</span> Custom creation
+          </p>
+          <h1 className="break-words font-bebas text-[34px] uppercase leading-[0.98] tracking-[0.025em] text-white sm:text-[40px] lg:text-[42px]">
+            {name}
+          </h1>
+          {product?.description && (
+            <p className="mt-2.5 max-w-[52ch] text-[11px] leading-[1.65] text-zinc-400 sm:text-[12px]">
+              {product.description}
+            </p>
+          )}
+        </div>
 
-        {/* RATING */}
+        {/* Price block: no extra card, clear hierarchy */}
+        <div className="mt-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-white/[0.08] pb-4 sm:mt-6">
+          <div className="min-w-0">
+            <p className="mb-1 text-[9px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+              Price
+            </p>
+            <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
+              <strong className="whitespace-nowrap font-bebas text-[32px] font-normal leading-none tracking-[0.02em] text-red-500 sm:text-[36px]">
+                {priceFormatter.format(price)} DH
+              </strong>
+              {discounted && (
+                <span className="pb-0.5 text-[11px] text-zinc-500 line-through">
+                  {priceFormatter.format(oldPrice)} DH
+                </span>
+              )}
+            </div>
+          </div>
+          {discounted && (
+            <span className="rounded-md bg-red-500/[0.10] px-2 py-1 text-[10px] font-bold text-red-400">
+              -{discount}%
+            </span>
+          )}
+        </div>
 
-        <div
-          className="
-            inline-flex
-            items-center
-            gap-1.5
-            rounded-full
-            border
-            border-white/[0.07]
-            bg-white/[0.025]
-            px-2.5
-            py-1
-            backdrop-blur-sm
-          "
-        >
-          <Star
-            size={9}
-            fill="currentColor"
-            className="text-red-500"
-          />
-
-          <span className="text-[8px] font-semibold text-white">
-            4.9
+        {/* Lightweight assurances instead of dashboard-style cards */}
+        <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] text-zinc-400">
+          <span className="inline-flex items-center gap-1.5">
+            <ShieldCheck size={14} className="text-red-400" />
+            Premium Quality
           </span>
-
-          <span className="text-[8px] text-zinc-600">
-            126 Reviews
+          <span className="inline-flex items-center gap-1.5">
+            <Truck size={14} className="text-red-400" />
+            Fast Delivery
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Check size={14} className="text-red-400" />
+            Custom Made
           </span>
         </div>
+
+        {/* Conversion action: original cart + fly-to-cart behavior */}
+        <div className="mt-4 flex min-w-0 items-stretch gap-2">
+          <motion.button
+            ref={addButtonRef}
+            type="button"
+            onClick={handleAddToCart}
+            whileTap={reduceMotion ? undefined : { scale: 0.985 }}
+            className="group flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#b91c1c] to-[#e02429] px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-white transition-[filter] duration-200 hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+          >
+            <ShoppingBag size={15} />
+            <span>Add to Cart</span>
+            <ArrowUpRight size={14} className="opacity-75 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </motion.button>
+          <button
+            type="button"
+            disabled
+            aria-label="Wishlist coming soon"
+            title="Wishlist coming soon"
+            className="flex h-11 w-11 shrink-0 cursor-not-allowed items-center justify-center rounded-xl bg-white/[0.045] text-zinc-600"
+          >
+            <Heart size={16} />
+          </button>
+        </div>
+
+        <p className="mt-3 text-center text-[8px] uppercase tracking-[0.18em] text-zinc-600">
+          Crafted with precision · KADECHO
+        </p>
       </motion.div>
-
-      {/* ==========================================
-          TITLE
-      ========================================== */}
-
-      <motion.div
-        variants={itemVariants}
-        className="relative"
-      >
-        <motion.h1
-          initial={{
-            opacity: 0,
-            x: -12,
-          }}
-          animate={{
-            opacity: 1,
-            x: 0,
-          }}
-          transition={{
-            duration: 0.55,
-            ease,
-          }}
-          className="
-            max-w-2xl
-            font-bebas
-            text-[2rem]
-            font-black
-            uppercase
-            leading-[0.95]
-            tracking-[0.055em]
-            text-white
-            sm:text-[2.6rem]
-            lg:text-[3rem]
-          "
-        >
-          {product?.name || product?.title}
-        </motion.h1>
-
-        {/* subtle accent */}
-
-        <motion.div
-          initial={{
-            width: 0,
-            opacity: 0,
-          }}
-          animate={{
-            width: 38,
-            opacity: 1,
-          }}
-          transition={{
-            duration: 0.5,
-            delay: 0.2,
-            ease,
-          }}
-          className="
-            mt-2.5
-            h-[2px]
-            rounded-full
-            bg-red-500
-            shadow-[0_0_12px_rgba(239,68,68,.35)]
-          "
-        />
-      </motion.div>
-
-      {/* ==========================================
-          PRICE
-      ========================================== */}
-
-      <motion.div
-        variants={itemVariants}
-        className="
-          flex
-          flex-wrap
-          items-end
-          gap-x-2.5
-          gap-y-1
-        "
-      >
-        {/* CURRENT */}
-
-        <span
-          className="
-            font-bebas
-            text-[2rem]
-            leading-none
-            tracking-[0.035em]
-            text-red-500
-            sm:text-[2.3rem]
-          "
-        >
-          {currentPrice.toLocaleString()} DH
-        </span>
-
-        {/* OLD PRICE */}
-
-        {hasDiscount && (
-          <>
-            <span
-              className="
-                mb-0.5
-                text-[11px]
-                text-zinc-600
-                line-through
-              "
-            >
-              {oldPrice.toLocaleString()} DH
-            </span>
-
-            <span
-              className="
-                mb-0.5
-                inline-flex
-                items-center
-                gap-1
-                rounded-md
-                border
-                border-green-500/15
-                bg-green-500/[0.06]
-                px-1.5
-                py-1
-                text-[7px]
-                font-bold
-                uppercase
-                tracking-[0.12em]
-                text-green-400
-              "
-            >
-              <Sparkles size={8} />
-
-              -{discountPercentage}%
-            </span>
-          </>
-        )}
-      </motion.div>
-
-      {/* ==========================================
-          DESCRIPTION
-      ========================================== */}
-
-      {product?.description && (
-        <motion.p
-          variants={itemVariants}
-          className="
-            max-w-xl
-            text-[11px]
-            leading-[1.75]
-            text-zinc-500
-            sm:text-[12px]
-          "
-        >
-          {product.description}
-        </motion.p>
-      )}
-
-      {/* ==========================================
-          DIVIDER
-      ========================================== */}
-
-      <motion.div
-        variants={itemVariants}
-        className="
-          relative
-          h-px
-          w-full
-          overflow-hidden
-          bg-white/[0.06]
-        "
-      >
-        <motion.div
-          initial={{
-            x: "-100%",
-          }}
-          animate={{
-            x: "100%",
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          className="
-            absolute
-            inset-y-0
-            left-0
-            w-1/4
-            bg-gradient-to-r
-            from-transparent
-            via-red-500/70
-            to-transparent
-          "
-        />
-      </motion.div>
-
-      {/* ==========================================
-          QUICK FEATURES
-      ========================================== */}
-
-      <motion.div
-        variants={itemVariants}
-        className="grid grid-cols-2 gap-2"
-      >
-
-        {/* QUALITY */}
-
-        <motion.div
-          whileHover={{
-            y: -2,
-          }}
-          transition={{
-            duration: 0.25,
-            ease,
-          }}
-          className="
-            group
-            relative
-            overflow-hidden
-            rounded-xl
-            border
-            border-white/[0.07]
-            bg-white/[0.02]
-            px-3
-            py-2.5
-            transition-colors
-            duration-300
-            hover:border-red-500/20
-            hover:bg-red-500/[0.025]
-          "
-        >
-          <div className="flex items-center gap-2.5">
-
-            <div
-              className="
-                flex
-                h-7
-                w-7
-                shrink-0
-                items-center
-                justify-center
-                rounded-lg
-                border
-                border-red-500/15
-                bg-red-500/[0.06]
-                text-red-500
-                transition-all
-                duration-300
-                group-hover:border-red-500/30
-                group-hover:bg-red-500/10
-              "
-            >
-              <ShieldCheck size={13} />
-            </div>
-
-            <div className="min-w-0">
-              <p className="text-[9px] font-semibold text-zinc-200">
-                Premium Quality
-              </p>
-
-              <p className="mt-0.5 text-[7px] text-zinc-600">
-                Certified Materials
-              </p>
-            </div>
-
-          </div>
-
-          <motion.div
-            initial={{
-              scaleX: 0,
-            }}
-            whileHover={{
-              scaleX: 1,
-            }}
-            transition={{
-              duration: 0.35,
-              ease,
-            }}
-            className="
-              absolute
-              bottom-0
-              left-0
-              h-[1px]
-              w-full
-              origin-left
-              bg-gradient-to-r
-              from-red-500
-              to-transparent
-            "
-          />
-        </motion.div>
-
-        {/* DELIVERY */}
-
-        <motion.div
-          whileHover={{
-            y: -2,
-          }}
-          transition={{
-            duration: 0.25,
-            ease,
-          }}
-          className="
-            group
-            relative
-            overflow-hidden
-            rounded-xl
-            border
-            border-white/[0.07]
-            bg-white/[0.02]
-            px-3
-            py-2.5
-            transition-colors
-            duration-300
-            hover:border-red-500/20
-            hover:bg-red-500/[0.025]
-          "
-        >
-          <div className="flex items-center gap-2.5">
-
-            <div
-              className="
-                flex
-                h-7
-                w-7
-                shrink-0
-                items-center
-                justify-center
-                rounded-lg
-                border
-                border-red-500/15
-                bg-red-500/[0.06]
-                text-red-500
-                transition-all
-                duration-300
-                group-hover:border-red-500/30
-                group-hover:bg-red-500/10
-              "
-            >
-              <Truck size={13} />
-            </div>
-
-            <div className="min-w-0">
-              <p className="text-[9px] font-semibold text-zinc-200">
-                Fast Delivery
-              </p>
-
-              <p className="mt-0.5 text-[7px] text-zinc-600">
-                2–5 Working Days
-              </p>
-            </div>
-
-          </div>
-
-          <motion.div
-            initial={{
-              scaleX: 0,
-            }}
-            whileHover={{
-              scaleX: 1,
-            }}
-            transition={{
-              duration: 0.35,
-              ease,
-            }}
-            className="
-              absolute
-              bottom-0
-              left-0
-              h-[1px]
-              w-full
-              origin-left
-              bg-gradient-to-r
-              from-red-500
-              to-transparent
-            "
-          />
-        </motion.div>
-
-      </motion.div>
-
-      {/* ==========================================
-          ACTIONS
-      ========================================== */}
-
-      <motion.div
-        variants={itemVariants}
-        className="flex gap-2"
-      >
-
-        {/* ADD TO CART */}
-
-        <motion.button
-        ref={addButtonRef}
-          type="button"
-          onClick={handleAddToCart}
-          whileHover={{
-            y: -2,
-          }}
-          whileTap={{
-            scale: 0.975,
-          }}
-          transition={{
-            duration: 0.2,
-            ease,
-          }}
-          className="
-            group
-            relative
-            flex
-            h-11
-            flex-1
-            items-center
-            justify-center
-            gap-2
-            overflow-hidden
-            rounded-xl
-            bg-red-600
-            text-[9px]
-            font-bold
-            uppercase
-            tracking-[0.18em]
-            text-white
-            shadow-[0_8px_25px_rgba(239,68,68,.12)]
-            transition-all
-            duration-300
-            hover:bg-red-500
-            hover:shadow-[0_12px_32px_rgba(239,68,68,.20)]
-          "
-        >
-          {/* shine */}
-
-          <motion.span
-            initial={{
-              x: "-150%",
-            }}
-            whileHover={{
-              x: "350%",
-            }}
-            transition={{
-              duration: 0.65,
-              ease: "easeInOut",
-            }}
-            className="
-              absolute
-              inset-y-0
-              left-0
-              w-8
-              rotate-[20deg]
-              bg-white/20
-              blur-md
-            "
-          />
-
-          {/* glow */}
-
-          <span
-            className="
-              absolute
-              inset-0
-              bg-gradient-to-t
-              from-black/10
-              to-white/[0.06]
-            "
-          />
-
-          <ShoppingCart
-            size={14}
-            className="
-              relative
-              z-10
-              transition-transform
-              duration-300
-              group-hover:-rotate-6
-              group-hover:scale-110
-            "
-          />
-
-          <span className="relative z-10">
-            Add To Cart
-          </span>
-        </motion.button>
-
-        {/* WISHLIST */}
-
-        <motion.button
-          type="button"
-          whileHover={{
-            y: -2,
-          }}
-          whileTap={{
-            scale: 0.94,
-          }}
-          transition={{
-            duration: 0.2,
-            ease,
-          }}
-          className="
-            group
-            flex
-            h-11
-            w-11
-            shrink-0
-            items-center
-            justify-center
-            rounded-xl
-            border
-            border-white/[0.08]
-            bg-white/[0.025]
-            text-zinc-400
-            transition-all
-            duration-300
-            hover:border-red-500/25
-            hover:bg-red-500/[0.06]
-            hover:text-red-400
-          "
-        >
-          <Heart
-            size={15}
-            className="
-              transition-transform
-              duration-300
-              group-hover:scale-110
-            "
-          />
-        </motion.button>
-
-      </motion.div>
-
-    </motion.div>
+    </div>
   );
 }
