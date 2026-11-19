@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 export default function UserButton() {
   return (
     <Link
-      to="/login"
+      
       aria-label="Accéder à votre compte"
       title="Mon compte"
       className="

@@ -239,7 +239,7 @@ export default function Login() {
 
               <div className="relative rounded-2xl">
                 <img
-                  src="/logo1.png"
+                  src="/logo1.webp"
                   alt="KADECHO"
                   className="
                     relative
